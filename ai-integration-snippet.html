@@ -1,0 +1,212 @@
+<!-- ========================================
+     AnythingLLM Integration Snippet
+     Add this to neuralgrid.kr main page
+     ======================================== -->
+
+<!-- Add to Services Section -->
+<div class="service-card ai-assistant">
+    <div class="icon">🤖</div>
+    <h3>AI Assistant</h3>
+    <p>Private LLM workspace with document intelligence</p>
+    <div class="features">
+        <span class="badge">RAG</span>
+        <span class="badge">GPT-4</span>
+        <span class="badge">Documents</span>
+    </div>
+    <a href="https://ai.neuralgrid.kr" target="_blank" class="btn btn-primary">
+        Launch AI →
+    </a>
+</div>
+
+<style>
+/* AI Assistant Card Styling */
+.service-card.ai-assistant {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card.ai-assistant:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+}
+
+.service-card.ai-assistant .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.service-card.ai-assistant .features {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.service-card.ai-assistant .badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.service-card.ai-assistant .btn-primary {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.service-card.ai-assistant .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+</style>
+
+<!-- ========================================
+     Dashboard Integration
+     Add this to auth.neuralgrid.kr/dashboard
+     ======================================== -->
+
+<a href="https://ai.neuralgrid.kr" class="service-link ai-link" target="_blank">
+    <div class="icon">🤖</div>
+    <div class="info">
+        <h4>AI Assistant</h4>
+        <p>Chat with your documents</p>
+        <div class="tags">
+            <span class="tag">RAG</span>
+            <span class="tag">GPT-4</span>
+        </div>
+    </div>
+    <div class="status-indicator online">
+        <span class="pulse"></span>
+        <span class="text">Online</span>
+    </div>
+</a>
+
+<style>
+/* Dashboard AI Link Styling */
+.service-link.ai-link {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.service-link.ai-link:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    transform: translateX(5px);
+}
+
+.service-link .tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.service-link .tag {
+    background: rgba(102, 126, 234, 0.2);
+    color: #667eea;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicator .pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+.status-indicator.online .text {
+    color: #4ade80;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+</style>
+
+<!-- ========================================
+     JavaScript Integration (Optional)
+     Add analytics or interaction tracking
+     ======================================== -->
+
+<script>
+// Track AI Assistant link clicks
+document.querySelectorAll('a[href="https://ai.neuralgrid.kr"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+        // Analytics tracking
+        if (window.gtag) {
+            gtag('event', 'service_access', {
+                service_name: 'ai_assistant',
+                service_url: 'https://ai.neuralgrid.kr'
+            });
+        }
+        
+        // Optional: Add JWT token for SSO
+        const token = localStorage.getItem('neuralgrid_token');
+        if (token) {
+            // Append token to URL or use postMessage
+            console.log('User authenticated, token available for SSO');
+        }
+    });
+});
+
+// Check AI service status (optional)
+async function checkAIServiceStatus() {
+    try {
+        const response = await fetch('https://ai.neuralgrid.kr/', { method: 'HEAD' });
+        const statusElement = document.querySelector('.ai-link .status-indicator');
+        
+        if (response.ok) {
+            statusElement.classList.add('online');
+            statusElement.classList.remove('offline');
+        } else {
+            statusElement.classList.add('offline');
+            statusElement.classList.remove('online');
+        }
+    } catch (error) {
+        console.error('AI service status check failed:', error);
+    }
+}
+
+// Check status on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkAIServiceStatus);
+} else {
+    checkAIServiceStatus();
+}
+</script>
