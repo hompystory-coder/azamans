@@ -97,6 +97,43 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// Get single short by ID
+app.get('/api/shorts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const short = await dbGet(`
+      SELECT 
+        s.*,
+        c.youtube_channel_name,
+        c.subtag,
+        u.name as creator_name,
+        u.email as creator_email
+      FROM shorts s
+      LEFT JOIN creators c ON s.creator_id = c.id
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE s.id = ?
+    `, [id]);
+    
+    if (!short) {
+      return res.status(404).json({
+        success: false,
+        error: '쇼츠를 찾을 수 없습니다.'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: short
+    });
+  } catch (error) {
+    console.error('Error fetching short:', error);
+    res.status(500).json({
+      success: false,
+      error: '쇼츠 조회 중 오류가 발생했습니다.'
+    });
+  }
+});
+
 // Get all shorts
 app.get('/api/shorts', async (req, res) => {
   try {
@@ -583,17 +620,56 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Serve index.html for specific routes (client-side routing)
-const clientRoutes = ['/', '/creator', '/mypage', '/admin', '/register', '/short/:id'];
-clientRoutes.forEach(route => {
-  app.get(route, (req, res) => {
-    const filePath = path.join(__dirname, 'dist', 'index.html');
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404).json({ error: 'index.html not found' });
-    }
-  });
+// Serve HTML pages for specific routes
+app.get('/', (req, res) => {
+  const filePath = path.join(__dirname, 'dist', 'index.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).json({ error: 'index.html not found' });
+  }
+});
+
+app.get('/admin', (req, res) => {
+  const filePath = path.join(__dirname, 'dist', 'admin.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
+
+app.get('/mypage', (req, res) => {
+  const filePath = path.join(__dirname, 'dist', 'mypage.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
+
+app.get('/creator', (req, res) => {
+  const filePath = path.join(__dirname, 'dist', 'creator.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
+});
+
+app.get('/register', (req, res) => {
+  const filePath = path.join(__dirname, 'dist', 'index.html');
+  res.sendFile(filePath);
+});
+
+// Short detail page - dynamic route
+app.get('/short/:id', (req, res) => {
+  const filePath = path.join(__dirname, 'dist', 'short.html');
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
 });
 
 // Start server
