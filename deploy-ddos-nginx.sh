@@ -2,7 +2,7 @@
 
 # ==============================================
 # DDoS Defense System - Nginx Deployment Script
-# Domain: defense.neuralgrid.kr
+# Domain: ddos.neuralgrid.kr
 # ==============================================
 
 set -e
@@ -13,8 +13,8 @@ echo ""
 
 SERVER_IP="115.91.5.140"
 SERVER_USER="azamans"
-DOMAIN="defense.neuralgrid.kr"
-NGINX_CONF="defense.neuralgrid.kr.nginx.conf"
+DOMAIN="ddos.neuralgrid.kr"
+NGINX_CONF="ddos.neuralgrid.kr.nginx.conf"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -40,8 +40,8 @@ echo ""
 echo -e "${YELLOW}[2/5]${NC} Nginx 설정 적용 중..."
 sshpass -p '7009011226119' ssh -o StrictHostKeyChecking=no \
     "${SERVER_USER}@${SERVER_IP}" << 'ENDSSH'
-sudo -S mv /tmp/defense.neuralgrid.kr.nginx.conf /etc/nginx/sites-available/defense.neuralgrid.kr.conf <<< '7009011226119'
-sudo ln -sf /etc/nginx/sites-available/defense.neuralgrid.kr.conf /etc/nginx/sites-enabled/
+sudo -S mv /tmp/ddos.neuralgrid.kr.nginx.conf /etc/nginx/sites-available/ddos.neuralgrid.kr.conf <<< '7009011226119'
+sudo ln -sf /etc/nginx/sites-available/ddos.neuralgrid.kr.conf /etc/nginx/sites-enabled/
 ENDSSH
 
 if [ $? -eq 0 ]; then
@@ -123,7 +123,7 @@ echo "  • Health Check: http://${DOMAIN}/health"
 echo ""
 echo "⏭️  다음 단계:"
 echo "  1. DNS 레코드 추가 (아직 안했다면)"
-echo "     Type: A, Name: defense, IPv4: ${SERVER_IP}, Proxy: ON"
+echo "     Type: A, Name: ddos, IPv4: ${SERVER_IP}, Proxy: ON"
 echo ""
 echo "  2. DNS 전파 확인 (5-10분 소요)"
 echo "     nslookup ${DOMAIN} 8.8.8.8"
