@@ -1225,6 +1225,8 @@
         }
 
                 // Load Services (분리된 메인/추가 서비스)
+        let servicesLoaded = false;
+        
         function loadServices() {
             try {
                 // Render main services
@@ -1252,6 +1254,16 @@
                     });
                     console.log('Additional services loaded:', Object.keys(additionalServices).length);
                 }
+                
+                // 첫 로드 이후에는 즉시 reveal 클래스 활성화
+                if (servicesLoaded) {
+                    const newReveals = document.querySelectorAll('.reveal:not(.active)');
+                    newReveals.forEach(reveal => {
+                        reveal.classList.add('active');
+                    });
+                }
+                
+                servicesLoaded = true;
             } catch (error) {
                 console.error('Error loading services:', error);
             }
