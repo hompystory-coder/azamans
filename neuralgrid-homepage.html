@@ -1272,7 +1272,8 @@
         // Create service card helper
         function createServiceCard(serviceInfo, serviceName, index) {
             const card = document.createElement('div');
-            card.className = 'service-card reveal';
+            // 🔥 즉시 active 클래스 추가하여 사라지는 현상 방지
+            card.className = 'service-card reveal active';
             card.style.animationDelay = `${index * 0.1}s`;
             card.innerHTML = `
                 <div class="service-header">
@@ -1362,10 +1363,11 @@
             loadServices();
             observeElements();
 
-            // Auto refresh services every 30 seconds
-            setInterval(() => {
-                loadServices();
-            }, 30000);
+            // 서비스 카드가 사라지는 문제 해결을 위해 자동 새로고침 비활성화
+            // 필요시 수동으로 활성화 가능
+            // setInterval(() => {
+            //     loadServices();
+            // }, 30000);
         });
     </script>
 </body>
