@@ -1247,12 +1247,16 @@
                 
                 if (additionalGrid) {
                     additionalGrid.innerHTML = '';
+                    console.log('🔍 Additional Services:', Object.keys(additionalServices));
                     Object.keys(additionalServices).forEach((serviceName, index) => {
                         const serviceInfo = additionalServices[serviceName];
+                        console.log(`  ✅ Creating card for: ${serviceName}`, serviceInfo);
                         const card = createServiceCard(serviceInfo, serviceName, index);
                         additionalGrid.appendChild(card);
                     });
-                    console.log('Additional services loaded:', Object.keys(additionalServices).length);
+                    console.log('✅ Additional services loaded:', Object.keys(additionalServices).length);
+                } else {
+                    console.error('❌ Additional services grid not found!');
                 }
                 
                 // 첫 로드 이후에는 즉시 reveal 클래스 활성화
