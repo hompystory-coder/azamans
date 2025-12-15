@@ -932,7 +932,7 @@
                     document.getElementById('memory-progress').style.width = memPercent + '%';
 
                     // Update Uptime
-                    document.getElementById('uptime').textContent = formatUptime(data.data.osInfo.uptime);
+                    document.getElementById('uptime').textContent = formatUptime(data.data.uptime.seconds);
                     document.getElementById('os-info').textContent = 
                         `${data.data.osInfo.distro} (${data.data.osInfo.arch})`;
 
