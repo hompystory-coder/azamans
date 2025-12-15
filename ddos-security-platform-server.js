@@ -1,0 +1,832 @@
+const express = require('express');
+const { exec } = require('child_process');
+const fs = require('fs').promises;
+const path = require('path');
+const dns = require('dns').promises;
+const crypto = require('crypto');
+
+const app = express();
+const PORT = process.env.PORT || 3105;
+
+app.use(express.json());
+app.use(express.static(__dirname));
+
+// CORS 설정
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-API-Key, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// ============================================
+// 데이터 저장소
+// ============================================
+
+const DATA_DIR = '/var/lib/neuralgrid';
+const USERS_FILE = `${DATA_DIR}/users.json`;
+const SERVERS_FILE = `${DATA_DIR}/servers.json`;
+const BLOCKED_IPS_FILE = `${DATA_DIR}/blocked-ips.json`;
+const BLOCKED_DOMAINS_FILE = `${DATA_DIR}/blocked-domains.json`;
+
+let users = [];
+let servers = [];
+let blockedIPs = [];
+let blockedDomains = [];
+
+// ============================================
+// 유틸리티 함수
+// ============================================
+
+function execPromise(command) {
+    return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+                return;
+            }
+            resolve(stdout.trim());
+        });
+    });
+}
+
+function generateAPIKey() {
+    return 'ngk_' + crypto.randomBytes(32).toString('hex');
+}
+
+function generateServerId() {
+    return 'srv_' + crypto.randomBytes(8).toString('hex');
+}
+
+// JWT 검증 (간단 버전)
+async function verifyToken(token) {
+    try {
+        // auth.neuralgrid.kr에 토큰 검증 요청
+        const response = await fetch('https://auth.neuralgrid.kr/api/auth/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        });
+        const data = await response.json();
+        return data.success ? data.user : null;
+    } catch (error) {
+        console.error('Token verification failed:', error.message);
+        return null;
+    }
+}
+
+// 인증 미들웨어
+async function authMiddleware(req, res, next) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const apiKey = req.headers['x-api-key'];
+
+    if (apiKey) {
+        // API Key 인증
+        const server = servers.find(s => s.apiKey === apiKey);
+        if (server) {
+            req.server = server;
+            req.authenticated = true;
+            return next();
+        }
+    }
+
+    if (token) {
+        // JWT 토큰 인증
+        const user = await verifyToken(token);
+        if (user) {
+            req.user = user;
+            req.authenticated = true;
+            return next();
+        }
+    }
+
+    return res.status(401).json({ error: 'Unauthorized' });
+}
+
+// ============================================
+// 데이터 로드/저장
+// ============================================
+
+async function loadData() {
+    try {
+        await execPromise(`sudo mkdir -p ${DATA_DIR}`);
+        
+        try {
+            const usersData = await fs.readFile(USERS_FILE, 'utf-8');
+            users = JSON.parse(usersData);
+        } catch {
+            users = [];
+        }
+
+        try {
+            const serversData = await fs.readFile(SERVERS_FILE, 'utf-8');
+            servers = JSON.parse(serversData);
+        } catch {
+            servers = [];
+        }
+
+        try {
+            const ipData = await fs.readFile(BLOCKED_IPS_FILE, 'utf-8');
+            blockedIPs = JSON.parse(ipData);
+        } catch {
+            blockedIPs = [];
+        }
+
+        try {
+            const domainData = await fs.readFile(BLOCKED_DOMAINS_FILE, 'utf-8');
+            blockedDomains = JSON.parse(domainData);
+        } catch {
+            blockedDomains = [];
+        }
+
+        console.log(`📚 Loaded: ${users.length} users, ${servers.length} servers, ${blockedIPs.length} IPs, ${blockedDomains.length} domains`);
+    } catch (error) {
+        console.error('Failed to load data:', error.message);
+    }
+}
+
+async function saveData() {
+    try {
+        await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+        await fs.writeFile(SERVERS_FILE, JSON.stringify(servers, null, 2));
+        await fs.writeFile(BLOCKED_IPS_FILE, JSON.stringify(blockedIPs, null, 2));
+        await fs.writeFile(BLOCKED_DOMAINS_FILE, JSON.stringify(blockedDomains, null, 2));
+    } catch (error) {
+        console.error('Failed to save data:', error.message);
+    }
+}
+
+// ============================================
+// 방화벽 관리 (기존 코드)
+// ============================================
+
+let FIREWALL_TYPE = 'iptables';
+let OS_TYPE = 'ubuntu';
+
+async function detectSystem() {
+    try {
+        const osRelease = await fs.readFile('/etc/os-release', 'utf-8');
+        if (osRelease.includes('CentOS')) {
+            OS_TYPE = 'centos';
+        } else if (osRelease.includes('Ubuntu')) {
+            OS_TYPE = 'ubuntu';
+        } else if (osRelease.includes('Debian')) {
+            OS_TYPE = 'debian';
+        }
+
+        try {
+            await execPromise('which firewall-cmd');
+            FIREWALL_TYPE = 'firewalld';
+        } catch {
+            try {
+                await execPromise('which ufw');
+                FIREWALL_TYPE = 'ufw';
+            } catch {
+                FIREWALL_TYPE = 'iptables';
+            }
+        }
+
+        console.log(`🔍 System detected: ${OS_TYPE}, Firewall: ${FIREWALL_TYPE}`);
+    } catch (error) {
+        console.error('System detection failed:', error.message);
+    }
+}
+
+async function blockIPInFirewall(ip) {
+    try {
+        if (FIREWALL_TYPE === 'firewalld') {
+            await execPromise(`sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="${ip}" reject'`);
+            await execPromise('sudo firewall-cmd --reload');
+        } else if (FIREWALL_TYPE === 'ufw') {
+            await execPromise(`sudo ufw deny from ${ip}`);
+        } else {
+            await execPromise(`sudo iptables -I INPUT -s ${ip} -j DROP`);
+            await execPromise(`sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null 2>&1 || sudo service iptables save || true`);
+        }
+        return { success: true };
+    } catch (error) {
+        throw new Error(`Firewall block failed: ${error.message}`);
+    }
+}
+
+async function unblockIPInFirewall(ip) {
+    try {
+        if (FIREWALL_TYPE === 'firewalld') {
+            await execPromise(`sudo firewall-cmd --permanent --remove-rich-rule='rule family="ipv4" source address="${ip}" reject'`);
+            await execPromise('sudo firewall-cmd --reload');
+        } else if (FIREWALL_TYPE === 'ufw') {
+            await execPromise(`sudo ufw delete deny from ${ip}`);
+        } else {
+            await execPromise(`sudo iptables -D INPUT -s ${ip} -j DROP`);
+            await execPromise(`sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null 2>&1 || sudo service iptables save || true`);
+        }
+        return { success: true };
+    } catch (error) {
+        throw new Error(`Firewall unblock failed: ${error.message}`);
+    }
+}
+
+// ============================================
+// 서버 등록 API
+// ============================================
+
+// 서버 등록 (무료 체험)
+app.post('/api/servers/register-trial', authMiddleware, async (req, res) => {
+    try {
+        const { serverIp, domain, osType, purpose } = req.body;
+        const userId = req.user.id;
+
+        // 무료 체험은 1개만
+        const existingTrials = servers.filter(s => s.userId === userId && s.tier === 'trial');
+        if (existingTrials.length >= 1) {
+            return res.status(400).json({ error: '무료 체험은 1개 서버만 가능합니다. 정식 신청을 이용해주세요.' });
+        }
+
+        const serverId = generateServerId();
+        const apiKey = generateAPIKey();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7일
+
+        const server = {
+            id: serverId,
+            userId,
+            serverIp,
+            domain: domain || null,
+            osType: osType || 'unknown',
+            purpose: purpose || null,
+            apiKey,
+            tier: 'trial',
+            status: 'active',
+            expiresAt: expiresAt.toISOString(),
+            createdAt: new Date().toISOString(),
+            stats: {
+                totalRequests: 0,
+                blockedRequests: 0,
+                blockedIPs: 0
+            }
+        };
+
+        servers.push(server);
+        await saveData();
+
+        res.json({
+            success: true,
+            message: '무료 체험 서버가 등록되었습니다! (7일간 유효)',
+            server: {
+                id: serverId,
+                apiKey,
+                tier: 'trial',
+                expiresAt: server.expiresAt,
+                installScript: `curl -fsSL https://ddos.neuralgrid.kr/install?key=${apiKey} | bash`
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 서버 등록 (정식 신청)
+app.post('/api/servers/register-premium', authMiddleware, async (req, res) => {
+    try {
+        const { serverIp, domain, osType, purpose, companyName, phone } = req.body;
+        const userId = req.user.id;
+
+        const serverId = generateServerId();
+        const apiKey = generateAPIKey();
+
+        const server = {
+            id: serverId,
+            userId,
+            serverIp,
+            domain: domain || null,
+            osType: osType || 'unknown',
+            purpose: purpose || null,
+            companyName: companyName || null,
+            phone: phone || null,
+            apiKey,
+            tier: 'premium',
+            status: 'pending', // 승인 대기
+            expiresAt: null, // 영구
+            createdAt: new Date().toISOString(),
+            stats: {
+                totalRequests: 0,
+                blockedRequests: 0,
+                blockedIPs: 0
+            }
+        };
+
+        servers.push(server);
+        await saveData();
+
+        // TODO: 관리자에게 알림 전송
+
+        res.json({
+            success: true,
+            message: '정식 신청이 접수되었습니다. 승인 후 사용 가능합니다.',
+            server: {
+                id: serverId,
+                tier: 'premium',
+                status: 'pending',
+                estimatedApprovalTime: '24시간 이내'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 내 서버 목록 조회
+app.get('/api/servers/my', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const userServers = servers.filter(s => s.userId === userId);
+
+        // 만료된 체험 서버 자동 비활성화
+        const now = new Date();
+        userServers.forEach(server => {
+            if (server.tier === 'trial' && server.expiresAt) {
+                const expiryDate = new Date(server.expiresAt);
+                if (now > expiryDate) {
+                    server.status = 'expired';
+                }
+            }
+        });
+
+        res.json({
+            servers: userServers.map(s => ({
+                id: s.id,
+                serverIp: s.serverIp,
+                domain: s.domain,
+                tier: s.tier,
+                status: s.status,
+                expiresAt: s.expiresAt,
+                createdAt: s.createdAt,
+                stats: s.stats
+            }))
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 특정 서버 상세 정보
+app.get('/api/servers/:serverId', authMiddleware, async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const userId = req.user.id;
+
+        const server = servers.find(s => s.id === serverId && s.userId === userId);
+        if (!server) {
+            return res.status(404).json({ error: 'Server not found' });
+        }
+
+        res.json({ server });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 서버 삭제
+app.delete('/api/servers/:serverId', authMiddleware, async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const userId = req.user.id;
+
+        const serverIndex = servers.findIndex(s => s.id === serverId && s.userId === userId);
+        if (serverIndex === -1) {
+            return res.status(404).json({ error: 'Server not found' });
+        }
+
+        servers.splice(serverIndex, 1);
+        await saveData();
+
+        res.json({ success: true, message: 'Server deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================
+// 설치 스크립트 생성
+// ============================================
+
+app.get('/install', async (req, res) => {
+    const { key } = req.query;
+
+    if (!key) {
+        return res.status(400).send('API Key is required. Usage: curl -fsSL https://ddos.neuralgrid.kr/install?key=YOUR_API_KEY | bash');
+    }
+
+    const server = servers.find(s => s.apiKey === key);
+    if (!server) {
+        return res.status(404).send('Invalid API Key');
+    }
+
+    const script = `#!/bin/bash
+# NeuralGrid Security Agent Installer
+# Server ID: ${server.id}
+# Tier: ${server.tier}
+# Generated: ${new Date().toISOString()}
+
+set -e
+
+echo "🛡️  NeuralGrid Security Agent Installer"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Detect OS
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+    VERSION=$VERSION_ID
+else
+    echo "❌ Cannot detect OS"
+    exit 1
+fi
+
+echo "📍 Detected OS: $OS $VERSION"
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+if [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
+    sudo apt-get update -qq
+    sudo apt-get install -y curl git nodejs npm
+elif [ "$OS" = "centos" ] || [ "$OS" = "rhel" ]; then
+    sudo yum install -y curl git nodejs npm
+fi
+
+# Download agent
+echo "⬇️  Downloading agent..."
+cd /tmp
+curl -fsSL https://ddos.neuralgrid.kr/agent/neuralgrid-agent.tar.gz -o agent.tar.gz || {
+    echo "❌ Download failed. Using local installation method..."
+    mkdir -p neuralgrid-agent
+    cd neuralgrid-agent
+}
+
+# Configure
+echo "⚙️  Configuring..."
+cat > /tmp/neuralgrid-agent/config.json << 'CONFIGEOF'
+{
+    "apiKey": "${key}",
+    "serverId": "${server.id}",
+    "centralUrl": "https://ddos.neuralgrid.kr",
+    "reportInterval": 30000,
+    "osType": "${server.osType}"
+}
+CONFIGEOF
+
+# Firewall configuration
+echo "🔥 Configuring firewall..."
+if command -v ufw &> /dev/null; then
+    sudo ufw allow 3105/tcp
+elif command -v firewall-cmd &> /dev/null; then
+    sudo firewall-cmd --permanent --add-port=3105/tcp
+    sudo firewall-cmd --reload
+fi
+
+# Install PM2 if not exists
+if ! command -v pm2 &> /dev/null; then
+    echo "📦 Installing PM2..."
+    sudo npm install -g pm2
+fi
+
+# Start agent (placeholder - actual agent implementation needed)
+echo "🚀 Starting agent..."
+# pm2 start agent.js --name neuralgrid-agent-${server.id}
+# pm2 save
+
+echo ""
+echo "✅ Installation complete!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🌐 Dashboard: https://ddos.neuralgrid.kr/dashboard/${server.id}"
+echo "📊 My Page: https://neuralgrid.kr/mypage"
+echo ""
+echo "⚠️  Note: Agent functionality coming soon. Dashboard is ready!"
+`;
+
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(script);
+});
+
+// ============================================
+// IP 차단 API (기존 + 서버별 관리)
+// ============================================
+
+app.post('/api/firewall/block', authMiddleware, async (req, res) => {
+    try {
+        const { ip, reason = '' } = req.body;
+        const serverId = req.server?.id || 'local';
+
+        if (!ip) {
+            return res.status(400).json({ error: 'IP address is required' });
+        }
+
+        const ipRegex = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
+        if (!ipRegex.test(ip)) {
+            return res.status(400).json({ error: 'Invalid IP address format' });
+        }
+
+        await blockIPInFirewall(ip);
+
+        const blockEntry = {
+            ip,
+            reason,
+            serverId,
+            blockedAt: new Date().toISOString(),
+            blockedBy: req.user?.id || 'api',
+            method: FIREWALL_TYPE
+        };
+
+        blockedIPs.push(blockEntry);
+        await saveData();
+
+        // 서버 통계 업데이트
+        const server = servers.find(s => s.id === serverId);
+        if (server) {
+            server.stats.blockedIPs++;
+            await saveData();
+        }
+
+        res.json({ success: true, message: `IP ${ip} blocked successfully`, entry: blockEntry });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/firewall/unblock', authMiddleware, async (req, res) => {
+    try {
+        const { ip } = req.body;
+
+        if (!ip) {
+            return res.status(400).json({ error: 'IP address is required' });
+        }
+
+        await unblockIPInFirewall(ip);
+
+        blockedIPs = blockedIPs.filter(item => item.ip !== ip);
+        await saveData();
+
+        res.json({ success: true, message: `IP ${ip} unblocked successfully` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/firewall/list', authMiddleware, async (req, res) => {
+    try {
+        const serverId = req.query.serverId || 'all';
+        
+        let filteredIPs = blockedIPs;
+        if (serverId !== 'all') {
+            filteredIPs = blockedIPs.filter(ip => ip.serverId === serverId);
+        }
+
+        res.json({
+            blocked: filteredIPs,
+            count: filteredIPs.length,
+            firewallType: FIREWALL_TYPE,
+            osType: OS_TYPE
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================
+// 도메인 차단 API
+// ============================================
+
+app.get('/api/firewall/lookup-domain', async (req, res) => {
+    try {
+        const { domain } = req.query;
+
+        if (!domain) {
+            return res.status(400).json({ error: 'Domain is required' });
+        }
+
+        const addresses = await dns.resolve4(domain);
+        
+        res.json({
+            success: true,
+            domain,
+            ips: addresses,
+            count: addresses.length
+        });
+    } catch (error) {
+        res.status(500).json({ error: `DNS lookup failed: ${error.message}` });
+    }
+});
+
+app.post('/api/firewall/block-domain', authMiddleware, async (req, res) => {
+    try {
+        const { domain, reason = '' } = req.body;
+        const serverId = req.server?.id || 'local';
+
+        if (!domain) {
+            return res.status(400).json({ error: 'Domain is required' });
+        }
+
+        const addresses = await dns.resolve4(domain);
+
+        if (addresses.length === 0) {
+            return res.status(404).json({ error: 'No IP addresses found for domain' });
+        }
+
+        const blockedAddresses = [];
+        for (const ip of addresses) {
+            try {
+                await blockIPInFirewall(ip);
+                blockedAddresses.push(ip);
+
+                if (!blockedIPs.find(item => item.ip === ip)) {
+                    blockedIPs.push({
+                        ip,
+                        reason: `Domain: ${domain} - ${reason}`,
+                        serverId,
+                        blockedAt: new Date().toISOString(),
+                        blockedBy: req.user?.id || 'api',
+                        domain,
+                        method: FIREWALL_TYPE
+                    });
+                }
+            } catch (error) {
+                console.error(`Failed to block ${ip}:`, error.message);
+            }
+        }
+
+        const domainEntry = {
+            domain,
+            ips: blockedAddresses,
+            reason,
+            serverId,
+            blockedAt: new Date().toISOString(),
+            blockedBy: req.user?.id || 'api'
+        };
+
+        blockedDomains.push(domainEntry);
+        await saveData();
+
+        res.json({
+            success: true,
+            message: `Domain ${domain} and ${blockedAddresses.length} IPs blocked`,
+            domain: domainEntry,
+            blockedIPs: blockedAddresses
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/firewall/domains', authMiddleware, async (req, res) => {
+    try {
+        const serverId = req.query.serverId || 'all';
+        
+        let filteredDomains = blockedDomains;
+        if (serverId !== 'all') {
+            filteredDomains = blockedDomains.filter(d => d.serverId === serverId);
+        }
+
+        res.json({
+            domains: filteredDomains,
+            count: filteredDomains.length
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/firewall/unblock-domain', authMiddleware, async (req, res) => {
+    try {
+        const { domain } = req.body;
+
+        if (!domain) {
+            return res.status(400).json({ error: 'Domain is required' });
+        }
+
+        const domainEntry = blockedDomains.find(item => item.domain === domain);
+        
+        if (!domainEntry) {
+            return res.status(404).json({ error: 'Domain not found in blocked list' });
+        }
+
+        for (const ip of domainEntry.ips) {
+            try {
+                await unblockIPInFirewall(ip);
+                blockedIPs = blockedIPs.filter(item => item.ip !== ip || item.domain !== domain);
+            } catch (error) {
+                console.error(`Failed to unblock ${ip}:`, error.message);
+            }
+        }
+
+        blockedDomains = blockedDomains.filter(item => item.domain !== domain);
+        await saveData();
+
+        res.json({
+            success: true,
+            message: `Domain ${domain} and related IPs unblocked`,
+            unblockedIPs: domainEntry.ips
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================
+// 시스템 정보 API
+// ============================================
+
+app.get('/api/system/info', async (req, res) => {
+    try {
+        const uptime = await execPromise('uptime -p');
+        const hostname = await execPromise('hostname');
+        
+        res.json({
+            hostname,
+            uptime,
+            osType: OS_TYPE,
+            firewallType: FIREWALL_TYPE,
+            stats: {
+                totalServers: servers.length,
+                activeServers: servers.filter(s => s.status === 'active').length,
+                trialServers: servers.filter(s => s.tier === 'trial').length,
+                premiumServers: servers.filter(s => s.tier === 'premium').length,
+                totalBlockedIPs: blockedIPs.length,
+                totalBlockedDomains: blockedDomains.length
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================
+// Health Check
+// ============================================
+
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        version: '3.0.0-hybrid',
+        features: [
+            'sso-auth',
+            'server-registration',
+            'api-key-management',
+            'trial-premium-tiers',
+            'ip-blocking',
+            'domain-blocking',
+            'multi-platform'
+        ],
+        osType: OS_TYPE,
+        firewallType: FIREWALL_TYPE,
+        stats: {
+            servers: servers.length,
+            blockedIPs: blockedIPs.length,
+            blockedDomains: blockedDomains.length
+        },
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ============================================
+// 정적 파일
+// ============================================
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'ddos-ip-manager.html'));
+});
+
+// ============================================
+// 서버 시작
+// ============================================
+
+async function startServer() {
+    try {
+        await detectSystem();
+        await loadData();
+
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`
+╔════════════════════════════════════════════════════════════╗
+║   🛡️  NeuralGrid Security Platform v3.0 (Hybrid)         ║
+╠════════════════════════════════════════════════════════════╣
+║  🌐 URL: https://ddos.neuralgrid.kr
+║  🔌 Port: ${PORT}
+║  💻 OS: ${OS_TYPE}
+║  🔥 Firewall: ${FIREWALL_TYPE}
+║  👥 Users: ${users.length}
+║  🖥️  Servers: ${servers.length}
+║  🚫 Blocked IPs: ${blockedIPs.length}
+║  🌐 Blocked Domains: ${blockedDomains.length}
+╚════════════════════════════════════════════════════════════╝
+            `);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+startServer();

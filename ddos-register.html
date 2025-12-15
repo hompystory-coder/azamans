@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ 서버 등록 - NeuralGrid Security</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1e1b4b 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary);
+        }
+
+        .plan-card.recommended {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .plan-title {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .plan-duration {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            padding: 0.75rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: var(--bg-card);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-hint {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .result-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .copy-btn:hover {
+            background: #2563eb;
+        }
+
+        @media (max-width: 768px) {
+            .plans {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ NeuralGrid Security Platform</h1>
+            <p>서버 보안 & 성능 테스트를 시작하세요</p>
+        </div>
+
+        <div class="plans">
+            <!-- 무료 체험 -->
+            <div class="plan-card">
+                <div class="plan-title">
+                    <span>🚀</span>
+                    <span>무료 체험</span>
+                </div>
+                <div class="plan-price">무료</div>
+                <div class="plan-duration">7일간 무료로 체험하세요</div>
+
+                <ul class="plan-features">
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>1개 서버 등록</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>기본 DDoS 테스트</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>IP 차단 관리</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>도메인 차단</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>실시간 대시보드</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">❌</span>
+                        <span>복수 서버 관리</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">❌</span>
+                        <span>고급 통계</span>
+                    </li>
+                </ul>
+
+                <button class="btn btn-primary" onclick="openTrialModal()">
+                    🚀 즉시 시작하기
+                </button>
+            </div>
+
+            <!-- 정식 신청 -->
+            <div class="plan-card recommended">
+                <div class="plan-badge">추천</div>
+                <div class="plan-title">
+                    <span>💎</span>
+                    <span>정식 서비스</span>
+                </div>
+                <div class="plan-price">무료</div>
+                <div class="plan-duration">영구 무료 (승인 후 사용)</div>
+
+                <ul class="plan-features">
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>무제한 서버 등록</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>전체 DDoS 테스트 기능</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>고급 IP/도메인 관리</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>국가별 차단 (GeoIP)</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>통합 대시보드</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>고급 통계 & 리포트</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>1:1 기술 지원</span>
+                    </li>
+                </ul>
+
+                <button class="btn btn-primary" onclick="openPremiumModal()">
+                    💎 정식 신청하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 이미 사용 중이신가요? -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">이미 등록하셨나요?</p>
+            <a href="https://neuralgrid.kr/mypage" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                📊 마이페이지로 이동 →
+            </a>
+        </div>
+    </div>
+
+    <!-- 무료 체험 모달 -->
+    <div id="trialModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('trialModal')">&times;</button>
+            <div class="modal-header">
+                <h2>🚀 무료 체험 시작</h2>
+                <p style="color: var(--text-secondary);">간단한 정보만 입력하면 즉시 시작할 수 있습니다</p>
+            </div>
+
+            <div id="trialAlert" class="alert"></div>
+
+            <form id="trialForm" onsubmit="submitTrial(event)">
+                <div class="form-group">
+                    <label>서버 IP 주소 *</label>
+                    <input type="text" name="serverIp" placeholder="예: 115.91.5.140" required>
+                    <div class="form-hint">보호할 서버의 공인 IP 주소를 입력하세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label>도메인 (선택)</label>
+                    <input type="text" name="domain" placeholder="예: example.com">
+                    <div class="form-hint">서버에 연결된 도메인이 있다면 입력하세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label>운영체제 *</label>
+                    <select name="osType" required>
+                        <option value="">선택하세요</option>
+                        <option value="ubuntu">Ubuntu</option>
+                        <option value="debian">Debian</option>
+                        <option value="centos">CentOS 7</option>
+                        <option value="centos8">CentOS 8+</option>
+                        <option value="rhel">RHEL</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>사용 목적 (선택)</label>
+                    <select name="purpose">
+                        <option value="">선택하세요</option>
+                        <option value="website">웹사이트 보안</option>
+                        <option value="api">API 서버 보호</option>
+                        <option value="gaming">게임 서버</option>
+                        <option value="ecommerce">이커머스</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    🚀 즉시 시작하기
+                </button>
+            </form>
+
+            <div id="trialResult" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">✅ 등록 완료!</div>
+                    <p style="margin-bottom: 1rem;">아래 명령어를 서버에서 실행하세요:</p>
+                    
+                    <div class="code-block" id="installScript"></div>
+                    <button class="copy-btn" onclick="copyInstallScript()">📋 복사하기</button>
+
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">다음 단계:</p>
+                        <ol style="padding-left: 1.5rem; color: var(--text-secondary);">
+                            <li>위 명령어를 서버에서 실행</li>
+                            <li>설치 완료 대기 (약 2-3분)</li>
+                            <li><a href="https://neuralgrid.kr/mypage" style="color: var(--primary);">마이페이지</a>에서 실시간 모니터링</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 정식 신청 모달 -->
+    <div id="premiumModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('premiumModal')">&times;</button>
+            <div class="modal-header">
+                <h2>💎 정식 서비스 신청</h2>
+                <p style="color: var(--text-secondary);">승인 후 모든 기능을 영구 무료로 사용하실 수 있습니다</p>
+            </div>
+
+            <div id="premiumAlert" class="alert"></div>
+
+            <form id="premiumForm" onsubmit="submitPremium(event)">
+                <div class="form-group">
+                    <label>회사/개인명 *</label>
+                    <input type="text" name="companyName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>연락처 *</label>
+                    <input type="tel" name="phone" placeholder="010-1234-5678" required>
+                </div>
+
+                <div class="form-group">
+                    <label>서버 IP 주소 *</label>
+                    <input type="text" name="serverIp" placeholder="예: 115.91.5.140" required>
+                </div>
+
+                <div class="form-group">
+                    <label>도메인 (선택)</label>
+                    <input type="text" name="domain" placeholder="예: example.com">
+                </div>
+
+                <div class="form-group">
+                    <label>운영체제 *</label>
+                    <select name="osType" required>
+                        <option value="">선택하세요</option>
+                        <option value="ubuntu">Ubuntu</option>
+                        <option value="debian">Debian</option>
+                        <option value="centos">CentOS 7</option>
+                        <option value="centos8">CentOS 8+</option>
+                        <option value="rhel">RHEL</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>사용 목적 *</label>
+                    <select name="purpose" required>
+                        <option value="">선택하세요</option>
+                        <option value="website">웹사이트 보안</option>
+                        <option value="api">API 서버 보호</option>
+                        <option value="gaming">게임 서버</option>
+                        <option value="ecommerce">이커머스</option>
+                        <option value="enterprise">기업용</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>상세 설명 (선택)</label>
+                    <textarea name="description" placeholder="서비스 내용, 예상 트래픽, 특별 요구사항 등을 자유롭게 작성해주세요"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    💎 신청하기
+                </button>
+            </form>
+
+            <div id="premiumResult" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">✅ 신청 완료!</div>
+                    <p style="margin-bottom: 1rem;">신청이 성공적으로 접수되었습니다.</p>
+                    
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">⏱️ 승인 예상 시간: 24시간 이내</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">승인 완료 시 이메일로 안내드립니다.</p>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">📧 다음 단계:</p>
+                        <ol style="padding-left: 1.5rem; color: var(--text-secondary);">
+                            <li>승인 완료 이메일 대기</li>
+                            <li>이메일의 설치 스크립트 확인</li>
+                            <li>서버에서 스크립트 실행</li>
+                            <li><a href="https://neuralgrid.kr/mypage" style="color: var(--primary);">마이페이지</a>에서 모니터링</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 인증 토큰 가져오기
+        function getAuthToken() {
+            return localStorage.getItem('neuralgrid_token') || 
+                   sessionStorage.getItem('neuralgrid_token') ||
+                   getCookie('neuralgrid_token');
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        function openTrialModal() {
+            checkAuth(() => {
+                document.getElementById('trialModal').classList.add('active');
+            });
+        }
+
+        function openPremiumModal() {
+            checkAuth(() => {
+                document.getElementById('premiumModal').classList.add('active');
+            });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function checkAuth(callback) {
+            const token = getAuthToken();
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'https://neuralgrid.kr/';
+                return;
+            }
+            callback();
+        }
+
+        async function submitTrial(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            const token = getAuthToken();
+            if (!token) {
+                showAlert('trialAlert', 'error', '로그인이 필요합니다.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/servers/register-trial', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    form.style.display = 'none';
+                    document.getElementById('trialResult').style.display = 'block';
+                    document.getElementById('installScript').textContent = result.server.installScript;
+                    showAlert('trialAlert', 'success', result.message);
+                } else {
+                    showAlert('trialAlert', 'error', result.error || '등록에 실패했습니다.');
+                }
+            } catch (error) {
+                showAlert('trialAlert', 'error', '오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        async function submitPremium(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            const token = getAuthToken();
+            if (!token) {
+                showAlert('premiumAlert', 'error', '로그인이 필요합니다.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/servers/register-premium', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    form.style.display = 'none';
+                    document.getElementById('premiumResult').style.display = 'block';
+                    showAlert('premiumAlert', 'success', result.message);
+                } else {
+                    showAlert('premiumAlert', 'error', result.error || '신청에 실패했습니다.');
+                }
+            } catch (error) {
+                showAlert('premiumAlert', 'error', '오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        function showAlert(id, type, message) {
+            const alert = document.getElementById(id);
+            alert.className = `alert alert-${type} active`;
+            alert.textContent = message;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    alert.classList.remove('active');
+                }, 5000);
+            }
+        }
+
+        function copyInstallScript() {
+            const script = document.getElementById('installScript').textContent;
+            navigator.clipboard.writeText(script).then(() => {
+                alert('복사되었습니다! 서버에 붙여넣기하세요.');
+            });
+        }
+
+        // 모달 외부 클릭 시 닫기
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
