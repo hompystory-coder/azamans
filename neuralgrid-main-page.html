@@ -1194,27 +1194,35 @@
         }
 
                 // Load Services (분리된 메인/추가 서비스)
-        async function loadServices() {
-            // Render main services
-            const mainGrid = document.getElementById('main-services-grid');
-            const additionalGrid = document.getElementById('additional-services-grid');
-            
-            if (mainGrid) {
-                mainGrid.innerHTML = '';
-                Object.keys(mainServices).forEach((serviceName, index) => {
-                    const serviceInfo = mainServices[serviceName];
-                    const card = createServiceCard(serviceInfo, serviceName, index);
-                    mainGrid.appendChild(card);
-                });
-            }
-            
-            if (additionalGrid) {
-                additionalGrid.innerHTML = '';
-                Object.keys(additionalServices).forEach((serviceName, index) => {
-                    const serviceInfo = additionalServices[serviceName];
-                    const card = createServiceCard(serviceInfo, serviceName, index);
-                    additionalGrid.appendChild(card);
-                });
+        function loadServices() {
+            try {
+                // Render main services
+                const mainGrid = document.getElementById('main-services-grid');
+                const additionalGrid = document.getElementById('additional-services-grid');
+                
+                console.log('Loading services...', { mainGrid, additionalGrid });
+                
+                if (mainGrid) {
+                    mainGrid.innerHTML = '';
+                    Object.keys(mainServices).forEach((serviceName, index) => {
+                        const serviceInfo = mainServices[serviceName];
+                        const card = createServiceCard(serviceInfo, serviceName, index);
+                        mainGrid.appendChild(card);
+                    });
+                    console.log('Main services loaded:', Object.keys(mainServices).length);
+                }
+                
+                if (additionalGrid) {
+                    additionalGrid.innerHTML = '';
+                    Object.keys(additionalServices).forEach((serviceName, index) => {
+                        const serviceInfo = additionalServices[serviceName];
+                        const card = createServiceCard(serviceInfo, serviceName, index);
+                        additionalGrid.appendChild(card);
+                    });
+                    console.log('Additional services loaded:', Object.keys(additionalServices).length);
+                }
+            } catch (error) {
+                console.error('Error loading services:', error);
             }
         }
         
@@ -1253,17 +1261,6 @@
                 </a>
             `;
             return card;
-        }
-            } catch (error) {
-                console.error('Failed to load services:', error);
-                document.getElementById('services-grid').innerHTML = `
-                    <div class="service-card" style="grid-column: 1/-1;">
-                        <p style="text-align: center; color: var(--error); font-size: 1.1rem;">
-                            ⚠️ 서비스 정보를 불러오는데 실패했습니다.
-                        </p>
-                    </div>
-                `;
-            }
         }
 
         // Check Auth Status
