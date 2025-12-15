@@ -12,12 +12,156 @@ app.use(express.static('public'));
 // CORS 설정
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-API-Key');
     next();
 });
 
 // ============================================
-// API 엔드포인트
+// 다중 서버 관리 (Multi-Server Support)
+// ============================================
+
+// 서버 데이터 저장소 (메모리 기반, 나중에 DB로 확장 가능)
+const servers = new Map();
+
+// 현재 로컬 서버 자동 등록
+const LOCAL_SERVER = {
+    id: 'local-115.91.5.140',
+    name: 'NeuralGrid Main (115.91.5.140)',
+    ip: '115.91.5.140',
+    type: 'local',
+    registeredAt: new Date().toISOString(),
+    lastSeen: new Date().toISOString(),
+    status: 'online'
+};
+
+servers.set(LOCAL_SERVER.id, LOCAL_SERVER);
+
+// ============================================
+// 다중 서버 API 엔드포인트
+// ============================================
+
+// 서버 등록
+app.post('/api/server/register', (req, res) => {
+    try {
+        const { serverId, serverName, serverIp, apiKey } = req.body;
+        
+        if (!serverId || !serverName || !serverIp) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        const server = {
+            id: serverId,
+            name: serverName,
+            ip: serverIp,
+            type: 'remote',
+            registeredAt: servers.has(serverId) ? servers.get(serverId).registeredAt : new Date().toISOString(),
+            lastSeen: new Date().toISOString(),
+            status: 'online',
+            traffic: { totalRequests: 0, requestsPerSecond: 0, normalTraffic: 0, blockedTraffic: 0 },
+            blockedIPs: { count: 0, list: [] },
+            systemStatus: { load: 0, memory: 0, uptime: 'unknown', status: 'unknown' }
+        };
+        
+        servers.set(serverId, server);
+        
+        res.json({ success: true, message: 'Server registered successfully', serverId });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 서버 데이터 수신
+app.post('/api/server/:serverId/stats', (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const { traffic, blockedIPs, systemStatus } = req.body;
+        
+        if (!servers.has(serverId)) {
+            return res.status(404).json({ error: 'Server not registered. Please register first.' });
+        }
+        
+        const server = servers.get(serverId);
+        server.traffic = traffic || server.traffic;
+        server.blockedIPs = blockedIPs || server.blockedIPs;
+        server.systemStatus = systemStatus || server.systemStatus;
+        server.lastSeen = new Date().toISOString();
+        server.status = 'online';
+        
+        servers.set(serverId, server);
+        
+        res.json({ success: true, message: 'Stats updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 전체 서버 목록 조회
+app.get('/api/servers', (req, res) => {
+    try {
+        const now = new Date();
+        const serverList = Array.from(servers.values()).map(server => {
+            const lastSeenTime = new Date(server.lastSeen);
+            const isOnline = (now - lastSeenTime) < 60000; // 1분 이내
+            
+            return {
+                ...server,
+                isOnline,
+                offline: !isOnline
+            };
+        });
+        
+        res.json(serverList);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 특정 서버 상세 정보
+app.get('/api/server/:serverId', (req, res) => {
+    try {
+        const { serverId } = req.params;
+        
+        if (!servers.has(serverId)) {
+            return res.status(404).json({ error: 'Server not found' });
+        }
+        
+        const server = servers.get(serverId);
+        const now = new Date();
+        const lastSeenTime = new Date(server.lastSeen);
+        const isOnline = (now - lastSeenTime) < 60000;
+        
+        res.json({
+            ...server,
+            isOnline,
+            offline: !isOnline
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 서버 삭제
+app.delete('/api/server/:serverId', (req, res) => {
+    try {
+        const { serverId } = req.params;
+        
+        if (serverId === LOCAL_SERVER.id) {
+            return res.status(403).json({ error: 'Cannot delete local server' });
+        }
+        
+        if (!servers.has(serverId)) {
+            return res.status(404).json({ error: 'Server not found' });
+        }
+        
+        servers.delete(serverId);
+        res.json({ success: true, message: 'Server deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================
+// 로컬 서버 API 엔드포인트
 // ============================================
 
 // 1. 시스템 상태
@@ -372,10 +516,62 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'ddos-dashboard.html'));
 });
 
+// 단일 서버 대시보드 (레거시)
+app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'ddos-dashboard-single.html'));
+});
+
+// 다중 서버 대시보드 (메인)
+app.get('/multi.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'ddos-dashboard.html'));
+});
+
 // Health Check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ============================================
+// 로컬 서버 데이터 자동 업데이트
+// ============================================
+async function updateLocalServerStats() {
+    try {
+        const [traffic, status, blockedIPs] = await Promise.all([
+            getTrafficStats(),
+            getSystemStatus(),
+            getBlockedIPs()
+        ]);
+        
+        const localServer = servers.get(LOCAL_SERVER.id);
+        if (localServer) {
+            localServer.traffic = traffic;
+            localServer.systemStatus = status;
+            localServer.blockedIPs = { count: blockedIPs.length, list: blockedIPs };
+            localServer.lastSeen = new Date().toISOString();
+            localServer.status = 'online';
+            servers.set(LOCAL_SERVER.id, localServer);
+        }
+    } catch (error) {
+        console.error('Error updating local server stats:', error.message);
+    }
+}
+
+// 5초마다 로컬 서버 통계 업데이트
+setInterval(updateLocalServerStats, 5000);
+
+// 서버 온라인 상태 체크 (오래된 서버 오프라인 표시)
+setInterval(() => {
+    const now = new Date();
+    for (const [serverId, server] of servers.entries()) {
+        if (server.type === 'remote') {
+            const lastSeenTime = new Date(server.lastSeen);
+            if ((now - lastSeenTime) > 60000) { // 1분 이상 응답 없음
+                server.status = 'offline';
+                servers.set(serverId, server);
+            }
+        }
+    }
+}, 30000); // 30초마다 체크
 
 // ============================================
 // 서버 시작
@@ -384,4 +580,9 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🛡️ DDoS Defense Dashboard running on port ${PORT}`);
     console.log(`📊 Dashboard: http://localhost:${PORT}`);
     console.log(`🔌 API: http://localhost:${PORT}/api`);
+    console.log(`🌐 Multi-Server Support: Enabled`);
+    console.log(`📡 Servers API: http://localhost:${PORT}/api/servers`);
+    
+    // 초기 로컬 서버 데이터 로드
+    updateLocalServerStats();
 });
