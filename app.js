@@ -97,9 +97,9 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const response = await axios.post('/api/auth/login', { email, password });
     
     if (response.data.success) {
-      // 토큰 저장
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // 토큰 저장 (API 응답 구조: {success, data: {user, token}})
+      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
       
       alert('로그인 성공!');
       closeLoginModal();
@@ -109,6 +109,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
       location.reload();
     }
   } catch (error) {
+    console.error('Login error:', error);
     alert(error.response?.data?.error || '로그인에 실패했습니다.');
   }
 });
