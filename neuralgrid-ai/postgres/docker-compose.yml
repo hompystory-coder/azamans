@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres-memory:
+    image: ankane/pgvector:latest
+    container_name: neuralgrid-memory-db
+    environment:
+      POSTGRES_USER: neuralgrid_ai
+      POSTGRES_PASSWORD: neuralgrid_pass_2024
+      POSTGRES_DB: memory_db
+    volumes:
+      - postgres_memory_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5435:5432"
+    restart: always
+    networks:
+      - neuralgrid-network
+
+volumes:
+  postgres_memory_data:
+    driver: local
+
+networks:
+  neuralgrid-network:
+    driver: bridge

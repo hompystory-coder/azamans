@@ -1,0 +1,35 @@
+services:
+  anythingllm:
+    image: mintplexlabs/anythingllm:latest
+    container_name: neuralgrid-anythingllm
+    environment:
+      - STORAGE_DIR=/app/server/storage
+      - SERVER_PORT=3001
+      # Ollama 연결 설정
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_PATH=http://host.docker.internal:11434
+      # 벡터 DB 설정 (PostgreSQL)
+      - VECTOR_DB=postgres
+      - POSTGRES_HOST=postgres-memory
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=neuralgrid_ai
+      - POSTGRES_PASSWORD=neuralgrid_pass_2024
+      - POSTGRES_DB=memory_db
+    volumes:
+      - anythingllm_data:/app/server/storage
+    ports:
+      - "3104:3001"
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - neuralgrid-network
+
+volumes:
+  anythingllm_data:
+    driver: local
+
+networks:
+  neuralgrid-network:
+    external: true
+    name: postgres_neuralgrid-network
