@@ -892,7 +892,7 @@
         // Load Stats
         async function loadStats() {
             try {
-                const response = await fetch(`${API_BASE}/dashboard/stats`);
+                const response = await fetch(`${API_BASE}/stats`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -903,13 +903,16 @@
                 }
             } catch (error) {
                 console.error('Failed to load stats:', error);
+                // Show error state
+                document.getElementById('cpu-stat').textContent = '--';
+                document.getElementById('memory-stat').textContent = '--';
             }
         }
 
         // Load Services
         async function loadServices() {
             try {
-                const response = await fetch(`${API_BASE}/dashboard/services/status`);
+                const response = await fetch(`${API_BASE}/services/status`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -946,7 +949,7 @@
                                     💰 ${serviceInfo.pricing}
                                 </div>
                             ` : ''}
-                            <a href="${service.url}" class="service-link" target="_blank">
+                            <a href="${serviceInfo.url || service.url}" class="service-link" target="_blank">
                                 서비스 바로가기 →
                             </a>
                         `;
