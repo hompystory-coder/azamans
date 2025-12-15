@@ -594,23 +594,124 @@ app.post('/api/user/auto-fetch-settings', async (req, res) => {
   }
 });
 
-// Fetch YouTube shorts (placeholder)
+// Fetch YouTube shorts (placeholder - returns success for testing)
 app.post('/api/youtube/fetch-shorts', async (req, res) => {
   try {
     const { channelId, email } = req.body;
     
-    // This would normally call YouTube API
-    // For now, return empty array
+    if (!channelId) {
+      return res.status(400).json({
+        success: false,
+        error: 'YouTube 채널 ID가 필요합니다.'
+      });
+    }
+    
+    // Get user and creator
+    const user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: '사용자를 찾을 수 없습니다.'
+      });
+    }
+    
+    const creator = await dbGet('SELECT * FROM creators WHERE user_id = ?', [user.id]);
+    if (!creator) {
+      return res.status(404).json({
+        success: false,
+        error: '크리에이터 정보를 찾을 수 없습니다. 먼저 크리에이터로 등록해주세요.'
+      });
+    }
+    
+    // TODO: Implement actual YouTube API integration
+    // For now, return a helpful message
     res.json({
       success: true,
-      data: [],
-      message: 'YouTube API 연동이 필요합니다. 실제 구현 시 YouTube Data API v3를 사용하세요.'
+      data: {
+        total: 0,
+        shorts: []
+      },
+      message: '⚠️ YouTube API 연동이 필요합니다.\n\n현재는 관리자 페이지에서 직접 쇼츠를 등록하거나,\n아래 "쇼츠 수동 등록" 섹션을 이용해주세요.\n\n실제 YouTube API 구현을 원하시면 YouTube Data API v3 키가 필요합니다.'
     });
   } catch (error) {
     console.error('Fetch shorts error:', error);
     res.status(500).json({
       success: false,
       error: '쇼츠 가져오기 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Add short manually
+app.post('/api/shorts/add', async (req, res) => {
+  try {
+    const {
+      email,
+      youtubeVideoId,
+      youtubeVideoUrl,
+      title,
+      description,
+      thumbnailUrl,
+      coupangProductUrl,
+      coupangProductName,
+      category
+    } = req.body;
+    
+    // Get user
+    const user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: '사용자를 찾을 수 없습니다.'
+      });
+    }
+    
+    // Get creator
+    const creator = await dbGet('SELECT * FROM creators WHERE user_id = ?', [user.id]);
+    if (!creator) {
+      return res.status(404).json({
+        success: false,
+        error: '크리에이터로 등록되지 않았습니다.'
+      });
+    }
+    
+    // Check if short already exists
+    const existing = await dbGet('SELECT id FROM shorts WHERE youtube_video_id = ?', [youtubeVideoId]);
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        error: '이미 등록된 쇼츠입니다.'
+      });
+    }
+    
+    // Insert short
+    await dbRun(
+      `INSERT INTO shorts (
+        creator_id, youtube_video_id, youtube_video_url, title, description, 
+        thumbnail_url, coupang_product_url, coupang_product_name, category, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [
+        creator.id,
+        youtubeVideoId,
+        youtubeVideoUrl,
+        title,
+        description || '',
+        thumbnailUrl || '',
+        coupangProductUrl || '',
+        coupangProductName || '',
+        category || 'etc'
+      ]
+    );
+    
+    res.json({
+      success: true,
+      message: '쇼츠가 등록되었습니다. 관리자 승인을 기다려주세요.'
+    });
+  } catch (error) {
+    console.error('Add short error:', error);
+    res.status(500).json({
+      success: false,
+      error: '쇼츠 등록 중 오류가 발생했습니다.'
     });
   }
 });

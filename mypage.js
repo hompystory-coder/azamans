@@ -119,10 +119,16 @@ async function fetchYouTubeShorts(email) {
     });
     
     if (response.data.success) {
-      alert(`✅ ${response.data.data.total}개의 쇼츠를 가져왔습니다!`);
+      const total = response.data.data?.total || 0;
+      const message = response.data.message || `${total}개의 쇼츠를 가져왔습니다!`;
       
-      // Reload shorts list
-      await loadUserShorts(email);
+      if (total > 0) {
+        alert(`✅ ${message}`);
+        // Reload shorts list
+        await loadUserShorts(email);
+      } else {
+        alert(`ℹ️ ${message}`);
+      }
     } else {
       alert('❌ 수집 실패: ' + (response.data.error || '알 수 없는 오류'));
     }
