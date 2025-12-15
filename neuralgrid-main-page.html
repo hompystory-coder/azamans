@@ -847,26 +847,33 @@
             </div>
         </section>
 
-        <!-- Services Section -->
+        <!-- Main Services Section -->
         <section id="services" class="reveal">
             <div class="section-header">
                 <h2 class="section-title">
-                    <span class="gradient-text">통합 AI 서비스</span>
+                    <span class="gradient-text">🌟 메인 서비스</span>
                 </h2>
                 <p class="section-subtitle">
-                    최첨단 AI 기술로 구동되는 6개의 전문 서비스
+                    블로그 쇼츠부터 쿠팡 커머스까지, AI로 완성하는 콘텐츠 생태계
                 </p>
             </div>
-            <div class="services-grid" id="services-grid">
-                <!-- Loading State -->
-                <div class="service-card" style="grid-column: 1/-1;">
-                    <div style="text-align: center; padding: 3rem;">
-                        <div class="loading"></div>
-                        <p style="margin-top: 1.5rem; color: var(--text-secondary);">
-                            서비스 정보를 불러오는 중...
-                        </p>
-                    </div>
-                </div>
+            <div class="services-grid" id="main-services-grid">
+                <!-- Main services will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Additional Services Section -->
+        <section class="reveal" style="margin-top: 4rem;">
+            <div class="section-header">
+                <h2 class="section-title" style="font-size: 1.8rem;">
+                    <span class="gradient-text">🔧 추가 서비스</span>
+                </h2>
+                <p class="section-subtitle" style="font-size: 1rem;">
+                    통합 인증 및 시스템 관리 도구
+                </p>
+            </div>
+            <div class="services-grid" id="additional-services-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <!-- Additional services will be loaded here -->
             </div>
         </section>
     </div>
@@ -953,8 +960,8 @@
     <script>
         const API_BASE = '/api';
         
-        // Enhanced Service Data with PR Content Only
-        const servicesData = {
+                // 🌟 Main Featured Services (메인 서비스)
+        const mainServices = {
             'Blog Shorts Generator': {
                 icon: '📰',
                 titleKo: '블로그 기사 쇼츠생성기',
@@ -1034,7 +1041,11 @@
                     '📊 실시간 로그 & 디버깅 대시보드'
                 ],
                 pricing: '🆓 무료 (Self-hosted, 영구 무료)'
-            },
+            }
+        };
+
+        // 🔧 Additional Services (추가 서비스)
+        const additionalServices = {
             'System Monitor': {
                 icon: '🖥️',
                 titleKo: '서버모니터링',
@@ -1053,6 +1064,8 @@
             },
             'Auth Service': {
                 icon: '🔐',
+                titleKo: '통합 인증 서비스',
+                titleEn: 'Auth Service',
                 url: 'https://auth.neuralgrid.kr',
                 description: '모든 NeuralGrid 서비스를 위한 중앙 집중식 JWT 기반 SSO 인증 시스템. 한 번의 로그인으로 모든 서비스에 즉시 접근하세요.',
                 features: [
@@ -1066,6 +1079,9 @@
                 pricing: '무료 (Free)'
             }
         };
+
+        // Combine for backward compatibility
+        const servicesData = { ...mainServices, ...additionalServices };
 
         // Auth Modal Functions
         function showAuthModal(type) {
@@ -1177,56 +1193,67 @@
             }
         }
 
-        // Load Services
+                // Load Services (분리된 메인/추가 서비스)
         async function loadServices() {
-            try {
-                const response = await fetch(`${API_BASE}/services/status`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    const grid = document.getElementById('services-grid');
-                    grid.innerHTML = '';
-                    
-                    data.data.forEach((service, index) => {
-                        const serviceInfo = servicesData[service.name] || {};
-                        const card = document.createElement('div');
-                        card.className = 'service-card reveal';
-                        card.style.animationDelay = `${index * 0.1}s`;
-                        card.innerHTML = `
-                            <div class="service-header">
-                                <div class="service-icon-wrapper">
-                                    <div class="service-icon">${serviceInfo.icon || '⚡'}</div>
-                                </div>
-                                <span class="service-status ${service.status === 'online' ? 'status-online' : 'status-offline'}">
-                                    <span class="status-dot"></span>
-                                    ${service.status === 'online' ? 'Online' : 'Offline'}
-                                </span>
-                            </div>
-                            <h3 class="service-title">
-                                ${serviceInfo.titleKo || service.name}
-                                ${serviceInfo.titleEn ? `<span class="service-title-en">${serviceInfo.titleEn}</span>` : ''}
-                            </h3>
-                            <p class="service-description">${serviceInfo.description || '서비스 설명이 없습니다.'}</p>
-                            ${serviceInfo.features ? `
-                                <ul class="service-features">
-                                    ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
-                                </ul>
-                            ` : ''}
-                            ${serviceInfo.pricing ? `
-                                <div class="service-pricing">
-                                    💰 ${serviceInfo.pricing}
-                                </div>
-                            ` : ''}
-                            <a href="${serviceInfo.url || service.url}" class="service-link" target="_blank">
-                                서비스 바로가기 →
-                            </a>
-                        `;
-                        grid.appendChild(card);
-                    });
-
-                    // Trigger reveal animations
-                    observeElements();
-                }
+            // Render main services
+            const mainGrid = document.getElementById('main-services-grid');
+            const additionalGrid = document.getElementById('additional-services-grid');
+            
+            if (mainGrid) {
+                mainGrid.innerHTML = '';
+                Object.keys(mainServices).forEach((serviceName, index) => {
+                    const serviceInfo = mainServices[serviceName];
+                    const card = createServiceCard(serviceInfo, serviceName, index);
+                    mainGrid.appendChild(card);
+                });
+            }
+            
+            if (additionalGrid) {
+                additionalGrid.innerHTML = '';
+                Object.keys(additionalServices).forEach((serviceName, index) => {
+                    const serviceInfo = additionalServices[serviceName];
+                    const card = createServiceCard(serviceInfo, serviceName, index);
+                    additionalGrid.appendChild(card);
+                });
+            }
+        }
+        
+        // Create service card helper
+        function createServiceCard(serviceInfo, serviceName, index) {
+            const card = document.createElement('div');
+            card.className = 'service-card reveal';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.innerHTML = `
+                <div class="service-header">
+                    <div class="service-icon-wrapper">
+                        <div class="service-icon">${serviceInfo.icon || '⚡'}</div>
+                    </div>
+                    <span class="service-status status-online">
+                        <span class="status-dot"></span>
+                        Online
+                    </span>
+                </div>
+                <h3 class="service-title">
+                    ${serviceInfo.titleKo || serviceName}
+                    ${serviceInfo.titleEn ? `<span class="service-title-en">${serviceInfo.titleEn}</span>` : ''}
+                </h3>
+                <p class="service-description">${serviceInfo.description || '서비스 설명이 없습니다.'}</p>
+                ${serviceInfo.features ? `
+                    <ul class="service-features">
+                        ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                ` : ''}
+                ${serviceInfo.pricing ? `
+                    <div class="service-pricing">
+                        💰 ${serviceInfo.pricing}
+                    </div>
+                ` : ''}
+                <a href="${serviceInfo.url}" class="service-link" target="_blank">
+                    서비스 바로가기 →
+                </a>
+            `;
+            return card;
+        }
             } catch (error) {
                 console.error('Failed to load services:', error);
                 document.getElementById('services-grid').innerHTML = `
