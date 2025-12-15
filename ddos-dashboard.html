@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🛡️ NeuralGrid DDoS Defense Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -373,6 +375,9 @@
                     fetch('/api/blocked-ips').then(r => r.json())
                 ]);
 
+                console.log('Traffic Data:', trafficData);
+                console.log('Blocked IPs:', blockedIPsData);
+
                 const now = new Date().toLocaleTimeString();
                 const normalTraffic = trafficData.normalTraffic || 0;
                 const blockedTraffic = trafficData.blockedTraffic || 0;
@@ -401,11 +406,12 @@
                 document.getElementById('system-load').textContent = statusData.load ? statusData.load.toFixed(2) : '0.00';
 
                 // 차단된 IP 테이블 업데이트
+                console.log('Updating table with IPs:', blockedIPsData.length);
                 updateBlockedIPsTable(blockedIPsData);
 
                 // 로그 추가
                 if (normalTraffic > 0 || blockedTraffic > 0) {
-                    addLog(`정상 요청: ${normalTraffic} | 차단: ${blockedTraffic} | Rate Limited: ${trafficData.rateLimited || 0}`);
+                    addLog(`정상: ${normalTraffic} | 차단: ${blockedTraffic} | 차단IP: ${blockedIPsData.length}개`);
                 }
             } catch (error) {
                 console.error('데이터 업데이트 실패:', error);
