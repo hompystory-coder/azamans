@@ -614,19 +614,19 @@
         }
 
         .service-features li {
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             color: var(--text-secondary);
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 0.75rem;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            font-size: 0.95rem;
+            line-height: 1.6;
         }
 
         .service-features li::before {
             content: '✓';
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             background: rgba(16, 185, 129, 0.15);
             border-radius: 50%;
             display: flex;
@@ -634,9 +634,8 @@
             justify-content: center;
             color: var(--success);
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             flex-shrink: 0;
-            margin-top: 0.1rem;
         }
 
         .service-pricing {
@@ -979,15 +978,7 @@
                     '🔄 배치 프로세싱 지원',
                     '📊 영상 성과 분석 대시보드'
                 ],
-                pricing: '유료 (경쟁력 있는 가격)',
-                howToUse: [
-                    '1️⃣ mfx.neuralgrid.kr 접속 → SSO 로그인',
-                    '2️⃣ "새 쇼츠 만들기" 클릭',
-                    '3️⃣ 텍스트 프롬프트 입력 (예: "도쿄 야경 감성 브이로그")',
-                    '4️⃣ 스타일 및 음악 선택',
-                    '5️⃣ "생성하기" 클릭 → 3-4분 대기',
-                    '6️⃣ 완성된 영상 다운로드 또는 직접 SNS 업로드'
-                ]
+                pricing: '유료 (경쟁력 있는 가격)'
             },
             'NeuronStar Music': {
                 icon: '🎵',
@@ -1024,16 +1015,7 @@
                     '📊 조회수/좋아요/댓글 통계',
                     '🎯 자동 상품 매칭'
                 ],
-                pricing: '무료 (베타)',
-                howToUse: [
-                    '1️⃣ market.neuralgrid.kr 접속 → SSO 로그인',
-                    '2️⃣ "새 쇼츠 등록" 클릭',
-                    '3️⃣ YouTube Shorts URL 입력',
-                    '4️⃣ 자동 정보 수집 (제목, 썸네일, 조회수 등)',
-                    '5️⃣ 쿠팡 상품 링크 입력 또는 자동 추천 선택',
-                    '6️⃣ "등록하기" 클릭',
-                    '7️⃣ 크리에이터 대시보드에서 수익 추적'
-                ]
+                pricing: '무료 (베타)'
             },
             'N8N Automation': {
                 icon: '⚙️',
@@ -1066,18 +1048,11 @@
                     '📊 실시간 CPU/메모리 사용률 (Chart.js)',
                     '💿 디스크 용량 모니터링',
                     '⚙️ PM2 프로세스 상태 추적',
-                    '🔔 자동 알림 시스템',
-                    '🎨 Glassmorphism 디자인',
+                    '🔔 자동 알림 시스템 (Slack/Email)',
+                    '🎨 Glassmorphism 프리미엄 디자인',
                     '🔄 30초 자동 갱신'
                 ],
-                pricing: '무료 (Free)',
-                howToUse: [
-                    '1️⃣ monitor.neuralgrid.kr 접속 → SSO 로그인',
-                    '2️⃣ 실시간 대시보드 자동 표시',
-                    '3️⃣ 각 서비스 상태 확인 (🟢 녹색: 정상 / 🔴 빨간색: 중단)',
-                    '4️⃣ CPU/메모리 그래프 실시간 모니터링',
-                    '5️⃣ PM2 프로세스 제어 (재시작/중지)'
-                ]
+                pricing: '무료 (Free)'
             },
             'Auth Service': {
                 icon: '🔐',
@@ -1241,20 +1216,9 @@
                             <h3 class="service-title">${service.name}</h3>
                             <p class="service-description">${serviceInfo.description || '서비스 설명이 없습니다.'}</p>
                             ${serviceInfo.features ? `
-                                <div class="service-section">
-                                    <h4 style="margin: 1rem 0 0.5rem; color: var(--primary); font-size: 0.95rem;">✨ 주요 기능</h4>
-                                    <ul class="service-features">
-                                        ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            ` : ''}
-                            ${serviceInfo.howToUse ? `
-                                <div class="service-section">
-                                    <h4 style="margin: 1rem 0 0.5rem; color: var(--secondary); font-size: 0.95rem;">📖 사용 방법</h4>
-                                    <ul class="service-features">
-                                        ${serviceInfo.howToUse.map(step => `<li>${step}</li>`).join('')}
-                                    </ul>
-                                </div>
+                                <ul class="service-features">
+                                    ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
+                                </ul>
                             ` : ''}
                             ${serviceInfo.pricing ? `
                                 <div class="service-pricing">
