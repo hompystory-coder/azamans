@@ -349,11 +349,10 @@ app.get('/api/user/settings/:email', async (req, res) => {
   }
 });
 
-// Update user settings
-app.post('/api/user/settings/:email', async (req, res) => {
-  try {
-    const { email } = req.params;
-    const { channelId, coupangPartnerId, coupangAccessKey, coupangSecretKey } = req.body;
+// Helper function for updating user settings
+async function updateUserSettings(email, channelId, youtubeChannelId, coupangPartnerId, coupangAccessKey, coupangSecretKey) {
+  // Support both channelId and youtubeChannelId
+  const finalChannelId = channelId || youtubeChannelId;
     
     // Get user
     const user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
@@ -377,21 +376,52 @@ app.post('/api/user/settings/:email', async (req, res) => {
           coupang_secret_key = ?,
           updated_at = CURRENT_TIMESTAMP
          WHERE user_id = ?`,
-        [channelId, coupangPartnerId, coupangAccessKey, coupangSecretKey, user.id]
+        [finalChannelId, coupangPartnerId, coupangAccessKey, coupangSecretKey, user.id]
       );
     } else {
       // Create new creator
       await dbRun(
         `INSERT INTO creators (user_id, youtube_channel_id, coupang_partner_id, coupang_access_key, coupang_secret_key, subtag)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [user.id, channelId, coupangPartnerId, coupangAccessKey, coupangSecretKey, `SUB${user.id}`]
+        [user.id, finalChannelId, coupangPartnerId, coupangAccessKey, coupangSecretKey, `SUB${user.id}`]
       );
     }
+
+  
+  return { success: true, message: '설정이 저장되었습니다.' };
+}
+
+// Update user settings - with email in URL
+app.post('/api/user/settings/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { channelId, youtubeChannelId, coupangPartnerId, coupangAccessKey, coupangSecretKey } = req.body;
     
-    res.json({
-      success: true,
-      message: '설정이 저장되었습니다.'
+    const result = await updateUserSettings(email, channelId, youtubeChannelId, coupangPartnerId, coupangAccessKey, coupangSecretKey);
+    res.json(result);
+  } catch (error) {
+    console.error('Update settings error:', error);
+    res.status(500).json({
+      success: false,
+      error: '설정 저장 중 오류가 발생했습니다.'
     });
+  }
+});
+
+// Update user settings - with email in body
+app.post('/api/user/settings', async (req, res) => {
+  try {
+    const { email, channelId, youtubeChannelId, coupangPartnerId, coupangAccessKey, coupangSecretKey } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: '이메일이 필요합니다.'
+      });
+    }
+    
+    const result = await updateUserSettings(email, channelId, youtubeChannelId, coupangPartnerId, coupangAccessKey, coupangSecretKey);
+    res.json(result);
   } catch (error) {
     console.error('Update settings error:', error);
     res.status(500).json({
@@ -446,10 +476,38 @@ app.get('/api/user/shorts/:email', async (req, res) => {
 // Creator registration
 app.post('/api/creator/register', async (req, res) => {
   try {
-    const { email, channelId, channelName, channelUrl, coupangPartnerId, coupangAccessKey, coupangSecretKey } = req.body;
+    const { 
+      email, 
+      userId,
+      channelId, 
+      youtubeChannelId,
+      channelName,
+      youtubeChannelName,
+      channelUrl,
+      youtubeChannelUrl,
+      coupangPartnerId, 
+      coupangAccessKey, 
+      coupangSecretKey 
+    } = req.body;
     
-    // Get user
-    const user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    // Support multiple field names
+    const finalChannelId = channelId || youtubeChannelId;
+    const finalChannelName = channelName || youtubeChannelName || '';
+    const finalChannelUrl = channelUrl || youtubeChannelUrl || '';
+    
+    // Get user - support both email and userId
+    let user;
+    if (userId) {
+      user = await dbGet('SELECT * FROM users WHERE id = ?', [userId]);
+    } else if (email) {
+      user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: '사용자 정보가 필요합니다.'
+      });
+    }
+    
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -471,7 +529,7 @@ app.post('/api/creator/register', async (req, res) => {
       `INSERT INTO creators (user_id, youtube_channel_id, youtube_channel_name, youtube_channel_url, 
         coupang_partner_id, coupang_access_key, coupang_secret_key, subtag, is_approved)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-      [user.id, channelId, channelName, channelUrl, coupangPartnerId, coupangAccessKey, coupangSecretKey, `SUB${user.id}`]
+      [user.id, finalChannelId, finalChannelName, finalChannelUrl, coupangPartnerId || '', coupangAccessKey || '', coupangSecretKey || '', `SUB${user.id}`]
     );
     
     // Update user role
@@ -490,17 +548,63 @@ app.post('/api/creator/register', async (req, res) => {
   }
 });
 
+// Update auto-fetch settings
+app.post('/api/user/auto-fetch-settings', async (req, res) => {
+  try {
+    const { email, autoFetchEnabled, autoFetchInterval } = req.body;
+    
+    // Get user
+    const user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: '사용자를 찾을 수 없습니다.'
+      });
+    }
+    
+    // Get creator
+    const creator = await dbGet('SELECT * FROM creators WHERE user_id = ?', [user.id]);
+    if (!creator) {
+      return res.status(404).json({
+        success: false,
+        error: '크리에이터 정보를 찾을 수 없습니다.'
+      });
+    }
+    
+    // Update settings
+    await dbRun(
+      `UPDATE creators SET 
+        auto_fetch_enabled = ?,
+        auto_fetch_interval_hours = ?,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [autoFetchEnabled ? 1 : 0, autoFetchInterval || 24, creator.id]
+    );
+    
+    res.json({
+      success: true,
+      message: '자동 가져오기 설정이 저장되었습니다.'
+    });
+  } catch (error) {
+    console.error('Update auto-fetch settings error:', error);
+    res.status(500).json({
+      success: false,
+      error: '설정 저장 중 오류가 발생했습니다.'
+    });
+  }
+});
+
 // Fetch YouTube shorts (placeholder)
 app.post('/api/youtube/fetch-shorts', async (req, res) => {
   try {
-    const { channelId } = req.body;
+    const { channelId, email } = req.body;
     
     // This would normally call YouTube API
     // For now, return empty array
     res.json({
       success: true,
       data: [],
-      message: 'YouTube API 연동이 필요합니다.'
+      message: 'YouTube API 연동이 필요합니다. 실제 구현 시 YouTube Data API v3를 사용하세요.'
     });
   } catch (error) {
     console.error('Fetch shorts error:', error);
