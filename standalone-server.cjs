@@ -1,12 +1,8 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import sqlite3 from 'sqlite3';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -21,8 +17,7 @@ try {
     console.error(`Database file not found: ${DB_PATH}`);
     process.exit(1);
   }
-  const Database = sqlite3.default || sqlite3;
-  db = new Database.Database(DB_PATH, Database.OPEN_READWRITE, (err) => {
+  db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
       console.error('Failed to connect to database:', err.message);
       process.exit(1);
@@ -272,9 +267,27 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// Catch-all route - serve index.html for client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Serve index.html for root and non-API routes
+app.get('/', (req, res) => {
+  const indexPath = path.join(__dirname, 'dist', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.json({ 
+      status: 'ok',
+      message: 'Shorts Market API Server',
+      endpoints: [
+        'GET /health',
+        'GET /api/config',
+        'GET /api/shorts',
+        'GET /api/shorts/status/:status',
+        'GET /api/shorts/categories/list',
+        'GET /api/admin/creators',
+        'GET /api/admin/users',
+        'GET /api/stats'
+      ]
+    });
+  }
 });
 
 // Start server
