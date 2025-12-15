@@ -346,6 +346,10 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 0 // 애니메이션 비활성화로 부드러운 업데이트
+                },
                 plugins: {
                     legend: {
                         labels: { color: '#f1f5f9' }
@@ -354,11 +358,19 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#94a3b8' },
+                        min: 0,
+                        ticks: { 
+                            color: '#94a3b8',
+                            precision: 0
+                        },
                         grid: { color: 'rgba(255, 255, 255, 0.1)' }
                     },
                     x: {
-                        ticks: { color: '#94a3b8' },
+                        ticks: { 
+                            color: '#94a3b8',
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
                         grid: { color: 'rgba(255, 255, 255, 0.1)' }
                     }
                 }
@@ -387,14 +399,15 @@
                 trafficChart.data.datasets[0].data.push(normalTraffic);
                 trafficChart.data.datasets[1].data.push(blockedTraffic);
 
-                // 최대 20개 포인트만 유지
-                if (trafficChart.data.labels.length > 20) {
+                // 최대 30개 포인트만 유지 (30초 분량)
+                if (trafficChart.data.labels.length > 30) {
                     trafficChart.data.labels.shift();
                     trafficChart.data.datasets[0].data.shift();
                     trafficChart.data.datasets[1].data.shift();
                 }
 
-                trafficChart.update();
+                // 애니메이션 없이 즉시 업데이트
+                trafficChart.update('none');
 
                 // 통계 업데이트 (실제 데이터)
                 document.getElementById('req-per-sec').textContent = trafficData.requestsPerSecond || 0;
