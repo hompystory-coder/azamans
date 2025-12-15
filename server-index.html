@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralGrid - 차세대 AI 통합 플랫폼</title>
+    <meta name="description" content="AI 자동화로 비즈니스를 혁신하세요. MediaFX, NeuronStar Music, BN Shop, N8N을 하나로.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-dark: #0a0e1a;
+            --bg-darker: #050810;
+            --bg-card: #151b2e;
+            --bg-card-hover: #1a2138;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border: #1e293b;
+            --glow: rgba(99, 102, 241, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Sora', sans-serif;
+        }
+
+        /* Animated Background with Particles */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse at top, #0a0e1a 0%, #050810 100%);
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+            animation: float 30s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Sora', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px var(--glow);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 4px 12px var(--glow); }
+            50% { box-shadow: 0 8px 24px var(--glow); }
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .btn-header {
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 8rem 0 6rem;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50px;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            animation: fade-in 1s ease;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            animation: fade-in 1s ease 0.2s both;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+            animation: fade-in 1s ease 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fade-in 1s ease 0.6s both;
+        }
+
+        .btn {
+            padding: 1.1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Auth Modal Styles */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .auth-modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 480px;
+            width: 90%;
+            position: relative;
+            animation: slideUp 0.4s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-modal-close {
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .auth-modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .auth-modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-modal-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-darker);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .auth-submit-btn {
+            width: 100%;
+            padding: 1.1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .auth-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .auth-switch a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .auth-switch a:hover {
+            color: var(--secondary);
+        }
+
+        .auth-benefits {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .auth-benefits h4 {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .auth-benefits ul {
+            list-style: none;
+        }
+
+        .auth-benefits li {
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Services Section */
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 6rem;
+            margin-top: 3rem;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(236, 72, 153, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-icon-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .service-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .service-card:hover .service-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .service-status {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-online {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .service-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            line-height: 1.3;
+        }
+
+        .service-title-en {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            letter-spacing: 0.02em;
+        }
+
+        .service-description {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-features {
+            list-style: none;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-features li {
+            padding: 0.75rem 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .service-features li::before {
+            content: '✓';
+            width: 24px;
+            height: 24px;
+            background: rgba(16, 185, 129, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .service-pricing {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding: 0.75rem;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-link {
+            display: block;
+            width: 100%;
+            padding: 1.1rem;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-link:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 4rem 0 2rem;
+            margin-top: 8rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .footer-section p, 
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.75rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 2rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 4rem 0 3rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <span class="logo-text">NeuralGrid</span>
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#services">서비스</a></li>
+                    <li><a href="https://monitor.neuralgrid.kr" target="_blank">모니터링</a></li>
+                    <li><button onclick="window.location.href='https://auth.neuralgrid.kr'" class="btn-header" id="auth-btn">로그인</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                ✨ AI 자동화의 새로운 기준
+            </div>
+            <h1>
+                <span class="gradient-text">차세대 AI 통합 플랫폼</span><br>
+                NeuralGrid
+            </h1>
+            <p class="hero-subtitle">
+                AI 기반 콘텐츠 생성부터 수익화까지<br>
+                크리에이터를 위한 올인원 플랫폼
+            </p>
+            <div class="cta-buttons">
+                <button id="signup-btn" class="btn btn-primary" onclick="showAuthModal('signup')">
+                    🚀 무료 회원가입하기
+                </button>
+                <a href="#services" class="btn btn-secondary">
+                    📋 서비스 둘러보기
+                </a>
+            </div>
+        </section>
+
+        <!-- Main Services Section -->
+        <section id="services" class="reveal">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="gradient-text">주요 서비스</span>
+                </h2>
+                <p class="section-subtitle">
+                    AI로 완성하는 콘텐츠 생태계
+                </p>
+            </div>
+            <div class="services-grid" id="main-services-grid">
+                <!-- Main services will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Additional Services Section -->
+        <section class="reveal" style="margin-top: 4rem;">
+            <div class="section-header">
+                <h2 class="section-title" style="font-size: 1.8rem;">
+                    <span class="gradient-text">🔧 추가 서비스</span>
+                </h2>
+                <p class="section-subtitle" style="font-size: 1rem;">
+                    통합 인증 및 시스템 관리 도구
+                </p>
+            </div>
+            <div class="services-grid" id="additional-services-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <!-- Additional services will be loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="auth-modal">
+        <div class="auth-modal-content">
+            <button class="auth-modal-close" onclick="closeAuthModal()">&times;</button>
+            <h2 id="auth-modal-title">로그인</h2>
+            <p class="auth-modal-subtitle">NeuralGrid 통합 인증 시스템</p>
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" data-mode="login">
+                <div class="form-group" id="username-group" style="display: none;">
+                    <label>사용자 이름</label>
+                    <input type="text" name="username" placeholder="홍길동" id="username-input">
+                </div>
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" name="email" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group" id="confirm-password-group" style="display: none;">
+                    <label>비밀번호 확인</label>
+                    <input type="password" name="confirmPassword" placeholder="••••••••" id="confirm-password-input">
+                </div>
+                <button type="submit" class="auth-submit-btn">계속하기</button>
+            </form>
+            <p class="auth-switch">
+                <span id="auth-switch-text">계정이 없으신가요? </span>
+                <a href="#" id="auth-switch-link" onclick="showAuthModal('signup'); return false;">회원가입</a>
+            </p>
+            <div class="auth-benefits">
+                <h4>통합 로그인으로 이용 가능한 서비스:</h4>
+                <ul>
+                    <li>🎬 MediaFX Shorts - AI 비디오 생성</li>
+                    <li>🎵 NeuronStar Music - AI 음악 생성</li>
+                    <li>📰 블로그 쇼츠생성기 - 기사→영상 변환</li>
+                    <li>🛒 쿠팡쇼츠 마켓 - YouTube×쿠팡 연동</li>
+                    <li>⚙️ N8N Automation - 워크플로우 자동화</li>
+                    <li>🖥️ System Monitor - 실시간 모니터링</li>
+                    <li>🤖 AI Assistant - 문서 기반 AI 채팅</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>NeuralGrid</h3>
+                <p>차세대 AI 자동화 플랫폼으로<br>비즈니스 혁신을 경험하세요.</p>
+                <p style="margin-top: 1rem;">
+                    <strong>Server:</strong> 115.91.5.140<br>
+                    <strong>Email:</strong> admin@neuralgrid.kr
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>AI 서비스</h3>
+                <a href="https://bn-shop.neuralgrid.kr">블로그 쇼츠생성기</a>
+                <a href="https://mfx.neuralgrid.kr">MediaFX Shorts</a>
+                <a href="https://music.neuralgrid.kr">NeuronStar Music</a>
+                <a href="https://market.neuralgrid.kr">쿠팡쇼츠 마켓</a>
+            </div>
+            <div class="footer-section">
+                <h3>자동화 & 관리</h3>
+                <a href="https://n8n.neuralgrid.kr">N8N Automation</a>
+                <a href="https://monitor.neuralgrid.kr">시스템 모니터</a>
+                <a href="https://auth.neuralgrid.kr">인증 서비스</a>
+            </div>
+            <div class="footer-section">
+                <h3>리소스</h3>
+                <a href="https://api.neuralgrid.kr">API Gateway</a>
+                <a href="https://ai.neuralgrid.kr">AI Assistant</a>
+                <a href="https://ddos.neuralgrid.kr">DDoS Tester</a>
+                <a href="https://monitor.neuralgrid.kr">시스템 모니터</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 NeuralGrid Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = '/api';
+        
+                // 🌟 Main Featured Services (메인 서비스)
+        const mainServices = {
+            'Blog Shorts Generator': {
+                icon: '📰',
+                titleKo: '블로그 기사 쇼츠생성기',
+                titleEn: 'Blog Shorts Generator',
+                url: 'https://bn-shop.neuralgrid.kr',
+                description: '🚀 블로그 글을 단 4분만에 유튜브 쇼츠로! AI가 자동으로 기사 분석부터 영상 제작까지 원스톱 처리. Gemini 2.0, Pollinations.AI, Kling v2.1 Pro 엔진 탑재.',
+                features: [
+                    '✨ URL 입력 한 번으로 완전 자동화',
+                    '🎯 Gemini 2.0 기반 스마트 콘텐츠 분석',
+                    '🎨 Pollinations.AI 고품질 이미지 생성',
+                    '🎬 Kling v2.1 Pro 프로급 영상 렌더링',
+                    '💬 한국어 자막 자동 삽입 (가독성 최적화)',
+                    '⚡ 초고속 처리: 평균 4~5분 이내 완성'
+                ],
+                pricing: '💰 영상당 단돈 $0.06 (세계 최저가)'
+            },
+            'MediaFX Shorts': {
+                icon: '🎬',
+                titleKo: '쇼츠 영상 자동화',
+                titleEn: 'MediaFX Shorts',
+                url: 'https://mfx.neuralgrid.kr',
+                description: '🎥 3분이면 충분해! AI가 텍스트를 전문가급 쇼츠 영상으로 자동 변환. 인스타그램, 틱톡, 유튜브 최적화는 기본. 크리에이터의 시간을 10배 절약하세요.',
+                features: [
+                    '🚀 텍스트 입력 → 바로 영상 완성',
+                    '🎨 100+ 프리미엄 템플릿 & 스타일',
+                    '🎵 AI 음악 자동 싱크 (분위기 매칭)',
+                    '📱 SNS 플랫폼별 자동 최적화 (9:16 비율)',
+                    '⚙️ 배치 프로세싱 (한 번에 10개 제작)',
+                    '📊 실시간 퍼포먼스 대시보드'
+                ],
+                pricing: '💎 유료 플랜 (합리적 가격, 무료 체험 가능)'
+            },
+            'NeuronStar Music': {
+                icon: '🎵',
+                titleKo: '스타뮤직',
+                titleEn: 'NeuronStar Music',
+                url: 'https://music.neuralgrid.kr',
+                description: '🎶 완전 무료 AI 작곡가! 30초 안에 나만의 음악 완성. 텍스트만 입력하면 고품질 BGM 즉시 생성. 상업적 이용 100% 자유, 저작권 걱정 ZERO!',
+                features: [
+                    '🎼 전 장르 지원 (Pop, Rock, Jazz, EDM, Classical, K-pop)',
+                    '✍️ 커스텀 가사로 완벽한 맞춤 제작',
+                    '🎧 스튜디오급 고음질 (WAV/MP3 출력)',
+                    '💼 상업적 이용 100% 허용 (라이선스 FREE)',
+                    '♾️ 무제한 생성 (횟수 제한 없음)',
+                    '⚡ 실시간 미리듣기 & 즉시 다운로드'
+                ],
+                pricing: '🎁 완전 무료 (영원히 FREE!)'
+            },
+            'Shorts Market': {
+                icon: '🛒',
+                titleKo: '쿠팡쇼츠',
+                titleEn: 'Shorts Market',
+                url: 'https://market.neuralgrid.kr',
+                description: '💸 쇼츠로 돈 버는 가장 쉬운 방법! 유튜브 쇼츠와 쿠팡 파트너스 자동 연결. 클릭 한 번으로 딥링크 생성, 수익 대시보드로 실시간 확인. 크리에이터 수익 10배 증폭!',
+                features: [
+                    '📹 YouTube Shorts 자동 수집 (100% 성공률)',
+                    '🛒 쿠팡 파트너스 딥링크 1초 생성',
+                    '🔗 네이버 브랜드 커넥트 완벽 통합',
+                    '💰 실시간 수익 대시보드 (일/월 통계)',
+                    '📊 조회수·좋아요·댓글 빅데이터 분석',
+                    '🎯 AI 자동 상품 매칭 (관련도 99%)'
+                ],
+                pricing: '🆓 완전 무료 (베타 오픈 중)'
+            },
+            'N8N Automation': {
+                icon: '⚙️',
+                titleKo: 'N8N 워크플로우 자동화',
+                titleEn: 'N8N Automation',
+                url: 'https://n8n.neuralgrid.kr',
+                description: '🤖 노코드로 모든 업무를 자동화! 200+ 앱 연동, 드래그 앤 드롭만으로 복잡한 워크플로우 완성. 반복 작업은 이제 AI에게 맡기고 창의적인 일에 집중하세요!',
+                features: [
+                    '🔗 200+ 앱 연동 (Google, Slack, DB, API 등)',
+                    '🖱️ 초직관적 드래그 앤 드롭 빌더',
+                    '🔄 REST API 무제한 자동화',
+                    '⏰ Cron 스케줄러 (정확한 시간 제어)',
+                    '🔐 프라이빗 자체 호스팅 (보안 100%)',
+                    '📊 실시간 로그 & 디버깅 대시보드'
+                ],
+                pricing: '🆓 무료 (Self-hosted, 영구 무료)'
+            }
+        };
+
+        // 🔧 Additional Services (추가 서비스)
+        const additionalServices = {
+            'System Monitor': {
+                icon: '🖥️',
+                titleKo: '서버모니터링',
+                titleEn: 'System Monitor',
+                url: 'https://monitor.neuralgrid.kr',
+                description: '실시간 서버 상태 및 PM2 프로세스를 한눈에 모니터링하는 프리미엄 대시보드. Glassmorphism 디자인과 Chart.js 그래프를 제공합니다.',
+                features: [
+                    '📊 실시간 CPU/메모리 사용률 (Chart.js)',
+                    '💿 디스크 용량 모니터링',
+                    '⚙️ PM2 프로세스 상태 추적',
+                    '🔔 자동 알림 시스템 (Slack/Email)',
+                    '🎨 Glassmorphism 프리미엄 디자인',
+                    '🔄 30초 자동 갱신'
+                ],
+                pricing: '무료 (Free)'
+            },
+            'Auth Service': {
+                icon: '🔐',
+                titleKo: '통합 인증 서비스',
+                titleEn: 'Auth Service',
+                url: 'https://auth.neuralgrid.kr',
+                description: '모든 NeuralGrid 서비스를 위한 중앙 집중식 JWT 기반 SSO 인증 시스템. 한 번의 로그인으로 모든 서비스에 즉시 접근하세요.',
+                features: [
+                    '🔐 JWT 기반 보안 인증',
+                    '🎫 API 키 발급 및 관리',
+                    '💳 크레딧 추적 시스템',
+                    '👤 통합 사용자 관리',
+                    '🔄 자동 토큰 갱신',
+                    '🛡️ 권한 기반 접근 제어'
+                ],
+                pricing: '무료 (Free)'
+            },
+            'AI Assistant': {
+                icon: '🤖',
+                titleKo: 'AI 어시스턴트',
+                titleEn: 'AI Assistant',
+                url: 'http://ai.neuralgrid.kr',
+                description: '📚 개인 LLM 플랫폼 AnythingLLM으로 문서를 학습시키고 대화하세요. RAG(검색 증강 생성) 기술로 정확한 답변을 제공합니다.',
+                features: [
+                    '🧠 프라이빗 AI 워크스페이스 생성',
+                    '📄 PDF, Word, TXT 등 다양한 문서 학습',
+                    '💬 학습한 데이터 기반 정확한 답변',
+                    '🔒 완전한 프라이버시 (온프레미스)',
+                    '🤝 다중 LLM 지원 (OpenAI, Claude, 로컬 모델)',
+                    '⚡ 벡터 DB 기반 고속 검색'
+                ],
+                pricing: '무료 (Free)'
+            },
+            'DDoS Tester': {
+                icon: '⚡',
+                titleKo: 'DDoS 부하 테스터',
+                titleEn: 'DDoS Tester',
+                url: 'https://ddos.neuralgrid.kr',
+                description: '🔥 웹사이트 내구성 테스트! HTTP GET/POST 요청을 동시 다발로 전송하여 서버 성능을 검증. 실시간 응답 시간, 성공/실패율, TPS를 시각화하고 서버 한계를 파악하세요.',
+                features: [
+                    '🚀 동시 다중 스레드 요청 (최대 1000개)',
+                    '📊 실시간 TPS & 응답 시간 차트',
+                    '✅ 성공/실패 통계 즉시 확인',
+                    '⏱️ 평균/최대/최소 응답 시간 분석',
+                    '🎯 GET/POST 메서드 지원',
+                    '📈 프로그레스 바로 진행 상황 추적'
+                ],
+                pricing: '무료 (Free)'
+            }
+        };
+
+        // Combine for backward compatibility
+        const servicesData = { ...mainServices, ...additionalServices };
+
+        // Auth Modal Functions
+        function showAuthModal(type) {
+            const modal = document.getElementById('auth-modal');
+            const title = document.getElementById('auth-modal-title');
+            const form = document.getElementById('auth-form');
+            const switchText = document.getElementById('auth-switch-text');
+            const switchLink = document.getElementById('auth-switch-link');
+            
+            // Get dynamic form fields
+            const usernameGroup = document.getElementById('username-group');
+            const usernameInput = document.getElementById('username-input');
+            const confirmPasswordGroup = document.getElementById('confirm-password-group');
+            const confirmPasswordInput = document.getElementById('confirm-password-input');
+            
+            if (type === 'signup') {
+                title.textContent = '회원가입';
+                form.dataset.mode = 'signup';
+                switchText.innerHTML = '이미 계정이 있으신가요? ';
+                switchLink.textContent = '로그인';
+                switchLink.onclick = () => showAuthModal('login');
+                
+                // Show signup-specific fields
+                usernameGroup.style.display = 'block';
+                confirmPasswordGroup.style.display = 'block';
+                usernameInput.required = true;
+                confirmPasswordInput.required = true;
+            } else {
+                title.textContent = '로그인';
+                form.dataset.mode = 'login';
+                switchText.innerHTML = '계정이 없으신가요? ';
+                switchLink.textContent = '회원가입';
+                switchLink.onclick = () => showAuthModal('signup');
+                
+                // Hide signup-specific fields
+                usernameGroup.style.display = 'none';
+                confirmPasswordGroup.style.display = 'none';
+                usernameInput.required = false;
+                confirmPasswordInput.required = false;
+                
+                // Clear signup field values
+                usernameInput.value = '';
+                confirmPasswordInput.value = '';
+            }
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        
+        async function handleAuthSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const mode = form.dataset.mode;
+            const email = form.email.value;
+            const password = form.password.value;
+            
+            // Build request body
+            const requestBody = { email, password };
+            
+            // For signup, add username and validate confirm password
+            if (mode === 'signup') {
+                const username = form.username.value;
+                const confirmPassword = form.confirmPassword.value;
+                
+                // Validate password match
+                if (password !== confirmPassword) {
+                    alert('비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+                
+                // Validate password strength (minimum 8 characters)
+                if (password.length < 8) {
+                    alert('비밀번호는 8자 이상이어야 합니다.');
+                    return;
+                }
+                
+                requestBody.username = username;
+            }
+            
+            try {
+                const endpoint = mode === 'signup' ? 'register' : 'login';
+                const response = await fetch(`https://auth.neuralgrid.kr/api/auth/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('neuralgrid_token', data.token);
+                    localStorage.setItem('neuralgrid_user', JSON.stringify(data.user || { email }));
+                    alert(mode === 'signup' ? '🎉 회원가입 성공!\n\n모든 NeuralGrid 서비스에서 사용 가능합니다.' : '✅ 로그인 성공!');
+                    closeAuthModal();
+                    location.reload();
+                } else {
+                    alert('❌ ' + (data.message || '오류가 발생했습니다.'));
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                alert('❌ 서버 연결에 실패했습니다.\n잠시 후 다시 시도해주세요.');
+            }
+        }
+
+                // Load Services (분리된 메인/추가 서비스)
+        let servicesLoaded = false;
+        
+        function loadServices() {
+            try {
+                // Render main services
+                const mainGrid = document.getElementById('main-services-grid');
+                const additionalGrid = document.getElementById('additional-services-grid');
+                
+                console.log('Loading services...', { mainGrid, additionalGrid });
+                
+                if (mainGrid) {
+                    mainGrid.innerHTML = '';
+                    Object.keys(mainServices).forEach((serviceName, index) => {
+                        const serviceInfo = mainServices[serviceName];
+                        const card = createServiceCard(serviceInfo, serviceName, index);
+                        mainGrid.appendChild(card);
+                    });
+                    console.log('Main services loaded:', Object.keys(mainServices).length);
+                }
+                
+                if (additionalGrid) {
+                    additionalGrid.innerHTML = '';
+                    console.log('🔍 Additional Services:', Object.keys(additionalServices));
+                    Object.keys(additionalServices).forEach((serviceName, index) => {
+                        const serviceInfo = additionalServices[serviceName];
+                        console.log(`  ✅ Creating card for: ${serviceName}`, serviceInfo);
+                        const card = createServiceCard(serviceInfo, serviceName, index);
+                        additionalGrid.appendChild(card);
+                    });
+                    console.log('✅ Additional services loaded:', Object.keys(additionalServices).length);
+                } else {
+                    console.error('❌ Additional services grid not found!');
+                }
+                
+                // 첫 로드 이후에는 즉시 reveal 클래스 활성화
+                if (servicesLoaded) {
+                    const newReveals = document.querySelectorAll('.reveal:not(.active)');
+                    newReveals.forEach(reveal => {
+                        reveal.classList.add('active');
+                    });
+                }
+                
+                servicesLoaded = true;
+            } catch (error) {
+                console.error('Error loading services:', error);
+            }
+        }
+        
+        // Create service card helper
+        function createServiceCard(serviceInfo, serviceName, index) {
+            const card = document.createElement('div');
+            // 🔥 즉시 active 클래스 추가하여 사라지는 현상 방지
+            card.className = 'service-card reveal active';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.innerHTML = `
+                <div class="service-header">
+                    <div class="service-icon-wrapper">
+                        <div class="service-icon">${serviceInfo.icon || '⚡'}</div>
+                    </div>
+                    <span class="service-status status-online">
+                        <span class="status-dot"></span>
+                        Online
+                    </span>
+                </div>
+                <h3 class="service-title">
+                    ${serviceInfo.titleKo || serviceName}
+                    ${serviceInfo.titleEn ? `<span class="service-title-en">${serviceInfo.titleEn}</span>` : ''}
+                </h3>
+                <p class="service-description">${serviceInfo.description || '서비스 설명이 없습니다.'}</p>
+                ${serviceInfo.features ? `
+                    <ul class="service-features">
+                        ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                ` : ''}
+                ${serviceInfo.pricing ? `
+                    <div class="service-pricing">
+                        💰 ${serviceInfo.pricing}
+                    </div>
+                ` : ''}
+                <a href="${serviceInfo.url}" class="service-link" target="_blank">
+                    서비스 바로가기 →
+                </a>
+            `;
+            return card;
+        }
+
+        // Check Auth Status
+        function checkAuthStatus() {
+            const token = localStorage.getItem('neuralgrid_token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const signupBtn = document.getElementById('signup-btn');
+            const authBtn = document.getElementById('auth-btn');
+            
+            if (token && user.username) {
+                // 로그인 상태: 사용자 이름 표시
+                if (signupBtn) {
+                    signupBtn.innerHTML = '대시보드 →';
+                    signupBtn.onclick = () => window.location.href = 'https://neuralgrid.kr/dashboard';
+                }
+                
+                if (authBtn) {
+                    authBtn.innerHTML = user.username + ' 👤';
+                    authBtn.onclick = () => {
+                        const action = confirm(user.username + '님, 로그아웃하시겠습니까?');
+                        if (action) {
+                            localStorage.removeItem('neuralgrid_token');
+                            localStorage.removeItem('user');
+                            window.location.reload();
+                        } else {
+                            window.location.href = 'https://neuralgrid.kr/dashboard';
+                        }
+                    };
+                }
+            } else {
+                // 비로그인 상태: 로그인 버튼
+                if (authBtn) {
+                    authBtn.innerHTML = '로그인';
+                    authBtn.onclick = () => window.location.href = 'https://auth.neuralgrid.kr';
+                }
+            }
+        }
+
+        // Scroll Reveal Animation
+        function observeElements() {
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            reveals.forEach(reveal => observer.observe(reveal));
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+            loadServices();
+            observeElements();
+
+            // 서비스 카드가 사라지는 문제 해결을 위해 자동 새로고침 비활성화
+            // 필요시 수동으로 활성화 가능
+            // setInterval(() => {
+            //     loadServices();
+            // }, 30000);
+        });
+    </script>
+</body>
+</html>

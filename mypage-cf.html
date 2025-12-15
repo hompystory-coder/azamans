@@ -1,0 +1,573 @@
+
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <title>마이페이지 - 쇼츠 마켓</title>
+        <script>
+            // Tailwind CDN 경고 숨기기 (개발 환경용) - Tailwind 로드 전에 실행
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                const msg = args[0];
+                if (typeof msg === 'string' && msg.includes('cdn.tailwindcss.com should not be used in production')) {
+                    return;
+                }
+                originalWarn.apply(console, args);
+            };
+        </script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <!-- 헤더 -->
+        <header class="bg-white shadow-sm sticky top-0 z-50 mb-8">
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <a href="/" class="flex items-center space-x-2 hover:opacity-80">
+                        <i class="fas fa-video text-red-500 text-2xl"></i>
+                        <h1 class="text-2xl font-bold text-gray-900">쇼츠 마켓</h1>
+                    </a>
+                    <nav class="flex items-center space-x-4">
+                        <a href="/" class="text-gray-700 hover:text-red-500">
+                            <i class="fas fa-home"></i> 홈
+                        </a>
+                        <a href="/mypage" class="text-red-500 font-medium">
+                            <i class="fas fa-user-circle"></i> 마이페이지
+                        </a>
+                        <button onclick="showUserGuide()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-question-circle"></i> 사용방법
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">
+                <i class="fas fa-user-circle text-red-500"></i> 마이페이지
+            </h1>
+
+            <!-- 대시보드 통계 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">총 쇼츠</p>
+                            <p id="totalShorts" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <i class="fas fa-video text-red-500 text-3xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">총 클릭</p>
+                            <p id="totalClicks" class="text-3xl font-bold text-blue-600">0</p>
+                        </div>
+                        <i class="fas fa-mouse-pointer text-blue-500 text-3xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">총 수익</p>
+                            <p id="totalEarnings" class="text-3xl font-bold text-green-600">₩0</p>
+                        </div>
+                        <i class="fas fa-won-sign text-green-500 text-3xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">승인 대기</p>
+                            <p id="pendingShorts" class="text-3xl font-bold text-orange-600">0</p>
+                        </div>
+                        <i class="fas fa-clock text-orange-500 text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API 설정 -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-key text-blue-500"></i> API 설정
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- 쿠팡 파트너스 API -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">쿠팡 파트너스 API</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Access Key</label>
+                                <input 
+                                    type="text" 
+                                    id="coupangAccessKey" 
+                                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                                    placeholder="쿠팡 Access Key 입력">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Secret Key</label>
+                                <input 
+                                    type="password" 
+                                    id="coupangSecretKey" 
+                                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                                    placeholder="쿠팡 Secret Key 입력">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- YouTube 채널 ID -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">YouTube 채널 정보</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                YouTube 채널 URL 또는 채널 ID
+                            </label>
+                            <input 
+                                type="text" 
+                                id="youtubeChannelId" 
+                                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500"
+                                placeholder="UCxxxxxxxxxxxxxxxxxx 또는 @채널핸들 또는 전체 URL"
+                                onblur="extractChannelId()">
+                            <p class="text-xs text-gray-500 mt-1">
+                                <strong>지원 형식:</strong><br>
+                                • 채널 ID: <code class="bg-gray-100 px-1 rounded">UCzGu1MzB6dZ924Um7leDJxw</code><br>
+                                • 채널 핸들: <code class="bg-gray-100 px-1 rounded">@채널이름</code><br>
+                                • 전체 URL: <code class="bg-gray-100 px-1 rounded">https://www.youtube.com/@채널이름</code>
+                            </p>
+                        </div>
+                    </div>
+
+                    <button 
+                        onclick="saveApiKeys()" 
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium">
+                        <i class="fas fa-save"></i> API 키 저장
+                    </button>
+                </div>
+            </div>
+
+            <!-- 자동 수집 설정 -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-robot text-purple-500"></i> 자동 쇼츠 수집
+                </h2>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>자동 수집 기능:</strong> 설정한 시간 간격마다 자동으로 새로운 쇼츠를 수집합니다.
+                        이미 등록된 쇼츠는 제외하고 새로운 쇼츠만 가져옵니다.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- 자동 수집 활성화 -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">자동 수집 활성화</label>
+                            <p class="text-xs text-gray-500 mt-1">설정한 시간마다 자동으로 쇼츠를 수집합니다</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoFetchEnabled" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- 수집 간격 설정 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            수집 간격 (시간)
+                        </label>
+                        <div class="flex items-center space-x-4">
+                            <input 
+                                type="number" 
+                                id="autoFetchInterval" 
+                                min="1" 
+                                max="168"
+                                value="24"
+                                class="w-32 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                            <span class="text-sm text-gray-600">시간마다 자동 수집</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            권장: 24시간 (1일) ~ 168시간 (7일)
+                        </p>
+                    </div>
+
+                    <!-- 마지막 수집 시간 -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">마지막 자동 수집</p>
+                                <p id="lastAutoFetchTime" class="text-xs text-gray-500 mt-1">아직 수집되지 않음</p>
+                            </div>
+                            <button 
+                                onclick="triggerAutoFetchNow()" 
+                                class="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600">
+                                <i class="fas fa-play"></i> 지금 실행
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 저장 버튼 -->
+                    <button 
+                        onclick="saveAutoFetchSettings()" 
+                        class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-medium">
+                        <i class="fas fa-save"></i> 자동 수집 설정 저장
+                    </button>
+                </div>
+            </div>
+
+            <!-- 쇼츠 관리 -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">내 쇼츠 관리</h2>
+                    <div class="space-x-2">
+                        <button onclick="importShortsFromYoutube()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-download"></i> 쇼츠 불러오기
+                        </button>
+                        <button onclick="showAddShortModal()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                            <i class="fas fa-plus"></i> 쇼츠 추가
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 일괄 작업 바 -->
+                <div id="bulkActionsBar" class="bg-gray-100 rounded-lg p-4 mb-4 items-center justify-between" style="display: none;">
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" 
+                                   id="selectAllCheckbox" 
+                                   class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                            <span class="text-sm font-medium text-gray-700">전체 선택</span>
+                        </label>
+                        
+                        <span id="selectedCount" class="text-sm text-gray-600">0개 선택됨</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 mt-3">
+                        <button 
+                            id="bulkPendingBtn"
+                            data-bulk-action="pending"
+                            disabled
+                            class="bulk-action-btn px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm opacity-50 cursor-not-allowed">
+                            <i class="fas fa-clock"></i> 대기 상태로 변경
+                        </button>
+                        <button 
+                            id="bulkDeleteBtn"
+                            data-bulk-action="delete"
+                            disabled
+                            class="bulk-action-btn px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm opacity-50 cursor-not-allowed">
+                            <i class="fas fa-trash"></i> 선택 항목 삭제
+                        </button>
+                    </div>
+                </div>
+
+                <div id="myShorts" class="space-y-4">
+                    <!-- 쇼츠 목록이 여기에 동적으로 로드됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 사용방법 모달 -->
+        <div id="userGuideModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900">
+                        <i class="fas fa-book text-blue-500"></i> 쇼츠 마켓 사용방법
+                    </h2>
+                    <button onclick="closeUserGuide()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 space-y-8">
+                    <!-- 목차 -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 class="font-bold text-blue-900 mb-2">📑 목차</h3>
+                        <ol class="text-sm text-blue-800 space-y-1">
+                            <li>1. 시작하기 - API 키 설정</li>
+                            <li>2. YouTube 채널 연동</li>
+                            <li>3. 쇼츠 등록하기 (3가지 방법)</li>
+                            <li>4. 자동 쇼츠 수집 설정</li>
+                            <li>5. 쇼츠 관리하기</li>
+                            <li>6. 승인 대기 및 수익 확인</li>
+                        </ol>
+                    </div>
+
+                    <!-- 1. 시작하기 -->
+                    <div class="border-l-4 border-green-500 pl-4">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span class="bg-green-500 text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-2">1</span>
+                            시작하기 - API 키 설정
+                        </h3>
+                        <div class="space-y-3 text-gray-700">
+                            <p class="font-semibold">쿠팡 파트너스 API 키를 등록하세요:</p>
+                            <ol class="list-decimal list-inside space-y-2 ml-4">
+                                <li><strong>쿠팡 파트너스 가입</strong>
+                                    <ul class="list-disc list-inside ml-6 mt-1 text-sm">
+                                        <li>쿠팡 파트너스 사이트 접속</li>
+                                        <li>회원가입 및 승인 대기</li>
+                                    </ul>
+                                </li>
+                                <li><strong>API 키 발급</strong>
+                                    <ul class="list-disc list-inside ml-6 mt-1 text-sm">
+                                        <li>쿠팡 파트너스 로그인</li>
+                                        <li>도구 → API → Access Key, Secret Key 복사</li>
+                                    </ul>
+                                </li>
+                                <li><strong>마이페이지에 등록</strong>
+                                    <ul class="list-disc list-inside ml-6 mt-1 text-sm">
+                                        <li>"API 키 및 설정" 섹션에서 Access Key, Secret Key 입력</li>
+                                        <li>"API 키 저장" 버튼 클릭</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                            <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
+                                <p><i class="fas fa-exclamation-triangle text-yellow-600"></i> <strong>중요:</strong> Secret Key는 암호화되어 저장되며, 한 번 저장하면 마스킹(••••)으로 표시됩니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. YouTube 채널 연동 -->
+                    <div class="border-l-4 border-red-500 pl-4">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span class="bg-red-500 text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-2">2</span>
+                            YouTube 채널 연동
+                        </h3>
+                        <div class="space-y-3 text-gray-700">
+                            <p class="font-semibold">내 YouTube 채널을 연결하세요:</p>
+                            <ol class="list-decimal list-inside space-y-2 ml-4">
+                                <li><strong>채널 URL 또는 ID 입력</strong>
+                                    <ul class="list-disc list-inside ml-6 mt-1 text-sm">
+                                        <li>채널 ID: <code class="bg-gray-100 px-2 py-1 rounded">UCxxxxxxxxxxxxxxxxxx</code></li>
+                                        <li>채널 핸들: <code class="bg-gray-100 px-2 py-1 rounded">@채널이름</code></li>
+                                        <li>전체 URL: <code class="bg-gray-100 px-2 py-1 rounded">https://www.youtube.com/@채널이름</code></li>
+                                    </ul>
+                                </li>
+                                <li><strong>자동 파싱</strong>
+                                    <ul class="list-disc list-inside ml-6 mt-1 text-sm">
+                                        <li>URL을 붙여넣으면 자동으로 채널 ID 추출</li>
+                                        <li>입력 필드에서 포커스를 벗어나면 자동 변환</li>
+                                    </ul>
+                                </li>
+                                <li><strong>저장</strong>
+                                    <ul class="list-disc list-inside ml-6 mt-1 text-sm">
+                                        <li>"API 키 저장" 버튼으로 함께 저장</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- 3. 쇼츠 등록하기 -->
+                    <div class="border-l-4 border-purple-500 pl-4">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span class="bg-purple-500 text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-2">3</span>
+                            쇼츠 등록하기 (3가지 방법)
+                        </h3>
+                        
+                        <!-- 방법 1: 쇼츠 불러오기 -->
+                        <div class="mb-6">
+                            <h4 class="font-bold text-gray-900 mb-2">
+                                <i class="fas fa-download text-green-600"></i> 방법 1: 쇼츠 불러오기 (권장)
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-2">채널에서 최신 쇼츠 10개를 한 번에 가져옵니다.</p>
+                            <ol class="list-decimal list-inside space-y-1 ml-4 text-sm">
+                                <li>"쇼츠 불러오기" 버튼 클릭</li>
+                                <li>자동으로 제목, 설명, 조회수, 좋아요 수집</li>
+                                <li>이미 등록된 쇼츠는 자동으로 제외</li>
+                                <li>한글 설명 자동 수집</li>
+                            </ol>
+                        </div>
+
+                        <!-- 방법 2: 개별 등록 -->
+                        <div class="mb-6">
+                            <h4 class="font-bold text-gray-900 mb-2">
+                                <i class="fas fa-plus text-red-600"></i> 방법 2: 개별 등록
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-2">특정 쇼츠 URL을 직접 입력하여 등록합니다.</p>
+                            <ol class="list-decimal list-inside space-y-1 ml-4 text-sm">
+                                <li>"쇼츠 추가" 버튼 클릭</li>
+                                <li>YouTube 쇼츠 URL 입력 (예: https://youtube.com/shorts/xxxxx)</li>
+                                <li>자동으로 정보 수집</li>
+                                <li>필요시 상품 링크도 함께 입력</li>
+                                <li>"등록" 버튼 클릭</li>
+                            </ol>
+                        </div>
+
+                        <!-- 방법 3: 자동 수집 -->
+                        <div>
+                            <h4 class="font-bold text-gray-900 mb-2">
+                                <i class="fas fa-robot text-purple-600"></i> 방법 3: 자동 수집 (자동화)
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-2">설정한 시간마다 자동으로 새 쇼츠를 수집합니다.</p>
+                            <ol class="list-decimal list-inside space-y-1 ml-4 text-sm">
+                                <li>"자동 쇼츠 수집" 섹션으로 이동</li>
+                                <li>"자동 수집 활성화" 토글 ON</li>
+                                <li>수집 간격 설정 (예: 24시간)</li>
+                                <li>"자동 수집 설정 저장" 클릭</li>
+                                <li>이후 자동으로 새 쇼츠만 수집됨</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- 4. 자동 수집 설정 -->
+                    <div class="border-l-4 border-blue-500 pl-4">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span class="bg-blue-500 text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-2">4</span>
+                            자동 쇼츠 수집 설정
+                        </h3>
+                        <div class="space-y-3 text-gray-700">
+                            <p class="font-semibold">한 번 설정하면 자동으로 쇼츠를 수집합니다:</p>
+                            
+                            <div class="bg-blue-50 border border-blue-200 rounded p-3">
+                                <h4 class="font-bold text-blue-900 mb-2">✨ 자동 수집의 장점</h4>
+                                <ul class="list-disc list-inside space-y-1 text-sm text-blue-800">
+                                    <li>매번 수동으로 등록할 필요 없음</li>
+                                    <li>새 영상 업로드 시 자동 감지</li>
+                                    <li>이미 등록된 것은 건너뜀 (중복 방지)</li>
+                                    <li>시간 절약 및 효율성 증대</li>
+                                </ul>
+                            </div>
+
+                            <div class="space-y-2">
+                                <h4 class="font-bold">설정 방법:</h4>
+                                <ol class="list-decimal list-inside space-y-1 ml-4 text-sm">
+                                    <li><strong>활성화:</strong> 토글 스위치를 ON으로 전환</li>
+                                    <li><strong>간격 설정:</strong> 1~168시간 (1시간~7일) 중 선택
+                                        <ul class="list-disc list-inside ml-6 mt-1">
+                                            <li>매일 업로드: 6-12시간 권장</li>
+                                            <li>주 2-3회: 24시간 권장</li>
+                                            <li>주 1회: 48-72시간 권장</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>즉시 테스트:</strong> "지금 실행" 버튼으로 바로 테스트</li>
+                                    <li><strong>저장:</strong> "자동 수집 설정 저장" 클릭</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. 쇼츠 관리 -->
+                    <div class="border-l-4 border-yellow-500 pl-4">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span class="bg-yellow-500 text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-2">5</span>
+                            쇼츠 관리하기
+                        </h3>
+                        <div class="space-y-3 text-gray-700">
+                            <p class="font-semibold">등록된 쇼츠를 효율적으로 관리하세요:</p>
+                            
+                            <!-- 개별 관리 -->
+                            <div class="mb-4">
+                                <h4 class="font-bold text-gray-900 mb-2">개별 관리</h4>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-sm">
+                                    <li><strong>수정:</strong> 쇼츠 정보 수정 (제목, 설명, 상품 링크 등)</li>
+                                    <li><strong>삭제:</strong> 쇼츠 삭제</li>
+                                </ul>
+                            </div>
+
+                            <!-- 일괄 관리 -->
+                            <div>
+                                <h4 class="font-bold text-gray-900 mb-2">일괄 관리 (시간 절약)</h4>
+                                <ol class="list-decimal list-inside space-y-1 ml-4 text-sm">
+                                    <li><strong>선택:</strong> 체크박스로 여러 쇼츠 선택</li>
+                                    <li><strong>전체 선택:</strong> "전체 선택" 체크박스 클릭</li>
+                                    <li><strong>일괄 작업:</strong>
+                                        <ul class="list-disc list-inside ml-6 mt-1">
+                                            <li>"대기 상태로 변경" - 승인/반려된 것을 다시 대기로</li>
+                                            <li>"선택 항목 삭제" - 여러 개 한 번에 삭제</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
+                                <p><i class="fas fa-lightbulb text-yellow-600"></i> <strong>팁:</strong> 일괄 삭제는 실수로 삭제할 수 있으니 신중하게 선택하세요!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. 승인 및 수익 -->
+                    <div class="border-l-4 border-orange-500 pl-4">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">
+                            <span class="bg-orange-500 text-white rounded-full w-8 h-8 inline-flex items-center justify-center mr-2">6</span>
+                            승인 대기 및 수익 확인
+                        </h3>
+                        <div class="space-y-3 text-gray-700">
+                            <p class="font-semibold">관리자 승인 후 수익 발생:</p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2">📊 대시보드 통계</h4>
+                                    <ul class="list-disc list-inside space-y-1 ml-4 text-sm">
+                                        <li><strong>총 쇼츠:</strong> 등록된 모든 쇼츠 개수</li>
+                                        <li><strong>총 클릭:</strong> 사용자가 상품 링크를 클릭한 횟수</li>
+                                        <li><strong>총 수익:</strong> 쿠팡 파트너스 수익 합계</li>
+                                        <li><strong>승인 대기:</strong> 관리자 승인 대기 중인 쇼츠</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h4 class="font-bold text-gray-900 mb-2">🔄 승인 프로세스</h4>
+                                    <ol class="list-decimal list-inside space-y-1 ml-4 text-sm">
+                                        <li><strong>등록:</strong> 쇼츠 등록 → 자동으로 "승인 대기" 상태</li>
+                                        <li><strong>관리자 검토:</strong> 관리자가 내용 확인</li>
+                                        <li><strong>승인:</strong> 문제없으면 승인 → 홈 페이지에 표시</li>
+                                        <li><strong>반려:</strong> 문제 있으면 반려 (사유 메시지)</li>
+                                    </ol>
+                                </div>
+
+                                <div class="bg-green-50 border border-green-200 rounded p-3 text-sm">
+                                    <p><i class="fas fa-check-circle text-green-600"></i> <strong>승인 후:</strong> 홈 페이지에 노출되어 사용자가 볼 수 있습니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">
+                            <i class="fas fa-question-circle text-blue-500"></i> 자주 묻는 질문 (FAQ)
+                        </h3>
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <p class="font-bold text-gray-900">Q: 쇼츠 등록 후 언제 승인되나요?</p>
+                                <p class="text-gray-600 ml-4">A: 관리자가 검토 후 승인합니다. 보통 1-3일 소요됩니다.</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">Q: 자동 수집이 작동하지 않아요.</p>
+                                <p class="text-gray-600 ml-4">A: YouTube 채널 ID가 올바르게 입력되었는지, 자동 수집이 활성화되었는지 확인하세요.</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">Q: 삭제한 쇼츠를 복구할 수 있나요?</p>
+                                <p class="text-gray-600 ml-4">A: 삭제 후에는 복구할 수 없으니 신중하게 삭제하세요.</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">Q: 쇼츠 설명이 영어로 나와요.</p>
+                                <p class="text-gray-600 ml-4">A: 최신 버전에서는 자동으로 한글 수집됩니다. 기존 영어 설명은 다시 불러오기 하세요.</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">Q: 쿠팡 API 키는 어디서 발급받나요?</p>
+                                <p class="text-gray-600 ml-4">A: 쿠팡 파트너스 사이트 → 로그인 → 도구 → API에서 발급받을 수 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 문의 -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                        <p class="text-blue-900 font-medium">
+                            <i class="fas fa-headset"></i> 추가 문의사항이 있으시면 관리자에게 문의해주세요.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script src="/static/mypage.js"></script>
+    </body>
+    </html>
+  
