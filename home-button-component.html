@@ -1,0 +1,117 @@
+<!-- 
+    NeuralGrid 통합 홈 버튼 컴포넌트
+    모든 서브사이트에 추가하여 메인페이지로 쉽게 돌아갈 수 있습니다.
+    
+    사용법:
+    1. 이 파일의 <style>과 <div> 부분을 복사
+    2. 서브사이트의 <head>에 <style> 추가
+    3. <body> 시작 부분에 <div> 추가
+-->
+
+<!-- CSS 스타일 (head 태그 안에 추가) -->
+<style>
+    /* NeuralGrid Home Button */
+    .neuralgrid-home-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        border: none;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+    }
+
+    .neuralgrid-home-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.5);
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+
+    .neuralgrid-home-btn:active {
+        transform: translateY(-1px) scale(1.02);
+    }
+
+    .neuralgrid-home-icon {
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .neuralgrid-home-text {
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .neuralgrid-home-btn {
+            top: 10px;
+            left: 10px;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .neuralgrid-home-icon {
+            font-size: 1rem;
+        }
+    }
+
+    /* Mini version (only icon) */
+    @media (max-width: 480px) {
+        .neuralgrid-home-text {
+            display: none;
+        }
+
+        .neuralgrid-home-btn {
+            padding: 0.75rem;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            justify-content: center;
+        }
+
+        .neuralgrid-home-icon {
+            font-size: 1.3rem;
+        }
+    }
+
+    /* Animation */
+    @keyframes neuralgrid-pulse {
+        0%, 100% {
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        50% {
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+        }
+    }
+
+    .neuralgrid-home-btn.pulse {
+        animation: neuralgrid-pulse 2s ease-in-out infinite;
+    }
+</style>
+
+<!-- HTML 마크업 (body 시작 부분에 추가) -->
+<a href="https://neuralgrid.kr" class="neuralgrid-home-btn" title="NeuralGrid 메인으로 돌아가기">
+    <span class="neuralgrid-home-icon">🏠</span>
+    <span class="neuralgrid-home-text">NeuralGrid 홈</span>
+</a>
+
+<!-- 
+    옵션: 펄스 애니메이션 추가 (주의를 끌고 싶을 때)
+    class에 "pulse" 추가:
+    <a href="https://neuralgrid.kr" class="neuralgrid-home-btn pulse">
+-->

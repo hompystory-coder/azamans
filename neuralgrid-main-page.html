@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralGrid - 차세대 AI 통합 플랫폼</title>
+    <meta name="description" content="AI 자동화로 비즈니스를 혁신하세요. MediaFX, NeuronStar Music, BN Shop, N8N을 하나로.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-dark: #0a0e1a;
+            --bg-darker: #050810;
+            --bg-card: #151b2e;
+            --bg-card-hover: #1a2138;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border: #1e293b;
+            --glow: rgba(99, 102, 241, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Sora', sans-serif;
+        }
+
+        /* Animated Background with Particles */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse at top, #0a0e1a 0%, #050810 100%);
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+            animation: float 30s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Sora', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px var(--glow);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 4px 12px var(--glow); }
+            50% { box-shadow: 0 8px 24px var(--glow); }
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .btn-header {
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 8rem 0 6rem;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50px;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            animation: fade-in 1s ease;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            animation: fade-in 1s ease 0.2s both;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+            animation: fade-in 1s ease 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fade-in 1s ease 0.6s both;
+        }
+
+        .btn {
+            padding: 1.1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Stats Grid */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 6rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: var(--bg-card-hover);
+            border-color: var(--primary);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        /* Services Section */
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 6rem;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(236, 72, 153, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-icon-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .service-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .service-card:hover .service-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .service-status {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-online {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .service-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-description {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-features {
+            list-style: none;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-features li {
+            padding: 0.75rem 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .service-features li::before {
+            content: '✓';
+            width: 24px;
+            height: 24px;
+            background: rgba(16, 185, 129, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .service-pricing {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding: 0.75rem;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-link {
+            display: block;
+            width: 100%;
+            padding: 1.1rem;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-link:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 4rem 0 2rem;
+            margin-top: 8rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .footer-section p, 
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.75rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 2rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 4rem 0 3rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <span class="logo-text">NeuralGrid</span>
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#services">서비스</a></li>
+                    <li><a href="#stats">통계</a></li>
+                    <li><a href="https://monitor.neuralgrid.kr" target="_blank">모니터링</a></li>
+                    <li><a href="https://auth.neuralgrid.kr" class="btn-header">로그인</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                ✨ AI 자동화의 새로운 기준
+            </div>
+            <h1>
+                <span class="gradient-text">차세대 AI 통합 플랫폼</span><br>
+                NeuralGrid
+            </h1>
+            <p class="hero-subtitle">
+                MediaFX, NeuronStar Music, BN Shop, N8N을 하나로 통합한<br>
+                올인원 AI 자동화 솔루션으로 비즈니스를 혁신하세요
+            </p>
+            <div class="cta-buttons">
+                <a href="https://auth.neuralgrid.kr" class="btn btn-primary">
+                    무료로 시작하기 →
+                </a>
+                <a href="#services" class="btn btn-secondary">
+                    서비스 둘러보기
+                </a>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats reveal" id="stats">
+            <div class="stat-card">
+                <div class="stat-icon">🚀</div>
+                <div class="stat-value" id="cpu-stat">--</div>
+                <div class="stat-label">CPU 사용률</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💾</div>
+                <div class="stat-value" id="memory-stat">--</div>
+                <div class="stat-label">메모리 사용률</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚙️</div>
+                <div class="stat-value" id="services-stat">--</div>
+                <div class="stat-label">활성 서비스</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-value" id="uptime-stat">--</div>
+                <div class="stat-label">시스템 가동시간</div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="reveal">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="gradient-text">통합 AI 서비스</span>
+                </h2>
+                <p class="section-subtitle">
+                    최첨단 AI 기술로 구동되는 6개의 전문 서비스
+                </p>
+            </div>
+            <div class="services-grid" id="services-grid">
+                <!-- Loading State -->
+                <div class="service-card" style="grid-column: 1/-1;">
+                    <div style="text-align: center; padding: 3rem;">
+                        <div class="loading"></div>
+                        <p style="margin-top: 1.5rem; color: var(--text-secondary);">
+                            서비스 정보를 불러오는 중...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>NeuralGrid</h3>
+                <p>차세대 AI 자동화 플랫폼으로<br>비즈니스 혁신을 경험하세요.</p>
+                <p style="margin-top: 1rem;">
+                    <strong>Server:</strong> 115.91.5.140<br>
+                    <strong>Email:</strong> admin@neuralgrid.kr
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>AI 서비스</h3>
+                <a href="https://mfx.neuralgrid.kr">MediaFX Shorts</a>
+                <a href="https://music.neuralgrid.kr">NeuronStar Music</a>
+                <a href="https://bn-shop.neuralgrid.kr">BN Shop</a>
+            </div>
+            <div class="footer-section">
+                <h3>자동화 & 관리</h3>
+                <a href="https://n8n.neuralgrid.kr">N8N Automation</a>
+                <a href="https://monitor.neuralgrid.kr">시스템 모니터</a>
+                <a href="https://auth.neuralgrid.kr">인증 서비스</a>
+            </div>
+            <div class="footer-section">
+                <h3>리소스</h3>
+                <a href="https://api.neuralgrid.kr">API Gateway</a>
+                <a href="https://ai.neuralgrid.kr">AI Assistant</a>
+                <a href="#stats">시스템 상태</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 NeuralGrid Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = '/api';
+        
+        // Enhanced Service Data with Detailed PR Content
+        const servicesData = {
+            'MediaFX Shorts': {
+                icon: '🎬',
+                url: 'https://mfx.neuralgrid.kr',
+                description: 'AI 기반 숏폼 비디오 자동 생성 플랫폼. Gemini 2.0, Pollinations.AI, Kling v2.1을 활용하여 블로그 콘텐츠를 고품질 쇼츠 영상으로 자동 변환합니다.',
+                features: [
+                    'AI 스토리 생성 (Gemini 2.0 Flash)',
+                    'AI 이미지 생성 (Pollinations.AI)',
+                    'AI 비디오 생성 (Kling v2.1 Pro)',
+                    '한글 자막 자동 생성 & 렌더링',
+                    '4-5분 만에 완성되는 빠른 처리'
+                ],
+                pricing: '영상당 약 $0.06 (저렴한 비용)'
+            },
+            'NeuronStar Music': {
+                icon: '🎵',
+                url: 'https://music.neuralgrid.kr',
+                description: 'AI 음악 생성 전문 플랫폼. 무료로 제공되는 다양한 장르의 오리지널 음악을 몇 초 만에 생성하여 상업적으로 자유롭게 활용하세요.',
+                features: [
+                    '100% 무료 AI 음악 생성',
+                    '다양한 장르 및 무드 지원',
+                    '커스텀 가사 & 스타일 설정',
+                    '고품질 오디오 (MP3/WAV)',
+                    '상업적 이용 완전 허용'
+                ],
+                pricing: '완전 무료 (Free Forever)'
+            },
+            'BN Shop': {
+                icon: '🛒',
+                url: 'https://bn-shop.neuralgrid.kr',
+                description: '통합 이커머스 플랫폼. AI 기반 상품 추천 시스템과 자동화된 재고 관리로 온라인 쇼핑몰을 손쉽게 운영하세요.',
+                features: [
+                    'AI 상품 추천 엔진',
+                    '실시간 재고 자동 관리',
+                    '통합 결제 시스템 (PG 연동)',
+                    '주문 추적 & 배송 관리',
+                    '고객 분석 대시보드'
+                ],
+                pricing: '베타 테스트 중 (무료)'
+            },
+            'System Monitor': {
+                icon: '🖥️',
+                url: 'https://monitor.neuralgrid.kr',
+                description: '실시간 시스템 모니터링 대시보드. 서버 상태, PM2 프로세스, 리소스 사용률, 디스크 용량을 한눈에 확인하고 관리하세요.',
+                features: [
+                    '실시간 CPU/메모리 모니터링',
+                    'PM2 프로세스 상태 관리',
+                    '디스크 사용량 추적',
+                    '자동 알림 시스템 (Slack/Email)',
+                    '30초 자동 새로고침'
+                ],
+                pricing: '무료 (Free)'
+            },
+            'N8N Automation': {
+                icon: '⚙️',
+                url: 'https://n8n.neuralgrid.kr',
+                description: '강력한 워크플로우 자동화 엔진. 복잡한 비즈니스 프로세스를 시각적으로 설계하고 자동화하여 생산성을 10배 향상시키세요.',
+                features: [
+                    '200+ 앱/서비스 통합 지원',
+                    '드래그 앤 드롭 워크플로우 빌더',
+                    'REST API 자동화',
+                    '크론 스케줄링 & 트리거',
+                    '에러 핸들링 & 재시도 로직'
+                ],
+                pricing: '무료 (Self-hosted)'
+            },
+            'Auth Service': {
+                icon: '🔐',
+                url: 'https://auth.neuralgrid.kr',
+                description: '통합 인증 및 사용자 관리 시스템. JWT 기반 보안 인증, API 키 발급, 크레딧 관리를 제공하는 중앙 인증 플랫폼입니다.',
+                features: [
+                    'JWT 기반 보안 인증',
+                    '통합 사용자 관리',
+                    'API 키 자동 발급',
+                    '크레딧 시스템 & 사용량 추적',
+                    '세션 관리 & 로그 기록'
+                ],
+                pricing: '무료 (Free)'
+            }
+        };
+
+        // Load Stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('cpu-stat').textContent = 
+                        data.data.cpu ? `${data.data.cpu.toFixed(1)}%` : '--';
+                    document.getElementById('memory-stat').textContent = 
+                        data.data.memory ? `${data.data.memory.toFixed(1)}%` : '--';
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Load Services
+        async function loadServices() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/services/status`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const onlineCount = data.data.filter(s => s.status === 'online').length;
+                    document.getElementById('services-stat').textContent = `${onlineCount}/${data.data.length}`;
+                    
+                    const grid = document.getElementById('services-grid');
+                    grid.innerHTML = '';
+                    
+                    data.data.forEach((service, index) => {
+                        const serviceInfo = servicesData[service.name] || {};
+                        const card = document.createElement('div');
+                        card.className = 'service-card reveal';
+                        card.style.animationDelay = `${index * 0.1}s`;
+                        card.innerHTML = `
+                            <div class="service-header">
+                                <div class="service-icon-wrapper">
+                                    <div class="service-icon">${serviceInfo.icon || '⚡'}</div>
+                                </div>
+                                <span class="service-status ${service.status === 'online' ? 'status-online' : 'status-offline'}">
+                                    <span class="status-dot"></span>
+                                    ${service.status === 'online' ? 'Online' : 'Offline'}
+                                </span>
+                            </div>
+                            <h3 class="service-title">${service.name}</h3>
+                            <p class="service-description">${serviceInfo.description || '서비스 설명이 없습니다.'}</p>
+                            ${serviceInfo.features ? `
+                                <ul class="service-features">
+                                    ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            ${serviceInfo.pricing ? `
+                                <div class="service-pricing">
+                                    💰 ${serviceInfo.pricing}
+                                </div>
+                            ` : ''}
+                            <a href="${service.url}" class="service-link" target="_blank">
+                                서비스 바로가기 →
+                            </a>
+                        `;
+                        grid.appendChild(card);
+                    });
+
+                    // Trigger reveal animations
+                    observeElements();
+                }
+            } catch (error) {
+                console.error('Failed to load services:', error);
+                document.getElementById('services-grid').innerHTML = `
+                    <div class="service-card" style="grid-column: 1/-1;">
+                        <p style="text-align: center; color: var(--error); font-size: 1.1rem;">
+                            ⚠️ 서비스 정보를 불러오는데 실패했습니다.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        // Update Uptime
+        function updateUptime() {
+            const startTime = new Date('2025-12-14T00:00:00Z');
+            const now = new Date();
+            const diff = now - startTime;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            document.getElementById('uptime-stat').textContent = `${days}d ${hours}h`;
+        }
+
+        // Scroll Reveal Animation
+        function observeElements() {
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            reveals.forEach(reveal => observer.observe(reveal));
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadServices();
+            updateUptime();
+            observeElements();
+
+            // Auto refresh every 30 seconds
+            setInterval(() => {
+                loadStats();
+                loadServices();
+                updateUptime();
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
