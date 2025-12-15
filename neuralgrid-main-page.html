@@ -596,26 +596,37 @@
             z-index: 1;
         }
 
+        .service-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+            position: relative;
+            z-index: 1;
+        }
+
         .service-features {
             list-style: none;
-            margin-bottom: 2rem;
+            margin-bottom: 0;
             position: relative;
             z-index: 1;
         }
 
         .service-features li {
-            padding: 0.75rem 0;
+            padding: 0.5rem 0;
             color: var(--text-secondary);
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.75rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .service-features li::before {
             content: '✓';
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             background: rgba(16, 185, 129, 0.15);
             border-radius: 50%;
             display: flex;
@@ -623,8 +634,9 @@
             justify-content: center;
             color: var(--success);
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             flex-shrink: 0;
+            margin-top: 0.1rem;
         }
 
         .service-pricing {
@@ -906,9 +918,10 @@
             </div>
             <div class="footer-section">
                 <h3>AI 서비스</h3>
+                <a href="https://bn-shop.neuralgrid.kr">블로그 쇼츠생성기</a>
                 <a href="https://mfx.neuralgrid.kr">MediaFX Shorts</a>
                 <a href="https://music.neuralgrid.kr">NeuronStar Music</a>
-                <a href="https://bn-shop.neuralgrid.kr">BN Shop</a>
+                <a href="https://market.neuralgrid.kr">쿠팡쇼츠 마켓</a>
             </div>
             <div class="footer-section">
                 <h3>자동화 & 관리</h3>
@@ -931,85 +944,162 @@
     <script>
         const API_BASE = '/api';
         
-        // Enhanced Service Data with Detailed PR Content
+        // Enhanced Service Data with Detailed PR Content & Usage Guide
         const servicesData = {
+            'Blog Shorts Generator': {
+                icon: '📰',
+                url: 'https://bn-shop.neuralgrid.kr',
+                description: '블로그 기사를 AI가 자동으로 분석하여 YouTube Shorts 형식의 영상으로 변환. Gemini 2.0, Pollinations.AI, Kling v2.1 Pro를 활용한 완전 자동화 솔루션입니다.',
+                features: [
+                    '📄 블로그 URL 입력 → 자동 콘텐츠 분석',
+                    '🎬 AI 스토리보드 자동 생성 (Gemini 2.0)',
+                    '🖼️ 이미지 생성 (Pollinations.AI)',
+                    '🎥 비디오 렌더링 (Kling v2.1 Pro)',
+                    '🔊 한국어 자막 자동 렌더링',
+                    '⚡ 평균 처리 시간: 4~5분'
+                ],
+                pricing: '영상당 약 $0.06',
+                howToUse: [
+                    '1️⃣ bn-shop.neuralgrid.kr 접속',
+                    '2️⃣ "새 프로젝트 만들기" 클릭',
+                    '3️⃣ 블로그 URL 입력',
+                    '4️⃣ AI 자동 분석 시작 (4-5분 소요)',
+                    '5️⃣ 완성된 Shorts 영상 다운로드'
+                ]
+            },
             'MediaFX Shorts': {
                 icon: '🎬',
                 url: 'https://mfx.neuralgrid.kr',
-                description: 'AI 기반 숏폼 비디오 자동 생성 플랫폼. Gemini 2.0, Pollinations.AI, Kling v2.1을 활용하여 블로그 콘텐츠를 고품질 쇼츠 영상으로 자동 변환합니다.',
+                description: 'AI 기반 숏폼 비디오 자동 생성 플랫폼. 텍스트 프롬프트만으로 전문가급 Shorts 영상을 3-4분 만에 제작할 수 있습니다.',
                 features: [
-                    'AI 스토리 생성 (Gemini 2.0 Flash)',
-                    'AI 이미지 생성 (Pollinations.AI)',
-                    'AI 비디오 생성 (Kling v2.1 Pro)',
-                    '한글 자막 자동 생성 & 렌더링',
-                    '4-5분 만에 완성되는 빠른 처리'
+                    '🤖 텍스트 → 비디오 자동 생성',
+                    '🎨 다양한 템플릿 및 스타일 지원',
+                    '🎵 AI 음악 자동 매칭',
+                    '📱 SNS 최적화 (Instagram, TikTok, YouTube)',
+                    '🔄 배치 프로세싱 지원',
+                    '📊 영상 성과 분석 대시보드'
                 ],
-                pricing: '영상당 약 $0.06 (저렴한 비용)'
+                pricing: '유료 (경쟁력 있는 가격)',
+                howToUse: [
+                    '1️⃣ mfx.neuralgrid.kr 접속 → SSO 로그인',
+                    '2️⃣ "새 쇼츠 만들기" 클릭',
+                    '3️⃣ 텍스트 프롬프트 입력 (예: "도쿄 야경 감성 브이로그")',
+                    '4️⃣ 스타일 및 음악 선택',
+                    '5️⃣ "생성하기" 클릭 → 3-4분 대기',
+                    '6️⃣ 완성된 영상 다운로드 또는 직접 SNS 업로드'
+                ]
             },
             'NeuronStar Music': {
                 icon: '🎵',
                 url: 'https://music.neuralgrid.kr',
-                description: 'AI 음악 생성 전문 플랫폼. 무료로 제공되는 다양한 장르의 오리지널 음악을 몇 초 만에 생성하여 상업적으로 자유롭게 활용하세요.',
+                description: '무료 AI 음악 생성 플랫폼. 텍스트 설명만으로 고품질 음악을 30-60초 만에 제작하고, 상업적으로 자유롭게 활용하세요.',
                 features: [
-                    '100% 무료 AI 음악 생성',
-                    '다양한 장르 및 무드 지원',
-                    '커스텀 가사 & 스타일 설정',
-                    '고품질 오디오 (MP3/WAV)',
-                    '상업적 이용 완전 허용'
+                    '🎼 다양한 장르 지원 (Pop, Rock, Jazz, EDM, Classical)',
+                    '✍️ 커스텀 가사 입력 가능',
+                    '🎧 고품질 오디오 출력 (WAV/MP3)',
+                    '💼 상업적 이용 가능',
+                    '📦 무제한 생성 (무료 플랜)',
+                    '🔊 실시간 미리듣기'
                 ],
-                pricing: '완전 무료 (Free Forever)'
+                pricing: '완전 무료 (Free Forever)',
+                howToUse: [
+                    '1️⃣ music.neuralgrid.kr 접속 → SSO 로그인',
+                    '2️⃣ "새 음악 만들기" 클릭',
+                    '3️⃣ 음악 설명 입력 (예: "잔잔한 피아노 선율의 감성 발라드")',
+                    '4️⃣ 장르 및 분위기 선택',
+                    '5️⃣ (선택) 가사 입력',
+                    '6️⃣ "생성하기" 클릭 → 30-60초 대기',
+                    '7️⃣ 완성된 음악 청취 후 다운로드 (MP3/WAV)'
+                ]
             },
-            'BN Shop': {
+            'Shorts Market': {
                 icon: '🛒',
-                url: 'https://bn-shop.neuralgrid.kr',
-                description: '통합 이커머스 플랫폼. AI 기반 상품 추천 시스템과 자동화된 재고 관리로 온라인 쇼핑몰을 손쉽게 운영하세요.',
+                url: 'https://market.neuralgrid.kr',
+                description: 'YouTube Shorts와 쿠팡 파트너스를 연동한 쇼츠 커머스 플랫폼. 자동 쇼츠 수집, 딥링크 생성으로 크리에이터 수익을 극대화하세요.',
                 features: [
-                    'AI 상품 추천 엔진',
-                    '실시간 재고 자동 관리',
-                    '통합 결제 시스템 (PG 연동)',
-                    '주문 추적 & 배송 관리',
-                    '고객 분석 대시보드'
+                    '📹 YouTube Shorts 자동 수집 (100% 성공률)',
+                    '🛒 쿠팡 파트너스 딥링크 자동 생성',
+                    '🔗 네이버 브랜드 커넥트 지원',
+                    '💰 크리에이터 수익 대시보드',
+                    '📊 조회수/좋아요/댓글 통계',
+                    '🎯 자동 상품 매칭'
                 ],
-                pricing: '베타 테스트 중 (무료)'
-            },
-            'System Monitor': {
-                icon: '🖥️',
-                url: 'https://monitor.neuralgrid.kr',
-                description: '실시간 시스템 모니터링 대시보드. 서버 상태, PM2 프로세스, 리소스 사용률, 디스크 용량을 한눈에 확인하고 관리하세요.',
-                features: [
-                    '실시간 CPU/메모리 모니터링',
-                    'PM2 프로세스 상태 관리',
-                    '디스크 사용량 추적',
-                    '자동 알림 시스템 (Slack/Email)',
-                    '30초 자동 새로고침'
-                ],
-                pricing: '무료 (Free)'
+                pricing: '무료 (베타)',
+                howToUse: [
+                    '1️⃣ market.neuralgrid.kr 접속 → SSO 로그인',
+                    '2️⃣ "새 쇼츠 등록" 클릭',
+                    '3️⃣ YouTube Shorts URL 입력',
+                    '4️⃣ 자동 정보 수집 (제목, 썸네일, 조회수 등)',
+                    '5️⃣ 쿠팡 상품 링크 입력 또는 자동 추천 선택',
+                    '6️⃣ "등록하기" 클릭',
+                    '7️⃣ 크리에이터 대시보드에서 수익 추적'
+                ]
             },
             'N8N Automation': {
                 icon: '⚙️',
                 url: 'https://n8n.neuralgrid.kr',
-                description: '강력한 워크플로우 자동화 엔진. 복잡한 비즈니스 프로세스를 시각적으로 설계하고 자동화하여 생산성을 10배 향상시키세요.',
+                description: '200개 이상의 앱 연동을 지원하는 강력한 워크플로우 자동화 엔진. 복잡한 비즈니스 프로세스를 드래그 앤 드롭으로 자동화하세요.',
                 features: [
-                    '200+ 앱/서비스 통합 지원',
-                    '드래그 앤 드롭 워크플로우 빌더',
-                    'REST API 자동화',
-                    '크론 스케줄링 & 트리거',
-                    '에러 핸들링 & 재시도 로직'
+                    '🔗 200+ 앱/서비스 통합 지원',
+                    '🖱️ 드래그 앤 드롭 빌더',
+                    '🔄 REST API 자동화',
+                    '⏰ Cron 스케줄링',
+                    '🔐 보안 자체 호스팅',
+                    '📊 실시간 로그 및 디버깅'
                 ],
-                pricing: '무료 (Self-hosted)'
+                pricing: '무료 (Self-hosted)',
+                howToUse: [
+                    '1️⃣ n8n.neuralgrid.kr 접속 → SSO 로그인',
+                    '2️⃣ "새 워크플로우 만들기" 클릭',
+                    '3️⃣ 트리거 노드 선택 (예: Webhook, Schedule)',
+                    '4️⃣ 작업 노드 연결 (예: Send Email, HTTP Request)',
+                    '5️⃣ 각 노드 설정 및 연결',
+                    '6️⃣ "활성화" 버튼 클릭',
+                    '7️⃣ 워크플로우 자동 실행 모니터링'
+                ]
+            },
+            'System Monitor': {
+                icon: '🖥️',
+                url: 'https://monitor.neuralgrid.kr',
+                description: '실시간 서버 상태 및 PM2 프로세스를 한눈에 모니터링하는 프리미엄 대시보드. Glassmorphism 디자인과 Chart.js 그래프를 제공합니다.',
+                features: [
+                    '📊 실시간 CPU/메모리 사용률 (Chart.js)',
+                    '💿 디스크 용량 모니터링',
+                    '⚙️ PM2 프로세스 상태 추적',
+                    '🔔 자동 알림 시스템',
+                    '🎨 Glassmorphism 디자인',
+                    '🔄 30초 자동 갱신'
+                ],
+                pricing: '무료 (Free)',
+                howToUse: [
+                    '1️⃣ monitor.neuralgrid.kr 접속 → SSO 로그인',
+                    '2️⃣ 실시간 대시보드 자동 표시',
+                    '3️⃣ 각 서비스 상태 확인 (🟢 녹색: 정상 / 🔴 빨간색: 중단)',
+                    '4️⃣ CPU/메모리 그래프 실시간 모니터링',
+                    '5️⃣ PM2 프로세스 제어 (재시작/중지)'
+                ]
             },
             'Auth Service': {
                 icon: '🔐',
                 url: 'https://auth.neuralgrid.kr',
-                description: '통합 인증 및 사용자 관리 시스템. JWT 기반 보안 인증, API 키 발급, 크레딧 관리를 제공하는 중앙 인증 플랫폼입니다.',
+                description: '모든 NeuralGrid 서비스를 위한 중앙 집중식 JWT 기반 SSO 인증 시스템. 한 번의 로그인으로 모든 서비스에 즉시 접근하세요.',
                 features: [
-                    'JWT 기반 보안 인증',
-                    '통합 사용자 관리',
-                    'API 키 자동 발급',
-                    '크레딧 시스템 & 사용량 추적',
-                    '세션 관리 & 로그 기록'
+                    '🔐 JWT 기반 보안 인증',
+                    '🎫 API 키 발급 및 관리',
+                    '💳 크레딧 추적 시스템',
+                    '👤 통합 사용자 관리',
+                    '🔄 자동 토큰 갱신',
+                    '🛡️ 권한 기반 접근 제어'
                 ],
-                pricing: '무료 (Free)'
+                pricing: '무료 (Free)',
+                howToUse: [
+                    '1️⃣ 모든 서비스에서 "로그인" 클릭',
+                    '2️⃣ auth.neuralgrid.kr 자동 리다이렉트',
+                    '3️⃣ 이메일/비밀번호 입력',
+                    '4️⃣ JWT 토큰 자동 발급',
+                    '5️⃣ 원래 서비스로 자동 복귀',
+                    '6️⃣ 모든 서비스 즉시 사용 가능'
+                ]
             }
         };
 
@@ -1151,9 +1241,20 @@
                             <h3 class="service-title">${service.name}</h3>
                             <p class="service-description">${serviceInfo.description || '서비스 설명이 없습니다.'}</p>
                             ${serviceInfo.features ? `
-                                <ul class="service-features">
-                                    ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
-                                </ul>
+                                <div class="service-section">
+                                    <h4 style="margin: 1rem 0 0.5rem; color: var(--primary); font-size: 0.95rem;">✨ 주요 기능</h4>
+                                    <ul class="service-features">
+                                        ${serviceInfo.features.map(f => `<li>${f}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            ${serviceInfo.howToUse ? `
+                                <div class="service-section">
+                                    <h4 style="margin: 1rem 0 0.5rem; color: var(--secondary); font-size: 0.95rem;">📖 사용 방법</h4>
+                                    <ul class="service-features">
+                                        ${serviceInfo.howToUse.map(step => `<li>${step}</li>`).join('')}
+                                    </ul>
+                                </div>
                             ` : ''}
                             ${serviceInfo.pricing ? `
                                 <div class="service-pricing">
