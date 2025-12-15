@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Services Check</title>
+</head>
+<body>
+    <h1>NeuralGrid Services Check</h1>
+    <div id="output"></div>
+    
+    <script>
+        const additionalServices = {
+            'System Monitor': {
+                icon: '🖥️',
+                titleKo: '서버모니터링',
+                titleEn: 'System Monitor',
+                url: 'https://monitor.neuralgrid.kr'
+            },
+            'Auth Service': {
+                icon: '🔐',
+                titleKo: '통합 인증 서비스',
+                titleEn: 'Auth Service',
+                url: 'https://auth.neuralgrid.kr'
+            },
+            'AI Assistant': {
+                icon: '🤖',
+                titleKo: 'AI 어시스턴트',
+                titleEn: 'AI Assistant',
+                url: 'http://ai.neuralgrid.kr'
+            },
+            'DDoS Tester': {
+                icon: '⚡',
+                titleKo: 'DDoS 부하 테스터',
+                titleEn: 'DDoS Tester',
+                url: 'https://ddos.neuralgrid.kr'
+            }
+        };
+        
+        const output = document.getElementById('output');
+        output.innerHTML = '<h2>Additional Services:</h2>';
+        
+        Object.keys(additionalServices).forEach(key => {
+            const service = additionalServices[key];
+            output.innerHTML += `
+                <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+                    <h3>${service.icon} ${service.titleKo} (${service.titleEn})</h3>
+                    <p>URL: <a href="${service.url}" target="_blank">${service.url}</a></p>
+                </div>
+            `;
+        });
+        
+        console.log('✅ Total Additional Services:', Object.keys(additionalServices).length);
+        console.log('📋 Service Names:', Object.keys(additionalServices));
+    </script>
+</body>
+</html>
