@@ -4,6 +4,7 @@ import path from 'path';
 import sqlite3 from 'sqlite3';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,8 +12,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3003;
 
-// 데이터베이스 경로 - 백업된 데이터베이스 사용
-const DB_PATH = path.join(__dirname, 'shorts-market-backup.sqlite');
+// 데이터베이스 경로 - 새로 생성한 데이터베이스 사용
+const DB_PATH = path.join(__dirname, 'shorts-market.db');
 
 // 데이터베이스 연결
 let db;
@@ -272,9 +273,126 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// Catch-all route - serve index.html for client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Authentication endpoints
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: '이메일과 비밀번호를 입력해주세요.'
+      });
+    }
+    
+    // Get user by email
+    const user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: '이메일 또는 비밀번호가 올바르지 않습니다.'
+      });
+    }
+    
+    // Hash password with SHA256 to compare
+    const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+    
+    if (user.password_hash !== passwordHash) {
+      return res.status(401).json({
+        success: false,
+        error: '이메일 또는 비밀번호가 올바르지 않습니다.'
+      });
+    }
+    
+    // Generate a simple token (in production, use JWT)
+    const token = crypto.randomBytes(32).toString('hex');
+    
+    // Remove password hash from response
+    delete user.password_hash;
+    
+    res.json({
+      success: true,
+      data: {
+        user,
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      error: '로그인 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Register
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        error: '모든 필드를 입력해주세요.'
+      });
+    }
+    
+    // Check if user already exists
+    const existingUser = await dbGet('SELECT id FROM users WHERE email = ?', [email]);
+    
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: '이미 존재하는 이메일입니다.'
+      });
+    }
+    
+    // Hash password
+    const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+    
+    // Insert new user
+    const result = await dbRun(
+      'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)',
+      [email, passwordHash, name, 'user']
+    );
+    
+    // Get created user
+    const user = await dbGet('SELECT * FROM users WHERE id = ?', [result.lastID]);
+    delete user.password_hash;
+    
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    
+    res.json({
+      success: true,
+      data: {
+        user,
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({
+      success: false,
+      error: '회원가입 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Serve index.html for specific routes (client-side routing)
+const clientRoutes = ['/', '/creator', '/mypage', '/admin', '/register', '/short/:id'];
+clientRoutes.forEach(route => {
+  app.get(route, (req, res) => {
+    const filePath = path.join(__dirname, 'dist', 'index.html');
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).json({ error: 'index.html not found' });
+    }
+  });
 });
 
 // Start server
