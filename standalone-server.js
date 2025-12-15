@@ -97,6 +97,36 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// Track click on short
+app.post('/api/shorts/:id/click', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Increment click count
+    await dbRun(
+      'UPDATE shorts SET click_count = click_count + 1 WHERE id = ?',
+      [id]
+    );
+    
+    // Log click
+    await dbRun(
+      'INSERT INTO click_logs (short_id, user_ip, user_agent) VALUES (?, ?, ?)',
+      [id, req.ip || 'unknown', req.headers['user-agent'] || 'unknown']
+    );
+    
+    res.json({
+      success: true,
+      message: '클릭이 기록되었습니다.'
+    });
+  } catch (error) {
+    console.error('Click tracking error:', error);
+    res.status(500).json({
+      success: false,
+      error: '클릭 기록 중 오류가 발생했습니다.'
+    });
+  }
+});
+
 // Get single short by ID
 app.get('/api/shorts/:id', async (req, res) => {
   try {
@@ -151,8 +181,10 @@ app.get('/api/shorts', async (req, res) => {
     
     res.json({
       success: true,
-      data: shorts,
-      count: shorts.length
+      data: {
+        shorts: shorts,
+        count: shorts.length
+      }
     });
   } catch (error) {
     console.error('Error fetching shorts:', error);
@@ -182,8 +214,10 @@ app.get('/api/shorts/status/:status', async (req, res) => {
     
     res.json({
       success: true,
-      data: shorts,
-      count: shorts.length
+      data: {
+        shorts: shorts,
+        count: shorts.length
+      }
     });
   } catch (error) {
     console.error('Error fetching shorts by status:', error);
@@ -209,7 +243,9 @@ app.get('/api/shorts/categories/list', async (req, res) => {
     
     res.json({
       success: true,
-      data: categories
+      data: {
+        categories: categories.map(c => c.category)
+      }
     });
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -240,14 +276,246 @@ app.get('/api/admin/creators', async (req, res) => {
     
     res.json({
       success: true,
-      data: creators,
-      count: creators.length
+      data: {
+        creators: creators,
+        count: creators.length
+      }
     });
   } catch (error) {
     console.error('Error fetching creators:', error);
     res.status(500).json({
       success: false,
       error: '크리에이터 목록 조회 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Get shorts by status (admin)
+app.get('/api/admin/shorts/:status', async (req, res) => {
+  try {
+    const { status } = req.params;
+    const shorts = await dbAll(`
+      SELECT 
+        s.*,
+        c.youtube_channel_name,
+        c.subtag,
+        u.name as creator_name,
+        u.email as creator_email
+      FROM shorts s
+      LEFT JOIN creators c ON s.creator_id = c.id
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE s.status = ?
+      ORDER BY s.created_at DESC
+    `, [status]);
+    
+    res.json({
+      success: true,
+      data: {
+        shorts: shorts,
+        count: shorts.length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching admin shorts:', error);
+    res.status(500).json({
+      success: false,
+      error: '쇼츠 목록 조회 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Approve short
+app.post('/api/admin/shorts/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { note } = req.body;
+    
+    await dbRun(
+      `UPDATE shorts SET 
+        status = 'approved',
+        approval_note = ?,
+        approved_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [note || '', id]
+    );
+    
+    res.json({
+      success: true,
+      message: '쇼츠가 승인되었습니다.'
+    });
+  } catch (error) {
+    console.error('Approve short error:', error);
+    res.status(500).json({
+      success: false,
+      error: '승인 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Reject short
+app.post('/api/admin/shorts/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    await dbRun(
+      `UPDATE shorts SET 
+        status = 'rejected',
+        approval_note = ?,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [reason || '관리자에 의해 거부됨', id]
+    );
+    
+    res.json({
+      success: true,
+      message: '쇼츠가 거부되었습니다.'
+    });
+  } catch (error) {
+    console.error('Reject short error:', error);
+    res.status(500).json({
+      success: false,
+      error: '거부 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Set short to pending
+app.post('/api/admin/shorts/:id/pending', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { note } = req.body;
+    
+    await dbRun(
+      `UPDATE shorts SET 
+        status = 'pending',
+        approval_note = ?,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [note || '', id]
+    );
+    
+    res.json({
+      success: true,
+      message: '쇼츠가 대기 상태로 변경되었습니다.'
+    });
+  } catch (error) {
+    console.error('Set pending error:', error);
+    res.status(500).json({
+      success: false,
+      error: '상태 변경 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Delete short (admin)
+app.delete('/api/admin/shorts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    await dbRun('DELETE FROM shorts WHERE id = ?', [id]);
+    
+    res.json({
+      success: true,
+      message: '쇼츠가 삭제되었습니다.'
+    });
+  } catch (error) {
+    console.error('Delete short error:', error);
+    res.status(500).json({
+      success: false,
+      error: '삭제 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Approve creator
+app.post('/api/admin/creators/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    await dbRun(
+      `UPDATE creators SET 
+        is_approved = 1,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [id]
+    );
+    
+    res.json({
+      success: true,
+      message: '크리에이터가 승인되었습니다.'
+    });
+  } catch (error) {
+    console.error('Approve creator error:', error);
+    res.status(500).json({
+      success: false,
+      error: '승인 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Revoke creator
+app.post('/api/admin/creators/:id/revoke', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    await dbRun(
+      `UPDATE creators SET 
+        is_approved = 0,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [id]
+    );
+    
+    res.json({
+      success: true,
+      message: '크리에이터 승인이 취소되었습니다.'
+    });
+  } catch (error) {
+    console.error('Revoke creator error:', error);
+    res.status(500).json({
+      success: false,
+      error: '취소 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// Get admin stats
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const stats = await dbGet(`
+      SELECT 
+        (SELECT COUNT(*) FROM shorts) as total_shorts,
+        (SELECT COUNT(*) FROM shorts WHERE status = 'approved') as approved_shorts,
+        (SELECT COUNT(*) FROM shorts WHERE status = 'pending') as pending_shorts,
+        (SELECT COUNT(*) FROM shorts WHERE status = 'rejected') as rejected_shorts,
+        (SELECT COUNT(*) FROM creators) as total_creators,
+        (SELECT COUNT(*) FROM creators WHERE is_approved = 1) as approved_creators,
+        (SELECT COUNT(*) FROM users) as total_users,
+        (SELECT SUM(click_count) FROM shorts) as total_clicks,
+        (SELECT SUM(earnings) FROM shorts) as total_earnings
+    `);
+    
+    res.json({
+      success: true,
+      data: {
+        totalShorts: stats.total_shorts,
+        approvedShorts: stats.approved_shorts,
+        pendingShorts: stats.pending_shorts,
+        rejectedShorts: stats.rejected_shorts,
+        totalCreators: stats.total_creators,
+        approvedCreators: stats.approved_creators,
+        totalUsers: stats.total_users,
+        totalClicks: stats.total_clicks,
+        totalEarnings: stats.total_earnings
+      }
+    });
+  } catch (error) {
+    console.error('Get stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: '통계 조회 중 오류가 발생했습니다.'
     });
   }
 });
@@ -271,8 +539,10 @@ app.get('/api/admin/users', async (req, res) => {
     
     res.json({
       success: true,
-      data: users,
-      count: users.length
+      data: {
+        users: users,
+        count: users.length
+      }
     });
   } catch (error) {
     console.error('Error fetching users:', error);
