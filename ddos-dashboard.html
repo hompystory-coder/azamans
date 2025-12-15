@@ -363,34 +363,80 @@
             }
         });
 
-        // 실시간 데이터 업데이트 (시뮬레이션)
-        function updateData() {
-            const now = new Date().toLocaleTimeString();
-            const normalTraffic = Math.floor(Math.random() * 100) + 50;
-            const blockedTraffic = Math.floor(Math.random() * 20);
+        // 실제 데이터를 API에서 가져오기
+        async function updateData() {
+            try {
+                // API에서 실제 데이터 가져오기
+                const [trafficData, statusData, blockedIPsData] = await Promise.all([
+                    fetch('/api/traffic').then(r => r.json()),
+                    fetch('/api/status').then(r => r.json()),
+                    fetch('/api/blocked-ips').then(r => r.json())
+                ]);
 
-            // 차트 업데이트
-            trafficChart.data.labels.push(now);
-            trafficChart.data.datasets[0].data.push(normalTraffic);
-            trafficChart.data.datasets[1].data.push(blockedTraffic);
+                const now = new Date().toLocaleTimeString();
+                const normalTraffic = trafficData.normalTraffic || 0;
+                const blockedTraffic = trafficData.blockedTraffic || 0;
 
-            // 최대 20개 포인트만 유지
-            if (trafficChart.data.labels.length > 20) {
-                trafficChart.data.labels.shift();
-                trafficChart.data.datasets[0].data.shift();
-                trafficChart.data.datasets[1].data.shift();
+                // 차트 업데이트
+                trafficChart.data.labels.push(now);
+                trafficChart.data.datasets[0].data.push(normalTraffic);
+                trafficChart.data.datasets[1].data.push(blockedTraffic);
+
+                // 최대 20개 포인트만 유지
+                if (trafficChart.data.labels.length > 20) {
+                    trafficChart.data.labels.shift();
+                    trafficChart.data.datasets[0].data.shift();
+                    trafficChart.data.datasets[1].data.shift();
+                }
+
+                trafficChart.update();
+
+                // 통계 업데이트 (실제 데이터)
+                document.getElementById('req-per-sec').textContent = trafficData.requestsPerSecond || 0;
+                document.getElementById('blocked-count').textContent = blockedIPsData.length || 0;
+                document.getElementById('active-attacks').textContent = blockedIPsData.filter(ip => {
+                    const bannedTime = new Date(ip.bannedAt);
+                    return (new Date() - bannedTime) < 300000; // 최근 5분 이내
+                }).length || 0;
+                document.getElementById('system-load').textContent = statusData.load ? statusData.load.toFixed(2) : '0.00';
+
+                // 차단된 IP 테이블 업데이트
+                updateBlockedIPsTable(blockedIPsData);
+
+                // 로그 추가
+                if (normalTraffic > 0 || blockedTraffic > 0) {
+                    addLog(`정상 요청: ${normalTraffic} | 차단: ${blockedTraffic} | Rate Limited: ${trafficData.rateLimited || 0}`);
+                }
+            } catch (error) {
+                console.error('데이터 업데이트 실패:', error);
+                addLog(`❌ 데이터 업데이트 실패: ${error.message}`);
+            }
+        }
+
+        // 차단된 IP 테이블 업데이트
+        function updateBlockedIPsTable(blockedIPs) {
+            const tbody = document.getElementById('blocked-ips-body');
+            
+            if (blockedIPs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-secondary);">
+                            차단된 IP가 없습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
             }
 
-            trafficChart.update();
-
-            // 통계 업데이트
-            document.getElementById('req-per-sec').textContent = normalTraffic + blockedTraffic;
-            document.getElementById('blocked-count').textContent = Math.floor(Math.random() * 1000) + 500;
-            document.getElementById('active-attacks').textContent = Math.floor(Math.random() * 3);
-            document.getElementById('system-load').textContent = (Math.random() * 2).toFixed(1);
-
-            // 로그 추가
-            addLog(`정상 요청: ${normalTraffic} | 차단: ${blockedTraffic}`);
+            tbody.innerHTML = blockedIPs.slice(0, 10).map(ip => `
+                <tr>
+                    <td>${ip.ip}</td>
+                    <td>${ip.country}</td>
+                    <td><span class="attack-badge attack-${ip.jail}">${ip.attackType}</span></td>
+                    <td>${new Date(ip.bannedAt).toLocaleString()}</td>
+                    <td>${new Date(ip.unbanAt).toLocaleString()}</td>
+                </tr>
+            `).join('');
         }
 
         function addLog(message) {

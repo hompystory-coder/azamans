@@ -194,25 +194,52 @@ async function getSystemStatus() {
 
 async function getTrafficStats() {
     try {
-        // Nginx 로그에서 최근 1분간 통계 추출
+        // 실제 Nginx 로그에서 최근 1분간 통계 추출
         const accessLog = '/var/log/nginx/access.log';
-        const oneMinuteAgo = Math.floor(Date.now() / 1000) - 60;
+        const now = new Date();
+        const oneMinuteAgo = new Date(now.getTime() - 60000);
         
+        // 최근 1분간의 요청 수 계산
+        const recentRequests = await execPromise(
+            `awk -v date="$(date -d '1 minute ago' '+%d/%b/%Y:%H:%M')" '$4 > "["date' ${accessLog} 2>/dev/null | wc -l || echo 0`
+        );
+        
+        // 전체 요청 수 (최근 10000줄)
         const totalRequests = await execPromise(
             `tail -n 10000 ${accessLog} 2>/dev/null | wc -l || echo 0`
         );
         
+        // Fail2ban으로 차단된 트래픽 수 (최근 로그에서)
+        const blockedCount = await execPromise(
+            `grep -c "Ban" /var/log/fail2ban.log 2>/dev/null | tail -1 || echo 0`
+        );
+        
+        // Rate limiting으로 거부된 요청
+        const rateLimitedRequests = await execPromise(
+            `grep -c "limiting requests" /var/log/nginx/error.log 2>/dev/null | tail -1 || echo 0`
+        );
+        
+        const recent = parseInt(recentRequests) || 0;
+        const total = parseInt(totalRequests) || 0;
+        const blocked = parseInt(blockedCount) + parseInt(rateLimitedRequests) || 0;
+        
         return {
             timestamp: new Date().toISOString(),
-            totalRequests: parseInt(totalRequests) || 0,
-            requestsPerSecond: Math.floor(parseInt(totalRequests) / 60) || 0,
-            normalTraffic: Math.floor(Math.random() * 100) + 50,
-            blockedTraffic: Math.floor(Math.random() * 20)
+            totalRequests: total,
+            requestsPerSecond: Math.floor(recent / 60) || 0,
+            recentRequests: recent,
+            normalTraffic: Math.max(0, recent - blocked),
+            blockedTraffic: blocked,
+            rateLimited: parseInt(rateLimitedRequests) || 0
         };
     } catch (error) {
         return {
             timestamp: new Date().toISOString(),
-            error: error.message
+            error: error.message,
+            totalRequests: 0,
+            requestsPerSecond: 0,
+            normalTraffic: 0,
+            blockedTraffic: 0
         };
     }
 }
