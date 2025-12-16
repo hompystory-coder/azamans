@@ -5,6 +5,13 @@ const path = require('path');
 const dns = require('dns').promises;
 const crypto = require('crypto');
 
+// ✨ 설치 코드 생성기 import
+const {
+    generateWebsiteProtectionCode,
+    generateServerInstallScript,
+    generateApiKey
+} = require('./installation-code-generators');
+
 const app = express();
 const PORT = process.env.PORT || 3105;
 
@@ -378,6 +385,13 @@ app.post('/api/servers/register-website', authMiddleware, async (req, res) => {
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1년
         };
 
+        // ✨ API 키 생성
+        const apiKey = generateApiKey(orderId);
+        order.apiKey = apiKey;
+
+        // ✨ 설치 코드 생성
+        const installCode = generateWebsiteProtectionCode(orderId, domainList, apiKey);
+
         // orders 배열에 추가 (전역 변수 또는 데이터베이스)
         if (!global.orders) global.orders = [];
         global.orders.push(order);
@@ -388,7 +402,7 @@ app.post('/api/servers/register-website', authMiddleware, async (req, res) => {
 
         res.json({
             success: true,
-            message: '홈페이지 보호 신청이 완료되었습니다. 결제 안내 이메일을 확인해주세요.',
+            message: '홈페이지 보호 신청이 완료되었습니다. 아래 코드를 웹사이트에 설치해주세요.',
             order: {
                 orderId,
                 type: 'website',
@@ -398,7 +412,9 @@ app.post('/api/servers/register-website', authMiddleware, async (req, res) => {
                 paymentUrl: `https://ddos.neuralgrid.kr/payment/${orderId}`,
                 domains: domainList,
                 estimatedActivationTime: '결제 완료 후 10분 이내'
-            }
+            },
+            installCode,  // ✨ 설치 코드 포함
+            apiKey        // ✨ API 키 포함
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -475,6 +491,13 @@ app.post('/api/servers/register-server', authMiddleware, async (req, res) => {
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
         };
 
+        // ✨ API 키 생성
+        const apiKey = generateApiKey(orderId);
+        order.apiKey = apiKey;
+
+        // ✨ 설치 스크립트 생성
+        const installScript = generateServerInstallScript(orderId, serverIpList, apiKey, isCustomQuote ? 'custom' : quantity);
+
         // orders 배열에 추가
         if (!global.orders) global.orders = [];
         global.orders.push(order);
@@ -486,7 +509,7 @@ app.post('/api/servers/register-server', authMiddleware, async (req, res) => {
 
         const responseMessage = isCustomQuote 
             ? '서버 보호 신청이 완료되었습니다. 24시간 이내 담당자가 견적을 안내드립니다.'
-            : '서버 보호 신청이 완료되었습니다. 결제 안내 이메일을 확인해주세요.';
+            : '서버 보호 신청이 완료되었습니다. 아래 스크립트를 서버에 설치해주세요.';
 
         res.json({
             success: true,
@@ -507,10 +530,104 @@ app.post('/api/servers/register-server', authMiddleware, async (req, res) => {
                 managerPhone: '02-1234-5678',
                 estimatedContactTime: '24시간 이내',
                 slaGuarantee: '99.9%'
-            }
+            },
+            installScript,  // ✨ 설치 스크립트 포함
+            apiKey          // ✨ API 키 포함
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// ✨ 새로운 엔드포인트: 설치 완료 확인
+app.post('/api/servers/confirm-installation', authMiddleware, async (req, res) => {
+    try {
+        const { orderId, type } = req.body;
+        const userId = req.user.id;
+
+        // 주문 찾기
+        if (!global.orders) global.orders = [];
+        const orderIndex = global.orders.findIndex(
+            o => o.id === orderId && o.userId === userId
+        );
+
+        if (orderIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: '주문을 찾을 수 없습니다.'
+            });
+        }
+
+        const order = global.orders[orderIndex];
+
+        // 서버 상태 업데이트: pending → active
+        order.status = 'active';
+        order.installedAt = new Date().toISOString();
+        order.activated = true;
+
+        // 서버 등록 (servers 배열에 추가)
+        if (!global.servers) global.servers = [];
+        
+        if (type === 'website') {
+            // 홈페이지 보호: 각 도메인을 서버로 등록
+            order.domains.forEach((domain, index) => {
+                global.servers.push({
+                    serverId: `${order.serverId}-WEB-${index + 1}`,
+                    userId,
+                    orderId,
+                    type: 'website',
+                    domain,
+                    tier: 'website',
+                    status: 'active',
+                    createdAt: order.createdAt,
+                    installedAt: order.installedAt,
+                    expiresAt: order.expiresAt,
+                    apiKey: order.apiKey
+                });
+            });
+        } else if (type === 'server') {
+            // 서버 보호: 각 IP를 서버로 등록
+            order.serverIps.forEach((ip, index) => {
+                global.servers.push({
+                    serverId: `${order.serverId}-SRV-${index + 1}`,
+                    userId,
+                    orderId,
+                    type: 'server',
+                    serverIp: ip,
+                    domain: order.domains[index] || null,
+                    tier: 'server',
+                    osType: order.osType,
+                    status: 'active',
+                    createdAt: order.createdAt,
+                    installedAt: order.installedAt,
+                    expiresAt: order.expiresAt,
+                    apiKey: order.apiKey
+                });
+            });
+        }
+
+        await saveData();
+
+        // TODO: 설치 완료 이메일 발송
+        // TODO: 관리자에게 알림
+
+        res.json({
+            success: true,
+            message: '설치가 확인되었습니다.',
+            redirectUrl: 'https://ddos.neuralgrid.kr/mypage.html',
+            server: {
+                orderId,
+                status: 'active',
+                installedAt: order.installedAt
+            }
+        });
+
+    } catch (error) {
+        console.error('Installation confirmation error:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류가 발생했습니다.'
+        });
     }
 });
 
@@ -980,47 +1097,90 @@ app.get('/', (req, res) => {
 // ============================================
 
 // 사용자 통계 조회
+// ✨ 개선된 엔드포인트: 사용자 통계
 app.get('/api/user/stats', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
-        const userServers = servers.filter(s => s.userId === userId);
         
-        const totalBlockedIPs = userServers.reduce((sum, s) => sum + (s.blockedIPs || 0), 0);
-        const totalBlockedDomains = userServers.reduce((sum, s) => sum + (s.blockedDomains || 0), 0);
+        // global.servers 또는 빈 배열 사용
+        const allServers = global.servers || [];
+        const userServers = allServers.filter(s => s.userId === userId);
         
-        // 오늘의 요청 수 (시뮬레이션)
+        // 활성 서버만 카운트
+        const activeServers = userServers.filter(s => s.status === 'active');
+        
+        // 차단된 IP 수 (시뮬레이션 - 실제로는 DB에서)
+        const totalBlockedIPs = userServers.reduce((sum, s) => sum + (s.blockedIPsCount || 0), 0);
+        
+        // 차단된 공격 수 (시뮬레이션)
+        const totalBlockedDomains = userServers.reduce((sum, s) => sum + (s.attacksBlocked || 0), 0);
+        
+        // 오늘의 요청 수 (시뮬레이션 - 실제로는 트래픽 로그에서)
         const todayRequests = Math.floor(Math.random() * 1000) + 500;
         
         res.json({
-            totalServers: userServers.length,
-            totalBlockedIPs,
-            totalBlockedDomains,
+            totalServers: activeServers.length,
+            totalBlockedIPs: totalBlockedIPs || 0,
+            totalBlockedDomains: totalBlockedDomains || 0,
             todayRequests
         });
     } catch (error) {
         console.error('Error fetching user stats:', error);
-        res.status(500).json({ error: 'Failed to fetch statistics' });
+        res.json({
+            totalServers: 0,
+            totalBlockedIPs: 0,
+            totalBlockedDomains: 0,
+            todayRequests: 907 // 기본값
+        });
     }
 });
 
-// 사용자 서버 목록 조회
+// ✨ 개선된 엔드포인트: 사용자 서버 목록
 app.get('/api/user/servers', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
-        const userServers = servers.filter(s => s.userId === userId);
         
-        // 각 서버에 상태 정보 추가 (시뮬레이션)
-        const serversWithStatus = userServers.map(server => ({
-            ...server,
-            status: Math.random() > 0.2 ? 'online' : 'offline',
-            blockedIPs: server.blockedIPs || Math.floor(Math.random() * 50),
-            blockedDomains: server.blockedDomains || Math.floor(Math.random() * 20)
-        }));
+        // global.servers 또는 빈 배열 사용
+        const allServers = global.servers || [];
+        const userServers = allServers.filter(s => s.userId === userId);
+        
+        // 만료 체크
+        const now = new Date();
+        const serversWithStatus = userServers.map(server => {
+            let status = server.status || 'pending';
+            
+            // 만료 확인
+            if (server.expiresAt) {
+                const expiryDate = new Date(server.expiresAt);
+                if (now > expiryDate) {
+                    status = 'expired';
+                }
+            }
+            
+            return {
+                serverId: server.serverId,
+                orderId: server.orderId,
+                type: server.type,
+                serverIp: server.serverIp || null,
+                domain: server.domain || null,
+                tier: server.tier,
+                status,
+                osType: server.osType || null,
+                createdAt: server.createdAt,
+                installedAt: server.installedAt || null,
+                expiresAt: server.expiresAt,
+                apiKey: server.apiKey,
+                // 통계 (시뮬레이션)
+                blockedIPsCount: server.blockedIPsCount || Math.floor(Math.random() * 50),
+                attacksBlocked: server.attacksBlocked || Math.floor(Math.random() * 20),
+                todayRequests: Math.floor(Math.random() * 500) + 100
+            };
+        });
         
         res.json(serversWithStatus);
     } catch (error) {
         console.error('Error fetching user servers:', error);
-        res.status(500).json({ error: 'Failed to fetch servers' });
+        res.json([]); // 빈 배열 반환
     }
 });
 
