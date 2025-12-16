@@ -42,7 +42,8 @@ echo ""
 # 3. 기존 파일 백업
 echo "💾 Step 3: Creating backup..."
 if [ -f "$DEST_FILE" ]; then
-    cp "$DEST_FILE" "$BACKUP_FILE"
+    echo -e "${YELLOW}⚠️  This step requires sudo password${NC}"
+    sudo cp "$DEST_FILE" "$BACKUP_FILE"
     echo -e "${GREEN}✅ Backup created: $BACKUP_FILE${NC}"
 else
     echo -e "${YELLOW}⚠️  No existing file to backup${NC}"
