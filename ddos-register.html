@@ -445,7 +445,7 @@
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>월간 보안 리포트</span>
+                        <span>월간 보안 리포트 (이메일 자동 발송)</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
@@ -466,12 +466,16 @@
                     <span>서버 보호</span>
                 </div>
                 <div class="plan-price">₩2,990,000<span style="font-size: 1rem; font-weight: 400;">/년</span></div>
-                <div class="plan-duration">엔터프라이즈급 인프라 보호</div>
+                <div class="plan-duration">엔터프라이즈급 인프라 보호 (기본 5대)</div>
 
                 <ul class="plan-features">
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>무제한 서버 등록</span>
+                        <span>최대 5개 서버 보호</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">💰</span>
+                        <span>추가 서버: +₩2,990,000/5대</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
@@ -495,7 +499,11 @@
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>주간 상세 분석 리포트</span>
+                        <span>주간 보안 리포트 (이메일 자동 발송)</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>월간 상세 분석 리포트 (PDF)</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
@@ -710,7 +718,19 @@
                 <div class="form-group">
                     <label>서버 IP 주소 (복수 등록 가능) *</label>
                     <input type="text" name="serverIps" placeholder="예: 115.91.5.140, 115.91.5.141" required>
-                    <div class="form-hint">쉼표로 구분하여 입력하세요</div>
+                    <div class="form-hint">쉼표로 구분하여 입력하세요 (최대 5개)</div>
+                </div>
+
+                <div class="form-group">
+                    <label>서버 보호 수량 *</label>
+                    <select name="serverQuantity" id="serverQuantity" required onchange="updateServerPrice()">
+                        <option value="5">5대 (기본) - ₩2,990,000/년</option>
+                        <option value="10">10대 - ₩5,980,000/년</option>
+                        <option value="15">15대 - ₩8,970,000/년</option>
+                        <option value="20">20대 - ₩11,960,000/년</option>
+                        <option value="custom">20대 이상 (별도 견적)</option>
+                    </select>
+                    <div class="form-hint">5대 단위로 추가 가능합니다</div>
                 </div>
 
                 <div class="form-group">
@@ -966,6 +986,20 @@
                 }
             } catch (error) {
                 showAlert('serverAlert', 'error', '오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        function updateServerPrice() {
+            const select = document.getElementById('serverQuantity');
+            const quantity = select.value;
+            
+            // 서버 모달 헤더의 가격 업데이트 (선택사항)
+            const modalHeader = document.querySelector('#serverModal .modal-header p');
+            if (modalHeader && quantity !== 'custom') {
+                const price = parseInt(quantity) / 5 * 2990000;
+                modalHeader.innerHTML = `엔터프라이즈급 인프라 보호 솔루션 (₩${price.toLocaleString()}/년)`;
+            } else if (modalHeader && quantity === 'custom') {
+                modalHeader.innerHTML = `엔터프라이즈급 인프라 보호 솔루션 (별도 견적)`;
             }
         }
 
