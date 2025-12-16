@@ -416,7 +416,7 @@
     </div>
 
     <script>
-        function switchTab(tab) {
+        function switchTab(tab, event) {
             const loginForm = document.getElementById('login-form');
             const signupForm = document.getElementById('signup-form');
             const tabs = document.querySelectorAll('.tab');
@@ -427,7 +427,7 @@
             tabs.forEach(t => t.classList.remove('active'));
             
             if (tab === 'login') {
-                event.target.classList.add('active');
+                tabs[0].classList.add('active');
                 loginForm.style.display = 'block';
                 signupForm.style.display = 'none';
             } else {
