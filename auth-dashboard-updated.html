@@ -620,8 +620,19 @@
     <script>
         // Check authentication
         function checkAuth() {
-            const token = localStorage.getItem('neuralgrid_token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const token = localStorage.getItem('neuralgrid_token') || localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+            
+            // Parse user data safely
+            let user = {};
+            if (userStr && userStr !== 'undefined' && userStr !== 'null') {
+                try {
+                    user = JSON.parse(userStr);
+                } catch (e) {
+                    console.error('Failed to parse user data:', e);
+                    user = {};
+                }
+            }
             
             if (!token) {
                 window.location.href = 'https://auth.neuralgrid.kr';
@@ -629,10 +640,16 @@
             }
 
             // Display user info
-            if (user.name) {
+            if (user && user.name) {
                 document.getElementById('userName').textContent = user.name;
                 document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
                 document.getElementById('welcomeTitle').textContent = `${user.name}님, 환영합니다! 👋`;
+            } else {
+                // Default values if user info not available
+                const defaultName = '사용자';
+                document.getElementById('userName').textContent = defaultName;
+                document.getElementById('userAvatar').textContent = defaultName.charAt(0);
+                document.getElementById('welcomeTitle').textContent = `${defaultName}님, 환영합니다! 👋`;
             }
         }
 
