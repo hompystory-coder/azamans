@@ -468,8 +468,15 @@
                 
                 if (response.ok) {
                     showMessage('로그인 성공! 리다이렉트 중...', 'success');
+                    
+                    // localStorage 저장 (하위 호환성)
                     localStorage.setItem('token', data.token);
+                    localStorage.setItem('neuralgrid_token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Cookie 저장 (크로스 도메인 SSO)
+                    document.cookie = `neuralgrid_token=${data.token}; domain=.neuralgrid.kr; path=/; max-age=86400; SameSite=Lax; Secure`;
+                    document.cookie = `neuralgrid_user=${encodeURIComponent(JSON.stringify(data.user))}; domain=.neuralgrid.kr; path=/; max-age=86400; SameSite=Lax; Secure`;
                     
                     setTimeout(() => {
                         window.location.href = 'https://auth.neuralgrid.kr/dashboard';
