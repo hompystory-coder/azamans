@@ -1072,6 +1072,52 @@
     <div id="installGuideModal"></div>
 
     <script>
+        // 🧹 페이지 로드 시 잘못된 토큰 자동 정리
+        (function cleanupInvalidTokens() {
+            const storageKeys = ['neuralgrid_token', 'neuralgrid_user', 'token', 'user'];
+            let cleaned = false;
+            
+            // localStorage 정리
+            storageKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value && (value === 'undefined' || value === 'null' || value.trim().length < 20)) {
+                    console.log(`[Cleanup] Removing invalid localStorage.${key}:`, value.substring(0, 20));
+                    localStorage.removeItem(key);
+                    cleaned = true;
+                }
+            });
+            
+            // sessionStorage 정리
+            storageKeys.forEach(key => {
+                const value = sessionStorage.getItem(key);
+                if (value && (value === 'undefined' || value === 'null' || value.trim().length < 20)) {
+                    console.log(`[Cleanup] Removing invalid sessionStorage.${key}:`, value.substring(0, 20));
+                    sessionStorage.removeItem(key);
+                    cleaned = true;
+                }
+            });
+            
+            // Cookie 정리
+            const cookieToken = getCookieValue('neuralgrid_token');
+            if (cookieToken && (cookieToken === 'undefined' || cookieToken === 'null' || cookieToken.trim().length < 20)) {
+                console.log('[Cleanup] Removing invalid cookie:', cookieToken.substring(0, 20));
+                document.cookie = 'neuralgrid_token=; domain=.neuralgrid.kr; path=/; max-age=0';
+                document.cookie = 'neuralgrid_user=; domain=.neuralgrid.kr; path=/; max-age=0';
+                cleaned = true;
+            }
+            
+            if (cleaned) {
+                console.log('✅ [Cleanup] Invalid tokens removed. Please login again.');
+            }
+            
+            function getCookieValue(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
+        })();
+        
         // 인증 토큰 가져오기 (개선된 버전)
         function getAuthToken() {
             // 순서대로 확인: localStorage → sessionStorage → Cookie
