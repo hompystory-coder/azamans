@@ -520,7 +520,20 @@
                 return;
             }
             
+            // 유효성 검사
+            if (!username || username.length < 3) {
+                showMessage('사용자 이름은 3자 이상이어야 합니다', 'error');
+                return;
+            }
+            
+            if (!email || !email.includes('@')) {
+                showMessage('올바른 이메일 주소를 입력해주세요', 'error');
+                return;
+            }
+            
             try {
+                console.log('[Register] Attempting registration:', { username, email });
+                
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {
@@ -530,19 +543,52 @@
                 });
                 
                 const data = await response.json();
+                console.log('[Register] Response:', data);
                 
                 if (response.ok) {
-                    showMessage('회원가입 성공! 로그인 페이지로 이동합니다...', 'success');
+                    showMessage('회원가입 성공! 자동 로그인 중...', 'success');
                     
-                    setTimeout(() => {
-                        switchTab('login');
-                        document.getElementById('login-email').value = email;
-                    }, 1500);
+                    // API 응답 형식: { success, message, data: { user, token } }
+                    const token = data.data?.token || data.token;
+                    const user = data.data?.user || data.user;
+                    
+                    if (token) {
+                        console.log('[Register] Auto-login successful, token length:', token.length);
+                        
+                        // 토큰 저장
+                        localStorage.setItem('token', token);
+                        localStorage.setItem('neuralgrid_token', token);
+                        localStorage.setItem('user', JSON.stringify(user));
+                        
+                        document.cookie = `neuralgrid_token=${token}; domain=.neuralgrid.kr; path=/; max-age=86400; SameSite=Lax; Secure`;
+                        document.cookie = `neuralgrid_user=${encodeURIComponent(JSON.stringify(user))}; domain=.neuralgrid.kr; path=/; max-age=86400; SameSite=Lax; Secure`;
+                        
+                        setTimeout(() => {
+                            window.location.href = 'https://auth.neuralgrid.kr/dashboard';
+                        }, 1500);
+                    } else {
+                        setTimeout(() => {
+                            switchTab('login');
+                            document.getElementById('login-email').value = email;
+                        }, 1500);
+                    }
                 } else {
-                    showMessage(data.message || '회원가입에 실패했습니다', 'error');
+                    // 에러 메시지 처리
+                    let errorMessage = '회원가입에 실패했습니다';
+                    
+                    if (data.errors && Array.isArray(data.errors)) {
+                        // Validation errors
+                        errorMessage = data.errors.map(e => e.msg).join(', ');
+                    } else if (data.message) {
+                        errorMessage = data.message;
+                    }
+                    
+                    console.error('[Register] Error:', errorMessage);
+                    showMessage(errorMessage, 'error');
                 }
             } catch (error) {
-                showMessage('서버 연결에 실패했습니다', 'error');
+                console.error('[Register] Exception:', error);
+                showMessage('서버 연결에 실패했습니다: ' + error.message, 'error');
             }
         });
     </script>
