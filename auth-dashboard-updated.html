@@ -644,7 +644,9 @@
             let user = {};
             if (userStr && userStr !== 'undefined' && userStr !== 'null') {
                 try {
-                    user = JSON.parse(userStr);
+                    // Decode if from Cookie (URL encoded)
+                    const decodedUserStr = userStr.startsWith('%') ? decodeURIComponent(userStr) : userStr;
+                    user = JSON.parse(decodedUserStr);
                 } catch (e) {
                     console.error('Failed to parse user data:', e);
                     user = {};

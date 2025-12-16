@@ -520,7 +520,9 @@
             }
             if (userStr && userStr !== 'undefined' && userStr !== 'null') {
                 try {
-                    const user = JSON.parse(userStr);
+                    // Decode if from Cookie (URL encoded)
+                    const decodedUserStr = userStr.startsWith('%') ? decodeURIComponent(userStr) : userStr;
+                    const user = JSON.parse(decodedUserStr);
                     if (user && user.name) {
                         document.getElementById('userName').textContent = user.name;
                         document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
