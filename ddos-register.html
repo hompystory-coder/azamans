@@ -1072,11 +1072,30 @@
     <div id="installGuideModal"></div>
 
     <script>
-        // 인증 토큰 가져오기
+        // 인증 토큰 가져오기 (개선된 버전)
         function getAuthToken() {
-            return localStorage.getItem('neuralgrid_token') || 
-                   sessionStorage.getItem('neuralgrid_token') ||
-                   getCookie('neuralgrid_token');
+            // 순서대로 확인: localStorage → sessionStorage → Cookie
+            const sources = [
+                () => localStorage.getItem('neuralgrid_token'),
+                () => sessionStorage.getItem('neuralgrid_token'),
+                () => getCookie('neuralgrid_token')
+            ];
+            
+            for (const getToken of sources) {
+                const token = getToken();
+                // null, undefined, 빈 문자열, 'undefined' 문자열 모두 필터링
+                // 유효한 JWT 토큰은 최소 20자 이상
+                if (token && 
+                    token !== 'undefined' && 
+                    token !== 'null' && 
+                    token.trim().length > 20) {
+                    console.log('[Token] Found valid token, length:', token.length);
+                    return token.trim();
+                }
+            }
+            
+            console.log('[Token] No valid token found');
+            return null;
         }
 
         function getCookie(name) {
@@ -1178,10 +1197,16 @@
                 });
 
                 if (response.status === 401) {
-                    showAlert('websiteAlert', 'error', '인증이 만료되었습니다. 다시 로그인해주세요.');
-                    setTimeout(() => {
-                        window.location.href = 'https://auth.neuralgrid.kr/';
-                    }, 2000);
+                    // 잘못된 토큰 삭제
+                    localStorage.removeItem('neuralgrid_token');
+                    localStorage.removeItem('neuralgrid_user');
+                    sessionStorage.removeItem('neuralgrid_token');
+                    sessionStorage.removeItem('neuralgrid_user');
+                    document.cookie = 'neuralgrid_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.neuralgrid.kr';
+                    document.cookie = 'neuralgrid_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.neuralgrid.kr';
+                    
+                    alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+                    window.location.href = 'https://auth.neuralgrid.kr/';
                     return;
                 }
 
