@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie SSO 테스트 도구</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .test-section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .result {
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .info {
+            color: #666;
+            font-size: 13px;
+            margin: 10px 0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-group {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .cookie-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .cookie-name {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .cookie-value {
+            color: #666;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .summary h3 {
+            margin-bottom: 10px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍪 Cookie SSO 테스트 도구</h1>
+        <p class="subtitle">NeuralGrid Cross-Domain Authentication Tester</p>
+        
+        <div class="summary" id="summary">
+            <h3>📊 현재 상태</h3>
+            <div class="summary-item">
+                <span>현재 도메인:</span>
+                <span id="currentDomain">-</span>
+            </div>
+            <div class="summary-item">
+                <span>Cookie 수:</span>
+                <span id="cookieCount">-</span>
+            </div>
+            <div class="summary-item">
+                <span>neuralgrid_token:</span>
+                <span id="tokenStatus">-</span>
+            </div>
+            <div class="summary-item">
+                <span>neuralgrid_user:</span>
+                <span id="userStatus">-</span>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>
+                Test 1: Cookie 확인
+                <span class="status" id="test1Status">대기중</span>
+            </h2>
+            <p class="info">현재 브라우저에 저장된 모든 Cookie를 확인합니다.</p>
+            <button onclick="checkCookies()">Cookie 확인</button>
+            <div id="test1Result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>
+                Test 2: localStorage 확인
+                <span class="status" id="test2Status">대기중</span>
+            </h2>
+            <p class="info">localStorage에 저장된 인증 정보를 확인합니다.</p>
+            <button onclick="checkLocalStorage()">localStorage 확인</button>
+            <div id="test2Result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>
+                Test 3: getCookie() 함수 테스트
+                <span class="status" id="test3Status">대기중</span>
+            </h2>
+            <p class="info">Cookie 읽기 함수가 정상 작동하는지 확인합니다.</p>
+            <button onclick="testGetCookie()">함수 테스트</button>
+            <div id="test3Result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>
+                Test 4: 테스트 Cookie 생성
+                <span class="status" id="test4Status">대기중</span>
+            </h2>
+            <p class="info">.neuralgrid.kr 도메인으로 테스트 Cookie를 생성합니다.</p>
+            <button onclick="createTestCookie()">테스트 Cookie 생성</button>
+            <button onclick="deleteTestCookie()">테스트 Cookie 삭제</button>
+            <div id="test4Result"></div>
+        </div>
+        
+        <div class="btn-group">
+            <button onclick="runAllTests()">🚀 모든 테스트 실행</button>
+            <button onclick="location.reload()">🔄 새로고침</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>💡 Quick Links</h2>
+            <div class="btn-group">
+                <button onclick="window.open('https://auth.neuralgrid.kr/', '_blank')">Auth 로그인</button>
+                <button onclick="window.open('https://auth.neuralgrid.kr/dashboard', '_blank')">Auth 대시보드</button>
+                <button onclick="window.open('https://ddos.neuralgrid.kr/mypage.html', '_blank')">DDoS MyPage</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Update summary on load
+        window.addEventListener('load', updateSummary);
+        
+        function updateSummary() {
+            document.getElementById('currentDomain').textContent = window.location.hostname;
+            document.getElementById('cookieCount').textContent = document.cookie.split(';').filter(c => c.trim()).length;
+            
+            const token = getCookie('neuralgrid_token');
+            const user = getCookie('neuralgrid_user');
+            
+            document.getElementById('tokenStatus').textContent = token ? '✅ 존재' : '❌ 없음';
+            document.getElementById('userStatus').textContent = user ? '✅ 존재' : '❌ 없음';
+        }
+        
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        function checkCookies() {
+            const cookies = document.cookie.split(';').filter(c => c.trim());
+            const result = document.getElementById('test1Result');
+            const status = document.getElementById('test1Status');
+            
+            if (cookies.length === 0) {
+                result.innerHTML = '<div class="result">Cookie가 없습니다.</div>';
+                status.textContent = '경고';
+                status.className = 'status warning';
+                return;
+            }
+            
+            let html = '<div class="result">';
+            html += `<strong>총 ${cookies.length}개의 Cookie 발견:</strong><br><br>`;
+            
+            cookies.forEach(cookie => {
+                const [name, ...valueParts] = cookie.trim().split('=');
+                const value = valueParts.join('=');
+                html += `<div class="cookie-item">`;
+                html += `<div class="cookie-name">${name}</div>`;
+                html += `<div class="cookie-value">${value.substring(0, 100)}${value.length > 100 ? '...' : ''}</div>`;
+                html += `</div>`;
+            });
+            
+            html += '</div>';
+            result.innerHTML = html;
+            
+            const hasToken = getCookie('neuralgrid_token');
+            const hasUser = getCookie('neuralgrid_user');
+            
+            if (hasToken && hasUser) {
+                status.textContent = '성공';
+                status.className = 'status success';
+            } else {
+                status.textContent = '경고';
+                status.className = 'status warning';
+            }
+            
+            updateSummary();
+        }
+        
+        function checkLocalStorage() {
+            const result = document.getElementById('test2Result');
+            const status = document.getElementById('test2Status');
+            
+            const token = localStorage.getItem('neuralgrid_token') || localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            let html = '<div class="result">';
+            html += '<strong>localStorage 내용:</strong><br><br>';
+            html += `<div class="cookie-item">`;
+            html += `<div class="cookie-name">neuralgrid_token / token</div>`;
+            html += `<div class="cookie-value">${token || '없음'}</div>`;
+            html += `</div>`;
+            html += `<div class="cookie-item">`;
+            html += `<div class="cookie-name">user</div>`;
+            html += `<div class="cookie-value">${user || '없음'}</div>`;
+            html += `</div>`;
+            html += '</div>';
+            
+            result.innerHTML = html;
+            
+            if (token || user) {
+                status.textContent = '성공';
+                status.className = 'status success';
+            } else {
+                status.textContent = '경고';
+                status.className = 'status warning';
+            }
+        }
+        
+        function testGetCookie() {
+            const result = document.getElementById('test3Result');
+            const status = document.getElementById('test3Status');
+            
+            const token = getCookie('neuralgrid_token');
+            const user = getCookie('neuralgrid_user');
+            
+            let html = '<div class="result">';
+            html += '<strong>getCookie() 함수 테스트:</strong><br><br>';
+            html += `neuralgrid_token: ${token ? '✅ 읽기 성공' : '❌ 없음'}<br>`;
+            if (token) {
+                html += `값: ${token.substring(0, 50)}...<br><br>`;
+            }
+            html += `neuralgrid_user: ${user ? '✅ 읽기 성공' : '❌ 없음'}<br>`;
+            if (user) {
+                try {
+                    const userData = JSON.parse(decodeURIComponent(user));
+                    html += `디코딩: ${JSON.stringify(userData, null, 2)}<br>`;
+                } catch (e) {
+                    html += `디코딩 오류: ${e.message}<br>`;
+                }
+            }
+            html += '</div>';
+            
+            result.innerHTML = html;
+            
+            if (token && user) {
+                status.textContent = '성공';
+                status.className = 'status success';
+            } else {
+                status.textContent = '경고';
+                status.className = 'status warning';
+            }
+        }
+        
+        function createTestCookie() {
+            const result = document.getElementById('test4Result');
+            const status = document.getElementById('test4Status');
+            
+            const testToken = 'test_token_' + Date.now();
+            const testUser = {id: 999, name: 'Test User', email: 'test@neuralgrid.kr'};
+            
+            // Try to set cookie with .neuralgrid.kr domain
+            document.cookie = `test_neuralgrid_token=${testToken}; domain=.neuralgrid.kr; path=/; max-age=300; SameSite=Lax; Secure`;
+            document.cookie = `test_neuralgrid_user=${encodeURIComponent(JSON.stringify(testUser))}; domain=.neuralgrid.kr; path=/; max-age=300; SameSite=Lax; Secure`;
+            
+            setTimeout(() => {
+                const savedToken = getCookie('test_neuralgrid_token');
+                const savedUser = getCookie('test_neuralgrid_user');
+                
+                let html = '<div class="result">';
+                html += '<strong>테스트 Cookie 생성 결과:</strong><br><br>';
+                html += `test_neuralgrid_token: ${savedToken ? '✅ 생성 성공' : '❌ 생성 실패'}<br>`;
+                html += `test_neuralgrid_user: ${savedUser ? '✅ 생성 성공' : '❌ 생성 실패'}<br><br>`;
+                
+                if (savedToken && savedUser) {
+                    html += '<strong>✅ Cookie가 .neuralgrid.kr 도메인으로 정상 생성되었습니다!</strong><br>';
+                    html += '<em>5분 후 자동 삭제됩니다.</em>';
+                    status.textContent = '성공';
+                    status.className = 'status success';
+                } else {
+                    html += '<strong>⚠️ Cookie 생성에 실패했습니다.</strong><br>';
+                    html += '<em>HTTPS 환경이 아니거나, 도메인이 맞지 않을 수 있습니다.</em>';
+                    status.textContent = '실패';
+                    status.className = 'status error';
+                }
+                
+                html += '</div>';
+                result.innerHTML = html;
+                updateSummary();
+            }, 100);
+        }
+        
+        function deleteTestCookie() {
+            document.cookie = 'test_neuralgrid_token=; domain=.neuralgrid.kr; path=/; max-age=0';
+            document.cookie = 'test_neuralgrid_user=; domain=.neuralgrid.kr; path=/; max-age=0';
+            
+            const result = document.getElementById('test4Result');
+            result.innerHTML = '<div class="result">✅ 테스트 Cookie를 삭제했습니다.</div>';
+            
+            updateSummary();
+        }
+        
+        function runAllTests() {
+            checkCookies();
+            setTimeout(checkLocalStorage, 200);
+            setTimeout(testGetCookie, 400);
+            setTimeout(createTestCookie, 600);
+        }
+    </script>
+</body>
+</html>
