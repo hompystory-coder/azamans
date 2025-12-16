@@ -837,8 +837,8 @@
         function checkAuth(callback) {
             const token = getAuthToken();
             if (!token) {
-                alert('로그인이 필요합니다.');
-                window.location.href = 'https://neuralgrid.kr/';
+                alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+                window.location.href = 'https://auth.neuralgrid.kr/';
                 return;
             }
             callback();
@@ -903,6 +903,14 @@
                     body: JSON.stringify(data)
                 });
 
+                if (response.status === 401) {
+                    showAlert('websiteAlert', 'error', '인증이 만료되었습니다. 다시 로그인해주세요.');
+                    setTimeout(() => {
+                        window.location.href = 'https://auth.neuralgrid.kr/';
+                    }, 2000);
+                    return;
+                }
+
                 const result = await response.json();
 
                 if (result.success) {
@@ -938,6 +946,14 @@
                     },
                     body: JSON.stringify(data)
                 });
+
+                if (response.status === 401) {
+                    showAlert('serverAlert', 'error', '인증이 만료되었습니다. 다시 로그인해주세요.');
+                    setTimeout(() => {
+                        window.location.href = 'https://auth.neuralgrid.kr/';
+                    }, 2000);
+                    return;
+                }
 
                 const result = await response.json();
 
