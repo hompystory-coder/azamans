@@ -1157,22 +1157,34 @@ app.get('/api/user/servers', authenticateToken, async (req, res) => {
                 }
             }
             
+            // 상태 변환: active/pending/expired → online/offline
+            const displayStatus = (status === 'active') ? 'online' : 'offline';
+            
+            // 서버명 생성
+            const serverName = server.domain || server.serverIp || server.serverId;
+            
             return {
                 serverId: server.serverId,
                 orderId: server.orderId,
                 type: server.type,
-                serverIp: server.serverIp || null,
+                name: serverName,  // ✨ 프론트엔드가 기대하는 필드
+                ip: server.serverIp || server.domain || null,  // ✨ 프론트엔드가 기대하는 필드
+                serverIp: server.serverIp || null,  // 호환성을 위해 유지
                 domain: server.domain || null,
-                tier: server.tier,
-                status,
-                osType: server.osType || null,
+                plan: server.tier,  // ✨ 프론트엔드가 기대하는 필드
+                tier: server.tier,  // 호환성을 위해 유지
+                status: displayStatus,  // ✨ online 또는 offline
+                rawStatus: status,  // 원본 상태 (active/pending/expired)
+                osType: server.osType || 'Linux',
                 createdAt: server.createdAt,
                 installedAt: server.installedAt || null,
                 expiresAt: server.expiresAt,
                 apiKey: server.apiKey,
-                // 통계 (시뮬레이션)
-                blockedIPsCount: server.blockedIPsCount || Math.floor(Math.random() * 50),
-                attacksBlocked: server.attacksBlocked || Math.floor(Math.random() * 20),
+                // 통계 (프론트엔드 필드명에 맞춤)
+                blockedIPs: server.blockedIPsCount || Math.floor(Math.random() * 50),  // ✨ 프론트엔드가 기대하는 필드
+                blockedDomains: server.attacksBlocked || Math.floor(Math.random() * 20),  // ✨ 프론트엔드가 기대하는 필드
+                blockedIPsCount: server.blockedIPsCount || Math.floor(Math.random() * 50),  // 호환성
+                attacksBlocked: server.attacksBlocked || Math.floor(Math.random() * 20),  // 호환성
                 todayRequests: Math.floor(Math.random() * 500) + 100
             };
         });
