@@ -799,6 +799,134 @@ app.get('/', (req, res) => {
 });
 
 // ============================================
+// 마이페이지 API
+// ============================================
+
+// 사용자 통계 조회
+app.get('/api/user/stats', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const userServers = servers.filter(s => s.userId === userId);
+        
+        const totalBlockedIPs = userServers.reduce((sum, s) => sum + (s.blockedIPs || 0), 0);
+        const totalBlockedDomains = userServers.reduce((sum, s) => sum + (s.blockedDomains || 0), 0);
+        
+        // 오늘의 요청 수 (시뮬레이션)
+        const todayRequests = Math.floor(Math.random() * 1000) + 500;
+        
+        res.json({
+            totalServers: userServers.length,
+            totalBlockedIPs,
+            totalBlockedDomains,
+            todayRequests
+        });
+    } catch (error) {
+        console.error('Error fetching user stats:', error);
+        res.status(500).json({ error: 'Failed to fetch statistics' });
+    }
+});
+
+// 사용자 서버 목록 조회
+app.get('/api/user/servers', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const userServers = servers.filter(s => s.userId === userId);
+        
+        // 각 서버에 상태 정보 추가 (시뮬레이션)
+        const serversWithStatus = userServers.map(server => ({
+            ...server,
+            status: Math.random() > 0.2 ? 'online' : 'offline',
+            blockedIPs: server.blockedIPs || Math.floor(Math.random() * 50),
+            blockedDomains: server.blockedDomains || Math.floor(Math.random() * 20)
+        }));
+        
+        res.json(serversWithStatus);
+    } catch (error) {
+        console.error('Error fetching user servers:', error);
+        res.status(500).json({ error: 'Failed to fetch servers' });
+    }
+});
+
+// 서버 상세 정보 조회
+app.get('/api/server/:serverId/details', authenticateToken, async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const userId = req.user.userId;
+        
+        const server = servers.find(s => s.serverId === serverId && s.userId === userId);
+        
+        if (!server) {
+            return res.status(404).json({ error: 'Server not found' });
+        }
+        
+        // 서버 상세 정보 (차단 목록 포함)
+        const serverBlockedIPs = blockedIPs.filter(ip => ip.serverId === serverId);
+        const serverBlockedDomains = blockedDomains.filter(d => d.serverId === serverId);
+        
+        res.json({
+            ...server,
+            blockedIPsList: serverBlockedIPs,
+            blockedDomainsList: serverBlockedDomains,
+            stats: {
+                totalRequests: Math.floor(Math.random() * 10000) + 5000,
+                blockedRequests: Math.floor(Math.random() * 500) + 100,
+                avgResponseTime: Math.floor(Math.random() * 100) + 50
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching server details:', error);
+        res.status(500).json({ error: 'Failed to fetch server details' });
+    }
+});
+
+// 서버 삭제
+app.delete('/api/server/:serverId', authenticateToken, async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const userId = req.user.userId;
+        
+        const serverIndex = servers.findIndex(s => s.serverId === serverId && s.userId === userId);
+        
+        if (serverIndex === -1) {
+            return res.status(404).json({ error: 'Server not found' });
+        }
+        
+        // 서버 삭제
+        servers.splice(serverIndex, 1);
+        
+        // 관련 차단 목록도 삭제
+        blockedIPs = blockedIPs.filter(ip => ip.serverId !== serverId);
+        blockedDomains = blockedDomains.filter(d => d.serverId !== serverId);
+        
+        await saveData();
+        
+        res.json({ success: true, message: 'Server deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting server:', error);
+        res.status(500).json({ error: 'Failed to delete server' });
+    }
+});
+
+// 인증 미들웨어 (간단한 버전)
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    // 토큰 검증 (실제로는 JWT 검증 로직 필요)
+    // 여기서는 간단하게 userId를 추출
+    try {
+        req.user = { userId: 'user_' + token.substring(0, 8) };
+        next();
+    } catch (error) {
+        return res.status(403).json({ error: 'Invalid token' });
+    }
+}
+
+// ============================================
 // 서버 시작
 // ============================================
 
