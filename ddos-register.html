@@ -367,11 +367,11 @@
         </div>
 
         <div class="plans">
-            <!-- 무료 체험 -->
+            <!-- 무료 7일 체험 -->
             <div class="plan-card">
                 <div class="plan-title">
                     <span>🚀</span>
-                    <span>무료 체험</span>
+                    <span>무료 7일 체험</span>
                 </div>
                 <div class="plan-price">무료</div>
                 <div class="plan-duration">7일간 무료로 체험하세요</div>
@@ -379,11 +379,11 @@
                 <ul class="plan-features">
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>1개 서버 등록</span>
+                        <span>1개 서버/사이트 등록</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>기본 DDoS 테스트</span>
+                        <span>기본 DDoS 방어</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
@@ -391,36 +391,82 @@
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>도메인 차단</span>
+                        <span>실시간 모니터링</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">❌</span>
+                        <span>전담 기술 지원</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">❌</span>
+                        <span>고급 분석 리포트</span>
+                    </li>
+                </ul>
+
+                <button class="btn btn-secondary" onclick="openTrialModal()">
+                    🚀 무료 체험 시작
+                </button>
+            </div>
+
+            <!-- 홈페이지 보호 -->
+            <div class="plan-card recommended">
+                <div class="plan-badge">인기</div>
+                <div class="plan-title">
+                    <span>🌐</span>
+                    <span>홈페이지 보호</span>
+                </div>
+                <div class="plan-price">₩330,000<span style="font-size: 1rem; font-weight: 400;">/년</span></div>
+                <div class="plan-duration">중소규모 웹사이트 최적</div>
+
+                <ul class="plan-features">
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>최대 5개 도메인 보호</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>Layer 7 DDoS 방어</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>WAF (웹 방화벽) 기본</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>SSL/TLS 지원</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
                         <span>실시간 대시보드</span>
                     </li>
                     <li>
-                        <span class="feature-icon">❌</span>
-                        <span>복수 서버 관리</span>
+                        <span class="feature-icon">✅</span>
+                        <span>이메일 알림</span>
                     </li>
                     <li>
-                        <span class="feature-icon">❌</span>
-                        <span>고급 통계</span>
+                        <span class="feature-icon">✅</span>
+                        <span>월간 보안 리포트</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>영업일 기준 24시간 지원</span>
                     </li>
                 </ul>
 
-                <button class="btn btn-primary" onclick="openTrialModal()">
-                    🚀 즉시 시작하기
+                <button class="btn btn-primary" onclick="openWebsiteModal()">
+                    🌐 홈페이지 보호 신청
                 </button>
             </div>
 
-            <!-- 정식 신청 -->
-            <div class="plan-card recommended">
-                <div class="plan-badge">추천</div>
+            <!-- 서버 보호 -->
+            <div class="plan-card">
+                <div class="plan-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">프리미엄</div>
                 <div class="plan-title">
-                    <span>💎</span>
-                    <span>정식 서비스</span>
+                    <span>🛡️</span>
+                    <span>서버 보호</span>
                 </div>
-                <div class="plan-price">무료</div>
-                <div class="plan-duration">영구 무료 (승인 후 사용)</div>
+                <div class="plan-price">₩2,990,000<span style="font-size: 1rem; font-weight: 400;">/년</span></div>
+                <div class="plan-duration">엔터프라이즈급 인프라 보호</div>
 
                 <ul class="plan-features">
                     <li>
@@ -429,32 +475,40 @@
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>전체 DDoS 테스트 기능</span>
+                        <span>Layer 3/4/7 DDoS 방어</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>고급 IP/도메인 관리</span>
+                        <span>고급 WAF + IPS/IDS</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>국가별 차단 (GeoIP)</span>
+                        <span>전용 IP 할당</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>통합 대시보드</span>
+                        <span>국가별 GeoIP 차단</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>고급 통계 & 리포트</span>
+                        <span>API 연동 지원</span>
                     </li>
                     <li>
                         <span class="feature-icon">✅</span>
-                        <span>1:1 기술 지원</span>
+                        <span>주간 상세 분석 리포트</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>24/7 전담 기술 지원</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">✅</span>
+                        <span>SLA 99.9% 보장</span>
                     </li>
                 </ul>
 
-                <button class="btn btn-primary" onclick="openPremiumModal()">
-                    💎 정식 신청하기
+                <button class="btn btn-primary" onclick="openServerModal()">
+                    🛡️ 서버 보호 신청
                 </button>
             </div>
         </div>
@@ -543,18 +597,18 @@
         </div>
     </div>
 
-    <!-- 정식 신청 모달 -->
-    <div id="premiumModal" class="modal">
+    <!-- 홈페이지 보호 모달 -->
+    <div id="websiteModal" class="modal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('premiumModal')">&times;</button>
+            <button class="modal-close" onclick="closeModal('websiteModal')">&times;</button>
             <div class="modal-header">
-                <h2>💎 정식 서비스 신청</h2>
-                <p style="color: var(--text-secondary);">승인 후 모든 기능을 영구 무료로 사용하실 수 있습니다</p>
+                <h2>🌐 홈페이지 보호 신청</h2>
+                <p style="color: var(--text-secondary);">중소규모 웹사이트를 위한 포괄적 보안 솔루션 (₩330,000/년)</p>
             </div>
 
-            <div id="premiumAlert" class="alert"></div>
+            <div id="websiteAlert" class="alert"></div>
 
-            <form id="premiumForm" onsubmit="submitPremium(event)">
+            <form id="websiteForm" onsubmit="submitWebsite(event)">
                 <div class="form-group">
                     <label>회사/개인명 *</label>
                     <input type="text" name="companyName" required>
@@ -566,13 +620,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>서버 IP 주소 *</label>
-                    <input type="text" name="serverIp" placeholder="예: 115.91.5.140" required>
-                </div>
-
-                <div class="form-group">
-                    <label>도메인 (선택)</label>
-                    <input type="text" name="domain" placeholder="예: example.com">
+                    <label>보호할 도메인 (최대 5개) *</label>
+                    <input type="text" name="domains" placeholder="예: example.com, www.example.com" required>
+                    <div class="form-hint">쉼표로 구분하여 입력하세요 (최대 5개)</div>
                 </div>
 
                 <div class="form-group">
@@ -607,26 +657,138 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    💎 신청하기
+                    🌐 홈페이지 보호 신청
                 </button>
             </form>
 
-            <div id="premiumResult" style="display: none;">
+            <div id="websiteResult" style="display: none;">
                 <div class="result-box">
                     <div class="result-title">✅ 신청 완료!</div>
-                    <p style="margin-bottom: 1rem;">신청이 성공적으로 접수되었습니다.</p>
+                    <p style="margin-bottom: 1rem;">홈페이지 보호 서비스 신청이 성공적으로 접수되었습니다.</p>
                     
                     <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
-                        <p style="font-weight: 600; margin-bottom: 0.5rem;">⏱️ 승인 예상 시간: 24시간 이내</p>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem;">승인 완료 시 이메일로 안내드립니다.</p>
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">💳 결제 정보</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">연간 ₩330,000 - 결제 안내 이메일을 발송했습니다.</p>
                     </div>
 
                     <div style="margin-top: 1.5rem;">
                         <p style="font-weight: 600; margin-bottom: 0.5rem;">📧 다음 단계:</p>
                         <ol style="padding-left: 1.5rem; color: var(--text-secondary);">
-                            <li>승인 완료 이메일 대기</li>
-                            <li>이메일의 설치 스크립트 확인</li>
-                            <li>서버에서 스크립트 실행</li>
+                            <li>결제 완료 (이메일 확인)</li>
+                            <li>DNS 설정 가이드 확인</li>
+                            <li>보호 활성화 대기 (약 10분)</li>
+                            <li><a href="https://neuralgrid.kr/mypage" style="color: var(--primary);">마이페이지</a>에서 모니터링</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 서버 보호 모달 -->
+    <div id="serverModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('serverModal')">&times;</button>
+            <div class="modal-header">
+                <h2>🛡️ 서버 보호 신청</h2>
+                <p style="color: var(--text-secondary);">엔터프라이즈급 인프라 보호 솔루션 (₩2,990,000/년)</p>
+            </div>
+
+            <div id="serverAlert" class="alert"></div>
+
+            <form id="serverForm" onsubmit="submitServer(event)">
+                <div class="form-group">
+                    <label>회사/개인명 *</label>
+                    <input type="text" name="companyName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>연락처 *</label>
+                    <input type="tel" name="phone" placeholder="010-1234-5678" required>
+                </div>
+
+                <div class="form-group">
+                    <label>서버 IP 주소 (복수 등록 가능) *</label>
+                    <input type="text" name="serverIps" placeholder="예: 115.91.5.140, 115.91.5.141" required>
+                    <div class="form-hint">쉼표로 구분하여 입력하세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label>도메인 (선택)</label>
+                    <input type="text" name="domains" placeholder="예: example.com, api.example.com">
+                    <div class="form-hint">연결된 도메인이 있다면 입력하세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label>운영체제 *</label>
+                    <select name="osType" required>
+                        <option value="">선택하세요</option>
+                        <option value="ubuntu">Ubuntu</option>
+                        <option value="debian">Debian</option>
+                        <option value="centos">CentOS 7</option>
+                        <option value="centos8">CentOS 8+</option>
+                        <option value="rhel">RHEL</option>
+                        <option value="windows">Windows Server</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>사용 목적 *</label>
+                    <select name="purpose" required>
+                        <option value="">선택하세요</option>
+                        <option value="website">웹사이트 보안</option>
+                        <option value="api">API 서버 보호</option>
+                        <option value="gaming">게임 서버</option>
+                        <option value="ecommerce">이커머스</option>
+                        <option value="enterprise">기업용 인프라</option>
+                        <option value="financial">금융 서비스</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>예상 트래픽 규모 *</label>
+                    <select name="trafficScale" required>
+                        <option value="">선택하세요</option>
+                        <option value="low">소규모 (월 100만 요청 미만)</option>
+                        <option value="medium">중규모 (월 100만~1,000만 요청)</option>
+                        <option value="high">대규모 (월 1,000만 요청 이상)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>상세 설명 (선택)</label>
+                    <textarea name="description" placeholder="서비스 내용, 특별 요구사항, SLA 요구사항 등을 자유롭게 작성해주세요"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    🛡️ 서버 보호 신청
+                </button>
+            </form>
+
+            <div id="serverResult" style="display: none;">
+                <div class="result-box">
+                    <div class="result-title">✅ 신청 완료!</div>
+                    <p style="margin-bottom: 1rem;">서버 보호 서비스 신청이 성공적으로 접수되었습니다.</p>
+                    
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">💳 결제 정보</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">연간 ₩2,990,000 - 결제 안내 이메일을 발송했습니다.</p>
+                    </div>
+
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">👔 전담 매니저 배정</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">24시간 이내 전담 매니저가 연락드립니다.</p>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">📧 다음 단계:</p>
+                        <ol style="padding-left: 1.5rem; color: var(--text-secondary);">
+                            <li>결제 완료 (이메일 확인)</li>
+                            <li>전담 매니저와 일정 협의</li>
+                            <li>Agent 설치 및 초기 설정</li>
+                            <li>SLA 99.9% 보장 서비스 시작</li>
                             <li><a href="https://neuralgrid.kr/mypage" style="color: var(--primary);">마이페이지</a>에서 모니터링</li>
                         </ol>
                     </div>
@@ -656,9 +818,15 @@
             });
         }
 
-        function openPremiumModal() {
+        function openWebsiteModal() {
             checkAuth(() => {
-                document.getElementById('premiumModal').classList.add('active');
+                document.getElementById('websiteModal').classList.add('active');
+            });
+        }
+
+        function openServerModal() {
+            checkAuth(() => {
+                document.getElementById('serverModal').classList.add('active');
             });
         }
 
@@ -713,7 +881,7 @@
             }
         }
 
-        async function submitPremium(event) {
+        async function submitWebsite(event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
@@ -721,12 +889,12 @@
 
             const token = getAuthToken();
             if (!token) {
-                showAlert('premiumAlert', 'error', '로그인이 필요합니다.');
+                showAlert('websiteAlert', 'error', '로그인이 필요합니다.');
                 return;
             }
 
             try {
-                const response = await fetch('/api/servers/register-premium', {
+                const response = await fetch('/api/servers/register-website', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -739,13 +907,49 @@
 
                 if (result.success) {
                     form.style.display = 'none';
-                    document.getElementById('premiumResult').style.display = 'block';
-                    showAlert('premiumAlert', 'success', result.message);
+                    document.getElementById('websiteResult').style.display = 'block';
+                    showAlert('websiteAlert', 'success', result.message);
                 } else {
-                    showAlert('premiumAlert', 'error', result.error || '신청에 실패했습니다.');
+                    showAlert('websiteAlert', 'error', result.error || '신청에 실패했습니다.');
                 }
             } catch (error) {
-                showAlert('premiumAlert', 'error', '오류가 발생했습니다: ' + error.message);
+                showAlert('websiteAlert', 'error', '오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        async function submitServer(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            const token = getAuthToken();
+            if (!token) {
+                showAlert('serverAlert', 'error', '로그인이 필요합니다.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/servers/register-server', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    form.style.display = 'none';
+                    document.getElementById('serverResult').style.display = 'block';
+                    showAlert('serverAlert', 'success', result.message);
+                } else {
+                    showAlert('serverAlert', 'error', result.error || '신청에 실패했습니다.');
+                }
+            } catch (error) {
+                showAlert('serverAlert', 'error', '오류가 발생했습니다: ' + error.message);
             }
         }
 
