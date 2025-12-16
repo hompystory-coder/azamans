@@ -68,37 +68,58 @@ function generateServerId() {
     return 'srv_' + crypto.randomBytes(8).toString('hex');
 }
 
-// JWT 검증 (간단 버전)
+// JWT 검증 (개선 버전 with robust error handling)
 async function verifyToken(token) {
     try {
         console.log('[Auth] 🔍 Verifying token...');
+        console.log('[Auth] Token length:', token?.length || 0);
+        
+        if (!token || token.trim() === '') {
+            console.log('[Auth] ❌ Empty token provided');
+            return null;
+        }
         
         // auth.neuralgrid.kr에 토큰 검증 요청
         // Node.js Auth Service: POST /api/auth/verify { token }
+        console.log('[Auth] Calling: POST https://auth.neuralgrid.kr/api/auth/verify');
+        
         const response = await fetch('https://auth.neuralgrid.kr/api/auth/verify', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ token })
+            body: JSON.stringify({ token }),
+            timeout: 5000 // 5 second timeout
         });
         
         console.log('[Auth] Response status:', response.status);
+        console.log('[Auth] Response Content-Type:', response.headers.get('content-type'));
         
         if (!response.ok) {
             console.log('[Auth] ❌ HTTP error:', response.status, response.statusText);
             return null;
         }
         
+        // Check if response is actually JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('[Auth] ⚠️ Non-JSON response received!');
+            console.error('[Auth] Content-Type:', contentType);
+            console.error('[Auth] Response preview:', text.substring(0, 200));
+            return null;
+        }
+        
         const data = await response.json();
-        console.log('[Auth] Response data:', data);
+        console.log('[Auth] Response data:', JSON.stringify(data).substring(0, 200));
         
         // Auth 서비스 응답 형식: { success: true, user: {...} }
         if (data.success === true && data.user) {
             const user = {
                 userId: data.user.id || data.user.user_id || data.user.userId,
                 id: data.user.id || data.user.user_id || data.user.userId,
-                email: data.user.email
+                email: data.user.email,
+                name: data.user.name || data.user.username || data.user.email
             };
             console.log('[Auth] ✅ Token valid for user:', user.email);
             return user;
@@ -108,6 +129,15 @@ async function verifyToken(token) {
         }
     } catch (error) {
         console.error('[Auth] ❌ Token verification error:', error.message);
+        console.error('[Auth] Error stack:', error.stack);
+        
+        // More specific error logging
+        if (error.name === 'SyntaxError') {
+            console.error('[Auth] 🚨 JSON parse error - auth service may have returned HTML/text instead of JSON');
+        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            console.error('[Auth] 🚨 Network error - cannot reach auth service');
+        }
+        
         return null;
     }
 }
