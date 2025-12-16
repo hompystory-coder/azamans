@@ -74,22 +74,35 @@ async function verifyToken(token) {
         console.log('[Auth] 🔍 Verifying token...');
         
         // auth.neuralgrid.kr에 토큰 검증 요청
-        const response = await fetch('https://auth.neuralgrid.kr/api/auth/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token })
+        // 주의: 엔드포인트는 /auth/verify (not /api/auth/verify)
+        const response = await fetch('https://auth.neuralgrid.kr/auth/verify', {
+            method: 'GET',  // GET 메서드로 변경
+            headers: { 
+                'Authorization': `Bearer ${token}`
+            }
         });
         
         console.log('[Auth] Response status:', response.status);
         
+        if (!response.ok) {
+            console.log('[Auth] ❌ HTTP error:', response.status, response.statusText);
+            return null;
+        }
+        
         const data = await response.json();
         console.log('[Auth] Response data:', data);
         
-        if (data.success) {
-            console.log('[Auth] ✅ Token valid for user:', data.user?.email || data.user?.id);
-            return data.user;
+        // Auth 서비스 응답 형식: { valid: true, user_id: "xxx", email: "xxx@example.com" }
+        if (data.valid === true) {
+            const user = {
+                userId: data.user_id,
+                id: data.user_id,
+                email: data.email
+            };
+            console.log('[Auth] ✅ Token valid for user:', user.email);
+            return user;
         } else {
-            console.log('[Auth] ❌ Token verification failed:', data.error || 'Unknown error');
+            console.log('[Auth] ❌ Token verification failed: invalid token');
             return null;
         }
     } catch (error) {
