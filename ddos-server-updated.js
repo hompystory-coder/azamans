@@ -71,45 +71,68 @@ function generateServerId() {
 // JWT 검증 (간단 버전)
 async function verifyToken(token) {
     try {
+        console.log('[Auth] 🔍 Verifying token...');
+        
         // auth.neuralgrid.kr에 토큰 검증 요청
         const response = await fetch('https://auth.neuralgrid.kr/api/auth/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token })
         });
+        
+        console.log('[Auth] Response status:', response.status);
+        
         const data = await response.json();
-        return data.success ? data.user : null;
+        console.log('[Auth] Response data:', data);
+        
+        if (data.success) {
+            console.log('[Auth] ✅ Token valid for user:', data.user?.email || data.user?.id);
+            return data.user;
+        } else {
+            console.log('[Auth] ❌ Token verification failed:', data.error || 'Unknown error');
+            return null;
+        }
     } catch (error) {
-        console.error('Token verification failed:', error.message);
+        console.error('[Auth] ❌ Token verification error:', error.message);
         return null;
     }
 }
 
 // 인증 미들웨어
 async function authMiddleware(req, res, next) {
+    console.log('[Auth] 📥 Request:', req.method, req.path);
+    
     const token = req.headers.authorization?.replace('Bearer ', '');
     const apiKey = req.headers['x-api-key'];
+
+    console.log('[Auth] Token present:', token ? 'YES' : 'NO');
+    console.log('[Auth] API Key present:', apiKey ? 'YES' : 'NO');
 
     if (apiKey) {
         // API Key 인증
         const server = servers.find(s => s.apiKey === apiKey);
         if (server) {
+            console.log('[Auth] ✅ API Key authentication successful');
             req.server = server;
             req.authenticated = true;
             return next();
         }
+        console.log('[Auth] ❌ Invalid API Key');
     }
 
     if (token) {
         // JWT 토큰 인증
         const user = await verifyToken(token);
         if (user) {
+            console.log('[Auth] ✅ JWT authentication successful');
             req.user = user;
             req.authenticated = true;
             return next();
         }
+        console.log('[Auth] ❌ JWT verification failed');
     }
 
+    console.log('[Auth] ❌ 401 Unauthorized - No valid credentials');
     return res.status(401).json({ error: 'Unauthorized' });
 }
 
