@@ -1,0 +1,526 @@
+// 로컬 FFmpeg 기반 비디오 렌더러
+// Shotstack API 비용 제로 - 완전 무료 로컬 처리
+import ffmpeg from 'fluent-ffmpeg';
+import path from 'path';
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+import { createWriteStream, existsSync } from 'fs';
+import axios from 'axios';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 출력 디렉토리 설정
+const OUTPUT_DIR = process.env.OUTPUT_DIR || '/tmp/outputs/videos';
+const TEMP_DIR = path.join(OUTPUT_DIR, 'temp');
+
+/**
+ * 비디오 렌더러 클래스
+ * - 로컬 FFmpeg 사용으로 API 비용 제로
+ * - 자막/제목 2줄 중앙 정렬 지원
+ * - 배경 이미지, 음악, 효과 지원
+ */
+class VideoRenderer {
+  constructor() {
+    this.ensureDirs();
+  }
+
+  /**
+   * 필요한 디렉토리 생성
+   */
+  async ensureDirs() {
+    try {
+      await fs.mkdir(OUTPUT_DIR, { recursive: true });
+      await fs.mkdir(TEMP_DIR, { recursive: true });
+      console.log('✅ 비디오 출력 디렉토리 준비 완료');
+    } catch (error) {
+      console.error('❌ 디렉토리 생성 실패:', error);
+    }
+  }
+
+  /**
+   * URL에서 파일 다운로드 (로컬 파일 경로도 지원)
+   */
+  async downloadFile(url, outputPath) {
+    try {
+      // 프록시 URL인 경우 (로컬 API 서버로 변환)
+      if (url.startsWith('/api/')) {
+        url = `http://localhost:4001${url}`;
+        console.log(`🔗 프록시 URL 변환: ${url}`);
+      }
+      
+      // 로컬 파일 경로인 경우 (/ 또는 ./ 로 시작하지만 /api/ 제외)
+      if ((url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) && 
+          !url.startsWith('http://') && !url.startsWith('https://')) {
+        // 상대 경로를 절대 경로로 변환
+        let sourcePath = url;
+        if (url.startsWith('/outputs/')) {
+          // /outputs/ 경로는 /tmp/outputs/로 변환
+          sourcePath = path.join('/tmp', url);
+        } else if (!path.isAbsolute(url)) {
+          sourcePath = path.resolve(url);
+        }
+        
+        // 파일이 존재하는지 확인
+        if (!existsSync(sourcePath)) {
+          throw new Error(`로컬 파일이 존재하지 않습니다: ${sourcePath}`);
+        }
+        
+        // 파일 복사
+        await fs.copyFile(sourcePath, outputPath);
+        console.log(`✅ 로컬 파일 복사 완료: ${path.basename(sourcePath)}`);
+        return;
+      }
+      
+      // HTTP/HTTPS URL인 경우
+      const response = await axios({
+        method: 'GET',
+        url: url,
+        responseType: 'stream'
+      });
+
+      const writer = createWriteStream(outputPath);
+      response.data.pipe(writer);
+
+      return new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
+    } catch (error) {
+      console.error(`❌ 파일 다운로드 실패: ${url}`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 비디오 파일에 오디오 스트림이 있는지 확인
+   */
+  async checkHasAudio(videoPath) {
+    return new Promise((resolve) => {
+      ffmpeg.ffprobe(videoPath, (err, metadata) => {
+        if (err) {
+          console.warn(`⚠️ ffprobe 실패, 오디오 없음으로 간주: ${err.message}`);
+          resolve(false);
+          return;
+        }
+        
+        // 오디오 스트림 찾기
+        const hasAudio = metadata.streams.some(stream => stream.codec_type === 'audio');
+        resolve(hasAudio);
+      });
+    });
+  }
+
+  /**
+   * 자막 텍스트를 FFmpeg 필터 형식으로 변환
+   * 2줄 중앙 정렬, 그림자 효과, 테두리 지원
+   */
+  createSubtitleFilter(text, settings = {}) {
+    const {
+      fontFamily = 'NanumGothicBold',
+      fontSize = 56,
+      fontColor = 'white',
+      yOffset = 250,  // 더 위로 (화면 하단에서 250px)
+      borderWidth = 4,
+      borderColor = 'black',
+      shadowX = 3,
+      shadowY = 3
+    } = settings;
+
+    // 텍스트 이스케이프
+    const escapedText = text
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/:/g, '\\:')
+      .replace(/\n/g, '\\n');
+
+    // FFmpeg drawtext 필터
+    return `drawtext=` +
+      `text='${escapedText}':` +
+      `fontfile=/usr/share/fonts/truetype/nanum/${fontFamily}.ttf:` +
+      `fontsize=${fontSize}:` +
+      `fontcolor=${fontColor}:` +
+      `x=(w-text_w)/2:` +  // 중앙 정렬
+      `y=h-${yOffset}:` +
+      `borderw=${borderWidth}:` +
+      `bordercolor=${borderColor}:` +
+      `shadowx=${shadowX}:` +
+      `shadowy=${shadowY}`;
+  }
+
+  /**
+   * 제목 텍스트를 FFmpeg 필터 형식으로 변환
+   * 2줄 중앙 정렬
+   */
+  createTitleFilter(text, settings = {}) {
+    const {
+      fontFamily = 'NanumGothicBold',
+      fontSize = 72,
+      fontColor = 'yellow',  // 노란색으로 변경
+      yPosition = 150,  // 상단에서 150px
+      borderWidth = 5,
+      borderColor = 'black',
+      shadowX = 4,
+      shadowY = 4
+    } = settings;
+
+    const escapedText = text
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/:/g, '\\:')
+      .replace(/\n/g, '\\n');
+
+    return `drawtext=` +
+      `text='${escapedText}':` +
+      `fontfile=/usr/share/fonts/truetype/nanum/${fontFamily}.ttf:` +
+      `fontsize=${fontSize}:` +
+      `fontcolor=${fontColor}:` +
+      `x=(w-text_w)/2:` +
+      `y=${yPosition}:` +  // 상단 기준 (h- 제거)
+      `borderw=${borderWidth}:` +
+      `bordercolor=${borderColor}:` +
+      `shadowx=${shadowX}:` +
+      `shadowy=${shadowY}`;
+  }
+
+  /**
+   * 단일 장면 비디오 생성
+   * 이미지 + 음성 + 자막 + 제목 결합
+   */
+  async createSceneVideo(scene, sceneIndex, settings = {}) {
+    const sceneId = `scene_${Date.now()}_${sceneIndex}`;
+    const outputPath = path.join(TEMP_DIR, `${sceneId}.mp4`);
+
+    console.log(`🎬 장면 ${sceneIndex + 1} 생성 중...`);
+
+    try {
+      // 1. 원본 이미지 다운로드
+      const imagePath = path.join(TEMP_DIR, `${sceneId}_image.jpg`);
+      if (scene.imageUrl) {
+        await this.downloadFile(scene.imageUrl, imagePath);
+      }
+
+      // 2. 배경 이미지 다운로드 (있을 경우)
+      let bgImagePath = null;
+      if (settings.bgImage && settings.bgImage.url) {
+        bgImagePath = path.join(TEMP_DIR, `${sceneId}_bgimage.jpg`);
+        await this.downloadFile(settings.bgImage.url, bgImagePath);
+      }
+
+      // 3. 음성 다운로드
+      const audioPath = path.join(TEMP_DIR, `${sceneId}_audio.mp3`);
+      if (scene.audioUrl) {
+        await this.downloadFile(scene.audioUrl, audioPath);
+      }
+
+      // 4. FFmpeg 필터 생성
+      const filters = [];
+
+      // 배경 이미지 처리 (맨 앞 레이어)
+      if (bgImagePath) {
+        // 배경 이미지를 1080x1920으로 스케일
+        filters.push(`[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg]`);
+        // 원본 이미지를 배경 이미지 위에 오버레이
+        const opacity = settings.bgImage.opacity || 1.0;
+        filters.push(`[1:v]scale=1080:1920:force_original_aspect_ratio=decrease[overlay]`);
+        filters.push(`[bg][overlay]overlay=(W-w)/2:(H-h)/2:format=auto,format=yuv420p[main]`);
+      } else {
+        // 배경 이미지 없으면 원본 이미지를 전체 화면으로
+        filters.push(`[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[main]`);
+      }
+
+      // 자막 추가
+      if (scene.subtitle) {
+        const subtitleFilter = this.createSubtitleFilter(
+          scene.subtitle,
+          settings.subtitleSettings || {}
+        );
+        filters.push(`[main]${subtitleFilter}[sub]`);
+      }
+
+      // 제목 추가
+      if (scene.title) {
+        const titleFilter = this.createTitleFilter(
+          scene.title,
+          settings.titleSettings || {}
+        );
+        const inputLabel = scene.subtitle ? '[sub]' : '[main]';
+        filters.push(`${inputLabel}${titleFilter}[final]`);
+      }
+
+      // 4. FFmpeg 실행
+      return new Promise((resolve, reject) => {
+        const command = ffmpeg();
+        
+        // 배경 이미지가 있으면 먼저 추가 (input 0)
+        if (bgImagePath) {
+          command
+            .input(bgImagePath)
+            .inputOptions(['-loop 1']);
+        }
+        
+        // 원본 이미지 추가 (배경 있으면 input 1, 없으면 input 0)
+        command
+          .input(imagePath)
+          .inputOptions(['-loop 1']);
+
+        // 오디오 추가 (배경 있으면 input 2, 없으면 input 1)
+        if (scene.audioUrl) {
+          command.input(audioPath);
+        }
+
+        // Output options (오디오 유무에 따라 다르게 설정)
+        // 최종 출력 레이블 결정: 제목 있으면 [final], 자막만 있으면 [sub], 둘 다 없으면 [main]
+        let finalLabel = '[main]';
+        if (scene.title) {
+          finalLabel = '[final]';
+        } else if (scene.subtitle) {
+          finalLabel = '[sub]';
+        }
+        
+        const outputOpts = [
+          '-map', finalLabel
+        ];
+        
+        // 오디오가 있을 때만 오디오 매핑 추가
+        // 배경 이미지가 있으면 오디오는 input 2, 없으면 input 1
+        if (scene.audioUrl) {
+          const audioIndex = bgImagePath ? '2' : '1';
+          outputOpts.push('-map', `${audioIndex}:a`);
+        }
+        
+        // 비디오 및 오디오 코덱 옵션
+        outputOpts.push(
+          '-c:v', 'libx264',
+          '-preset', 'medium',
+          '-crf', '23',
+          '-pix_fmt', 'yuv420p',
+          '-shortest',
+          '-t', String(scene.duration || '3')
+        );
+        
+        // 오디오 코덱 (오디오가 있을 때만)
+        if (scene.audioUrl) {
+          outputOpts.push('-c:a', 'aac', '-b:a', '128k');
+        }
+        
+        command
+          .complexFilter(filters)
+          .outputOptions(outputOpts)
+          .output(outputPath)
+          .on('start', (cmd) => {
+            console.log(`   FFmpeg 시작: ${cmd}`);
+          })
+          .on('progress', (progress) => {
+            console.log(`   진행률: ${Math.round(progress.percent || 0)}%`);
+          })
+          .on('end', () => {
+            console.log(`✅ 장면 ${sceneIndex + 1} 완료: ${outputPath}`);
+            // 임시 파일 정리
+            this.cleanupTempFiles([imagePath, audioPath]).catch(console.error);
+            resolve(outputPath);
+          })
+          .on('error', (error) => {
+            console.error(`❌ 장면 ${sceneIndex + 1} 실패:`, error);
+            reject(error);
+          })
+          .run();
+      });
+
+    } catch (error) {
+      console.error(`❌ 장면 ${sceneIndex + 1} 생성 실패:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 모든 장면 비디오를 하나로 결합
+   * 배경 음악 추가 지원
+   */
+  async concatenateScenes(scenePaths, settings = {}) {
+    const videoId = `video_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const outputPath = path.join(OUTPUT_DIR, `${videoId}.mp4`);
+    const concatListPath = path.join(TEMP_DIR, `${videoId}_concat.txt`);
+
+    console.log(`🔗 ${scenePaths.length}개 장면 결합 중...`);
+
+    try {
+      // 1. concat 리스트 파일 생성
+      const concatList = scenePaths
+        .map(p => `file '${p}'`)
+        .join('\n');
+      await fs.writeFile(concatListPath, concatList);
+
+      // 2. 배경 음악 다운로드 (있을 경우)
+      let bgMusicPath = null;
+      if (settings.bgMusic && settings.bgMusic.url) {
+        bgMusicPath = path.join(TEMP_DIR, `${videoId}_bgmusic.mp3`);
+        await this.downloadFile(settings.bgMusic.url, bgMusicPath);
+      }
+
+      // 3. 첫 번째 장면 비디오의 오디오 스트림 확인
+      const hasAudio = await this.checkHasAudio(scenePaths[0]);
+      console.log(`   입력 비디오 오디오 스트림: ${hasAudio ? '있음' : '없음'}`);
+
+      // 4. FFmpeg로 결합
+      return new Promise((resolve, reject) => {
+        const command = ffmpeg()
+          .input(concatListPath)
+          .inputOptions(['-f', 'concat', '-safe', '0']);
+
+        // 배경 음악 추가
+        if (bgMusicPath) {
+          command.input(bgMusicPath);
+          
+          if (hasAudio) {
+            // 입력 비디오에 오디오가 있으면 믹싱
+            command.complexFilter([
+              '[0:a]volume=1.0[voice]',
+              '[1:a]volume=0.3[music]',
+              '[voice][music]amix=inputs=2:duration=first[aout]'
+            ]);
+            command.outputOptions(['-map', '0:v', '-map', '[aout]']);
+          } else {
+            // 입력 비디오에 오디오가 없으면 배경 음악만 사용
+            console.log('   입력 비디오에 오디오 없음, 배경 음악만 사용');
+            command.complexFilter([
+              '[1:a]volume=0.5[aout]'  // 음성 없으므로 배경 음악 볼륨 증가
+            ]);
+            command.outputOptions(['-map', '0:v', '-map', '[aout]']);
+          }
+        } else if (!hasAudio) {
+          // 배경 음악도 없고 입력 오디오도 없으면 비디오만
+          console.log('   오디오 없는 비디오 결합');
+          command.outputOptions(['-map', '0:v']);
+        }
+
+        command
+          .outputOptions([
+            '-c:v', 'libx264',
+            '-preset', 'medium',
+            '-crf', '23',
+            '-c:a', 'aac',
+            '-b:a', '128k'
+          ])
+          .output(outputPath)
+          .on('start', (cmd) => {
+            console.log(`🎬 최종 결합 시작: ${cmd}`);
+          })
+          .on('progress', (progress) => {
+            console.log(`   진행률: ${Math.round(progress.percent || 0)}%`);
+          })
+          .on('end', async () => {
+            console.log(`✅ 최종 비디오 생성 완료: ${outputPath}`);
+            
+            // 임시 파일 정리
+            await this.cleanupTempFiles([
+              concatListPath,
+              bgMusicPath,
+              ...scenePaths
+            ]);
+
+            // 파일 정보 가져오기
+            const stats = await fs.stat(outputPath);
+            
+            resolve({
+              videoId,
+              videoPath: outputPath,
+              videoUrl: `/outputs/videos/${videoId}.mp4`,
+              size: stats.size,
+              duration: settings.totalDuration || scenePaths.length * 3
+            });
+          })
+          .on('error', (error) => {
+            console.error('❌ 비디오 결합 실패:', error);
+            reject(error);
+          })
+          .run();
+      });
+
+    } catch (error) {
+      console.error('❌ 비디오 결합 중 오류:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 전체 비디오 생성 프로세스
+   * 장면 생성 → 결합 → 최종 출력
+   */
+  async generateVideo(scenes, settings = {}) {
+    console.log(`🚀 비디오 생성 시작: ${scenes.length}개 장면`);
+    console.log(`📦 받은 scenes:`, JSON.stringify(scenes, null, 2));
+    console.log(`📦 받은 settings:`, JSON.stringify(settings, null, 2));
+    
+    try {
+      // 1. 각 장면별 비디오 생성
+      const scenePaths = [];
+      for (let i = 0; i < scenes.length; i++) {
+        const scenePath = await this.createSceneVideo(scenes[i], i, settings);
+        scenePaths.push(scenePath);
+      }
+
+      // 2. 모든 장면 결합
+      const result = await this.concatenateScenes(scenePaths, settings);
+
+      console.log(`🎉 비디오 생성 완료!`);
+      console.log(`   Video ID: ${result.videoId}`);
+      console.log(`   Path: ${result.videoPath}`);
+      console.log(`   Size: ${(result.size / 1024 / 1024).toFixed(2)} MB`);
+
+      return result;
+
+    } catch (error) {
+      console.error('❌ 비디오 생성 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 임시 파일 정리
+   */
+  async cleanupTempFiles(filePaths) {
+    for (const filePath of filePaths) {
+      if (!filePath) continue;
+      try {
+        await fs.unlink(filePath);
+        console.log(`🗑️  임시 파일 삭제: ${filePath}`);
+      } catch (error) {
+        // 파일이 없으면 무시
+      }
+    }
+  }
+
+  /**
+   * 오래된 임시 파일 정리 (24시간 이상)
+   */
+  async cleanupOldTempFiles() {
+    try {
+      const files = await fs.readdir(TEMP_DIR);
+      const now = Date.now();
+      const maxAge = 24 * 60 * 60 * 1000; // 24시간
+
+      for (const file of files) {
+        const filePath = path.join(TEMP_DIR, file);
+        const stats = await fs.stat(filePath);
+        
+        if (now - stats.mtimeMs > maxAge) {
+          await fs.unlink(filePath);
+          console.log(`🗑️  오래된 임시 파일 삭제: ${file}`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ 임시 파일 정리 실패:', error);
+    }
+  }
+}
+
+// 싱글톤 인스턴스
+const videoRenderer = new VideoRenderer();
+
+// 정기적으로 오래된 임시 파일 정리 (1시간마다)
+setInterval(() => {
+  videoRenderer.cleanupOldTempFiles().catch(console.error);
+}, 60 * 60 * 1000);
+
+export default videoRenderer;

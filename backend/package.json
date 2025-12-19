@@ -1,0 +1,39 @@
+{
+  "name": "shorts-creator-pro-backend",
+  "version": "1.0.0",
+  "description": "YouTube Shorts Creator Pro - Backend API",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop shorts-creator-backend",
+    "pm2:restart": "pm2 restart shorts-creator-backend",
+    "pm2:logs": "pm2 logs shorts-creator-backend"
+  },
+  "keywords": [
+    "youtube-shorts",
+    "video-generation",
+    "ai",
+    "ffmpeg"
+  ],
+  "author": "Genspark AI",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "puppeteer": "^21.6.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

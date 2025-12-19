@@ -1,0 +1,284 @@
+// 음성 생성 API (Minimax API v2 - JSON 응답 처리 수정)
+import express from 'express';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { getOutputPath } from '../utils/storage.js';
+
+const router = express.Router();
+
+// 음성 샘플 목록 (탭별)
+const VOICE_SAMPLES = {
+  male: [
+    { id: 'male_001', name: '남성 1 - 차분한', voice: 'presenter_male' },
+    { id: 'male_002', name: '남성 2 - 활기찬', voice: 'audiobook_male_1' },
+    { id: 'male_003', name: '남성 3 - 전문적인', voice: 'male_news_anchor' }
+  ],
+  female: [
+    { id: 'female_001', name: '여성 1 - 부드러운', voice: 'presenter_female' },
+    { id: 'female_002', name: '여성 2 - 밝은', voice: 'audiobook_female_1' },
+    { id: 'female_003', name: '여성 3 - 전문적인', voice: 'female_news_anchor' }
+  ],
+  child: [
+    { id: 'child_001', name: '어린이 1', voice: 'child_voice' }
+  ]
+};
+
+// GET /api/voice/samples - 음성 샘플 목록
+router.get('/samples', (req, res) => {
+  res.json({
+    success: true,
+    data: VOICE_SAMPLES
+  });
+});
+
+// Helper function: voiceId를 실제 Minimax voice ID로 변환
+const getMinimaxVoiceId = (voiceId) => {
+  // VOICE_SAMPLES에서 voiceId에 해당하는 voice 찾기
+  for (const category of Object.values(VOICE_SAMPLES)) {
+    const voice = category.find(v => v.id === voiceId);
+    if (voice) {
+      return voice.voice;
+    }
+  }
+  // 기본값
+  return 'presenter_male';
+};
+
+// POST /api/voice/preview - 음성 미리듣기 (JSON 응답 올바르게 처리)
+router.post('/preview', async (req, res) => {
+  try {
+    const { text, voiceId, minimaxApiKey, minimaxGroupId } = req.body;
+    
+    const apiKey = minimaxApiKey || process.env.MINIMAX_API_KEY;
+    
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        error: 'Minimax API 키가 필요합니다.'
+      });
+    }
+    
+    // voiceId를 실제 Minimax voice ID로 변환
+    const minimaxVoiceId = getMinimaxVoiceId(voiceId);
+    
+    console.log(`🎙️ 음성 미리듣기 생성: voiceId=${voiceId} → minimaxVoiceId=${minimaxVoiceId}`);
+    
+    // Minimax T2A API v2 호출 (JSON 응답 처리)
+    const response = await axios.post(
+      'https://api.minimax.io/v1/t2a_v2',
+      {
+        model: 'speech-2.6-hd',
+        text: text || '안녕하세요. 이것은 음성 샘플입니다.',
+        voice_setting: {
+          voice_id: minimaxVoiceId,
+          speed: 1.0,
+          vol: 1.0,
+          pitch: 0
+        },
+        audio_setting: {
+          sample_rate: 32000,
+          bitrate: 128000,
+          format: 'mp3'
+        }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+        // ❌ responseType 제거 → JSON으로 받음
+      }
+    );
+    
+    console.log('📦 Minimax API 응답:', JSON.stringify(response.data).substring(0, 200));
+    
+    // ✅ JSON 응답 확인 및 처리
+    if (response.data && response.data.base_resp) {
+      const { base_resp, data: audioData, extra_info } = response.data;
+      
+      // 에러 응답 체크
+      if (base_resp.status_code !== 0) {
+        console.error('❌ Minimax API 에러:', base_resp.status_msg);
+        return res.status(400).json({
+          success: false,
+          error: base_resp.status_msg || 'Minimax API 요청 실패'
+        });
+      }
+      
+      // ✅ 성공! 오디오 데이터 추출
+      if (!audioData || !audioData.audio) {
+        throw new Error('응답에 오디오 데이터가 없습니다.');
+      }
+      
+      // ✅ Minimax API는 HEX 인코딩된 오디오 데이터를 반환함
+      // Hex → Buffer → Base64 변환 필요
+      const audioHex = audioData.audio;
+      const audioBuffer = Buffer.from(audioHex, 'hex');
+      const audioBase64 = audioBuffer.toString('base64');
+      
+      console.log(`✅ 음성 미리듣기 생성 완료 (크기: ${extra_info?.audio_size || '알 수 없음'} bytes, 길이: ${extra_info?.audio_length || 0}ms)`);
+      console.log(`   📊 Hex 길이: ${audioHex.length} chars → Base64 길이: ${audioBase64.length} chars`);
+      
+      res.json({
+        success: true,
+        data: {
+          audioData: `data:audio/mp3;base64,${audioBase64}`,
+          duration: extra_info?.audio_length / 1000 || 3.0  // ms → seconds
+        }
+      });
+    } else {
+      throw new Error('예상하지 못한 API 응답 형식입니다.');
+    }
+    
+  } catch (error) {
+    console.error('❌ 음성 미리듣기 오류:', error.response?.data || error.message);
+    
+    // Axios 에러 응답 처리
+    if (error.response && error.response.data && error.response.data.base_resp) {
+      return res.status(error.response.status).json({
+        success: false,
+        error: error.response.data.base_resp.status_msg || '음성 생성에 실패했습니다.'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: error.message || '음성 생성에 실패했습니다.'
+    });
+  }
+});
+
+// POST /api/voice/generate - 장면별 음성 생성 (JSON 응답 올바르게 처리)
+router.post('/generate', async (req, res) => {
+  try {
+    const { scenes, voiceId, minimaxApiKey, minimaxGroupId } = req.body;
+    
+    const apiKey = minimaxApiKey || process.env.MINIMAX_API_KEY;
+    
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        error: 'Minimax API 키가 필요합니다.'
+      });
+    }
+    
+    if (!scenes || scenes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: '장면 데이터가 필요합니다.'
+      });
+    }
+    
+    // voiceId를 실제 Minimax voice ID로 변환
+    const minimaxVoiceId = getMinimaxVoiceId(voiceId);
+    console.log(`🎙️ ${scenes.length}개 장면의 음성 생성 시작... (voice: ${minimaxVoiceId})`);
+    
+    const audioFiles = [];
+    
+    // 각 장면별로 음성 생성
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i];
+      console.log(`   장면 ${i + 1}/${scenes.length}: "${scene.narration.substring(0, 30)}..."`);
+      
+      // Minimax T2A API v2 호출 (JSON 응답 처리)
+      const response = await axios.post(
+        'https://api.minimax.io/v1/t2a_v2',
+        {
+          model: 'speech-2.6-hd',
+          text: scene.narration,
+          voice_setting: {
+            voice_id: minimaxVoiceId,
+            speed: 1.0,
+            vol: 1.0,
+            pitch: 0
+          },
+          audio_setting: {
+            sample_rate: 32000,
+            bitrate: 128000,
+            format: 'mp3'
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          }
+          // ❌ responseType 제거 → JSON으로 받음
+        }
+      );
+      
+      // ✅ JSON 응답 확인 및 처리
+      if (response.data && response.data.base_resp) {
+        const { base_resp, data: audioData, extra_info } = response.data;
+        
+        // 에러 응답 체크
+        if (base_resp.status_code !== 0) {
+          console.error(`❌ 장면 ${i + 1} Minimax API 에러:`, base_resp.status_msg);
+          throw new Error(`장면 ${i + 1} 생성 실패: ${base_resp.status_msg}`);
+        }
+        
+        // ✅ 성공! 오디오 데이터 추출
+        if (!audioData || !audioData.audio) {
+          throw new Error(`장면 ${i + 1}: 응답에 오디오 데이터가 없습니다.`);
+        }
+        
+        // ✅ Minimax API는 HEX 인코딩된 오디오 데이터를 반환함
+        // Hex → Buffer → Base64 변환
+        const audioHex = audioData.audio;
+        const audioBuffer = Buffer.from(audioHex, 'hex');
+        const audioBase64 = audioBuffer.toString('base64');
+        
+        // 파일로 저장
+        const filename = `scene_${i + 1}_${Date.now()}.mp3`;
+        const filepath = getOutputPath(path.join('audio', filename));
+        
+        await fs.promises.writeFile(filepath, audioBuffer);
+        
+        // 실제 오디오 길이 사용
+        const duration = (extra_info?.audio_length || 3000) / 1000;  // ms → seconds
+        
+        audioFiles.push({
+          sceneNumber: i + 1,
+          filename,
+          filepath,
+          url: `/outputs/audio/${filename}`,
+          audioData: `data:audio/mp3;base64,${audioBase64}`,  // ✅ 미리듣기용 base64 데이터
+          duration
+        });
+        
+        console.log(`   ✅ 장면 ${i + 1} 완료: ${filename} (${duration}초)`);
+      } else {
+        throw new Error(`장면 ${i + 1}: 예상하지 못한 API 응답 형식입니다.`);
+      }
+    }
+    
+    console.log(`✅ 모든 음성 생성 완료: ${audioFiles.length}개 파일`);
+    
+    res.json({
+      success: true,
+      data: {
+        audioFiles,
+        totalDuration: audioFiles.reduce((sum, f) => sum + f.duration, 0)
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ 음성 생성 오류:', error.response?.data || error.message);
+    
+    // Axios 에러 응답 처리
+    if (error.response && error.response.data && error.response.data.base_resp) {
+      return res.status(error.response.status).json({
+        success: false,
+        error: error.response.data.base_resp.status_msg || '음성 생성에 실패했습니다.'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: error.message || '음성 생성에 실패했습니다.'
+    });
+  }
+});
+
+export default router;
