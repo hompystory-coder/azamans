@@ -211,15 +211,21 @@ class VideoRenderer {
       fontSize = 56,
       fontColor = 'white',
       yOffset = 250,
-      borderWidth = 4,
-      borderColor = 'black'
+      strokeWidth,    // 프론트엔드에서 strokeWidth로 전달
+      strokeColor,    // 프론트엔드에서 strokeColor로 전달
+      borderWidth,    // 또는 borderWidth로 전달 (호환성)
+      borderColor     // 또는 borderColor로 전달 (호환성)
     } = settings;
+    
+    // strokeWidth/strokeColor를 borderWidth/borderColor로 매핑
+    const finalBorderWidth = strokeWidth !== undefined ? strokeWidth : (borderWidth !== undefined ? borderWidth : 4);
+    const finalBorderColor = strokeColor !== undefined ? strokeColor : (borderColor !== undefined ? borderColor : 'black');
     
     // 그림자 강제 제거 (사용자 요청)
     const shadowX = 0;
     const shadowY = 0;
 
-    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yOffset=${yOffset}`);
+    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yOffset=${yOffset}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
 
     // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
     const escapedText = text
@@ -243,8 +249,8 @@ class VideoRenderer {
       `y=h-${yOffset}:` +
       `line_spacing=10:` +
       `text_align=C:` +
-      `borderw=${borderWidth}:` +
-      `bordercolor=${borderColor}:` +
+      `borderw=${finalBorderWidth}:` +
+      `bordercolor=${finalBorderColor}:` +
       `shadowx=${shadowX}:` +
       `shadowy=${shadowY}`;
     
@@ -264,15 +270,21 @@ class VideoRenderer {
       fontSize = 72,
       fontColor = 'yellow',
       yPosition = 280,
-      borderWidth = 5,
-      borderColor = 'black'
+      strokeWidth,    // 프론트엔드에서 strokeWidth로 전달
+      strokeColor,    // 프론트엔드에서 strokeColor로 전달
+      borderWidth,    // 또는 borderWidth로 전달 (호환성)
+      borderColor     // 또는 borderColor로 전달 (호환성)
     } = settings;
+    
+    // strokeWidth/strokeColor를 borderWidth/borderColor로 매핑
+    const finalBorderWidth = strokeWidth !== undefined ? strokeWidth : (borderWidth !== undefined ? borderWidth : 5);
+    const finalBorderColor = strokeColor !== undefined ? strokeColor : (borderColor !== undefined ? borderColor : 'black');
     
     // 그림자 강제 제거 (사용자 요청)
     const shadowX = 0;
     const shadowY = 0;
 
-    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yPosition=${yPosition}`);
+    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yPosition=${yPosition}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
 
     // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
     const escapedText = text
@@ -295,8 +307,8 @@ class VideoRenderer {
       `y=${yPosition}:` +
       `line_spacing=10:` +
       `text_align=C:` +
-      `borderw=${borderWidth}:` +
-      `bordercolor=${borderColor}:` +
+      `borderw=${finalBorderWidth}:` +
+      `bordercolor=${finalBorderColor}:` +
       `shadowx=${shadowX}:` +
       `shadowy=${shadowY}`;
     
