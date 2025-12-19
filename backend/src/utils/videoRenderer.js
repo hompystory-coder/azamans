@@ -348,15 +348,18 @@ class VideoRenderer {
     
     // 배경이 있으면 오버레이용으로 비율 유지하며 효과 적용
     if (hasBackground) {
-      // 오버레이 모드: 비율 유지하며 효과 적용 (최대 1080x1920 이내)
+      // 오버레이 모드: zoompan 필터 사용하여 효과 적용
+      const fps = 30;
+      const totalFrames = Math.floor(duration * fps);
+      
       switch(effect) {
         case 'zoom-in':
-          // 줌인: 비율 유지하며 확대 (1080 이내)
-          return `scale=w='if(gt(iw,ih),min(1080,iw*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)':h='if(gt(ih,iw),min(1920,ih*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)'`;
+          // 줌인: zoompan 필터 사용 (비율 유지)
+          return `zoompan=z='min(zoom+0.0015,${params.zoomFactor})':d=${totalFrames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}`;
           
         case 'zoom-out':
-          // 줌아웃: 비율 유지하며 축소
-          return `scale=w='if(gt(iw,ih),min(1080,iw*max(1,${params.zoomFactor}-(${params.zoomFactor}-1)*t/${duration})),-1)':h='if(gt(ih,iw),min(1920,ih*max(1,${params.zoomFactor}-(${params.zoomFactor}-1)*t/${duration})),-1)'`;
+          // 줌아웃: 역방향 줌
+          return `zoompan=z='if(lte(zoom,1.0),1.0,max(zoom-0.0015,1.0))':d=${totalFrames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}`;
           
         case 'pan-left':
         case 'pan-right':
@@ -369,12 +372,12 @@ class VideoRenderer {
           
         case 'ken-burns':
         case 'ken-burns-center':
-          // Ken Burns: 비율 유지하며 중앙 줌인
-          return `scale=w='if(gt(iw,ih),min(1080,iw*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)':h='if(gt(ih,iw),min(1920,ih*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)'`;
+          // Ken Burns: zoompan으로 중앙 줌인
+          return `zoompan=z='min(zoom+0.0015,${params.zoomFactor})':d=${totalFrames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}`;
           
         case 'rotate-slow':
-          // 회전: 비율 유지하며 회전
-          return `rotate=a='PI*2*t/${duration}/4':fillcolor=none,scale=1080:1920:force_original_aspect_ratio=decrease`;
+          // 회전: 비율 유지하며 회전 (작은따옴표 제거)
+          return `rotate=a=PI*2*t/${duration}/4:fillcolor=none,scale=1080:1920:force_original_aspect_ratio=decrease`;
           
         case 'none':
         default:
