@@ -395,8 +395,14 @@ class VideoRenderer {
         
       case 'none':
       default:
-        // 효과 없음: 기본 스케일/크롭 (배경 유무에 따라 다름)
-        return `scale=1080:1920:force_original_aspect_ratio=${aspectRatio},crop=1080:1920`;
+        // 효과 없음: 기본 스케일 (배경 유무에 따라 다름)
+        if (hasBackground) {
+          // 배경 있으면: decrease만 사용 (crop 없음, 비율 유지)
+          return `scale=1080:1920:force_original_aspect_ratio=decrease`;
+        } else {
+          // 배경 없으면: increase + crop (화면 채움)
+          return `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+        }
     }
   }
 
@@ -443,9 +449,9 @@ class VideoRenderer {
         // 배경 이미지: 화면 전체를 채움 (효과 없음)
         filters.push(`[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg]`);
         
-        // 원본 이미지: 효과를 적용하되 배경이 보이도록 (hasBackground=true)
-        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration, true);
-        filters.push(`[1:v]${imageEffectFilter}[overlay]`);
+        // 원본 이미지: 배경이 있으면 효과 없이 decrease만 (비율 유지)
+        // 배경 이미지와 함께 사용할 때는 효과를 적용하지 않음
+        filters.push(`[1:v]scale=1080:1920:force_original_aspect_ratio=decrease[overlay]`);
         
         // 오버레이: 원본 이미지를 배경 위에 중앙 배치
         const opacity = settings.bgImage.opacity || 1.0;
