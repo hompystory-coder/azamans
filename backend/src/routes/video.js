@@ -176,15 +176,18 @@ router.post('/generate', upload.fields([{ name: 'bgMusicFile' }, { name: 'bgImag
     }
 
     // settings 키 이름 정규화 (frontend와 renderer 간 호환성)
-    // frontend: subtitle, titleConfig → renderer: subtitleSettings, titleSettings
+    // frontend: subtitle, title, titleConfig → renderer: subtitleSettings, titleSettings
     if (settings.subtitle) {
       settings.subtitleSettings = settings.subtitle;
+      console.log(`🔄 subtitle → subtitleSettings 변환 (fontSize: ${settings.subtitle.fontSize})`);
     }
     if (settings.titleConfig) {
       settings.titleSettings = settings.titleConfig;
-    } else if (settings.title && typeof settings.title === 'object' && !settings.title.text) {
-      // settings.title이 설정 객체인 경우 (text가 없으면)
+      console.log(`🔄 titleConfig → titleSettings 변환 (fontSize: ${settings.titleConfig.fontSize})`);
+    } else if (settings.title && typeof settings.title === 'object') {
+      // settings.title이 설정 객체인 경우
       settings.titleSettings = settings.title;
+      console.log(`🔄 title → titleSettings 변환 (fontSize: ${settings.title.fontSize})`);
     }
 
     console.log(`🎬 로컬 FFmpeg 비디오 생성 시작: ${scenes.length}개 장면`);
