@@ -213,13 +213,17 @@ class VideoRenderer {
     const {
       fontFamily = 'NanumGothicBold',
       fontSize = 56,
-      fontColor = 'white',
+      color,          // 프론트엔드에서 color로 전달
+      fontColor,      // 또는 fontColor로 전달 (호환성)
       yOffset = 250,
       strokeWidth,    // 프론트엔드에서 strokeWidth로 전달
       strokeColor,    // 프론트엔드에서 strokeColor로 전달
       borderWidth,    // 또는 borderWidth로 전달 (호환성)
       borderColor     // 또는 borderColor로 전달 (호환성)
     } = settings;
+    
+    // color/fontColor 매핑 (color 우선)
+    const finalFontColor = color !== undefined ? color : (fontColor !== undefined ? fontColor : 'white');
     
     // strokeWidth/strokeColor를 borderWidth/borderColor로 매핑
     const finalBorderWidth = strokeWidth !== undefined ? strokeWidth : (borderWidth !== undefined ? borderWidth : 4);
@@ -229,7 +233,7 @@ class VideoRenderer {
     const shadowX = 0;
     const shadowY = 0;
 
-    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yOffset=${yOffset}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
+    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, fontColor=${finalFontColor}, yOffset=${yOffset}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
 
     // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
     const escapedText = text
@@ -248,7 +252,7 @@ class VideoRenderer {
       `text='${escapedText}':` +
       `fontfile=${fontPath}:` +
       `fontsize=${fontSize}:` +
-      `fontcolor=${fontColor}:` +
+      `fontcolor=${finalFontColor}:` +
       `x=(w-text_w)/2:` +
       `y=h-${yOffset}:` +
       `line_spacing=10:` +
@@ -272,13 +276,17 @@ class VideoRenderer {
     const {
       fontFamily = 'NanumGothicBold',
       fontSize = 72,
-      fontColor = 'yellow',
+      color,          // 프론트엔드에서 color로 전달
+      fontColor,      // 또는 fontColor로 전달 (호환성)
       yPosition = 280,
       strokeWidth,    // 프론트엔드에서 strokeWidth로 전달
       strokeColor,    // 프론트엔드에서 strokeColor로 전달
       borderWidth,    // 또는 borderWidth로 전달 (호환성)
-      borderColor     // 또는 borderColor로 전달 (호환성)
+      borderColor     // 또는 borderColor로 전달 (호호성)
     } = settings;
+    
+    // color/fontColor 매핑 (color 우선)
+    const finalFontColor = color !== undefined ? color : (fontColor !== undefined ? fontColor : 'yellow');
     
     // strokeWidth/strokeColor를 borderWidth/borderColor로 매핑
     const finalBorderWidth = strokeWidth !== undefined ? strokeWidth : (borderWidth !== undefined ? borderWidth : 5);
@@ -288,7 +296,7 @@ class VideoRenderer {
     const shadowX = 0;
     const shadowY = 0;
 
-    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yPosition=${yPosition}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
+    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, fontColor=${finalFontColor}, yPosition=${yPosition}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
 
     // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
     const escapedText = text
@@ -306,7 +314,7 @@ class VideoRenderer {
       `text='${escapedText}':` +
       `fontfile=${fontPath}:` +
       `fontsize=${fontSize}:` +
-      `fontcolor=${fontColor}:` +
+      `fontcolor=${finalFontColor}:` +
       `x=(w-text_w)/2:` +
       `y=${yPosition}:` +
       `line_spacing=10:` +
@@ -323,8 +331,8 @@ class VideoRenderer {
   /**
    * 이미지 효과 필터 생성 (Ken Burns, Pan, Zoom 등)
    */
-  createImageEffectFilter(effect = 'none', intensity = 'medium', duration = 3.5) {
-    console.log(`🎬 이미지 효과: ${effect} (강도: ${intensity})`);
+  createImageEffectFilter(effect = 'none', intensity = 'medium', duration = 3.5, hasBackground = false) {
+    console.log(`🎬 이미지 효과: ${effect} (강도: ${intensity}, 배경: ${hasBackground ? '있음' : '없음'})`);
     
     // 강도별 파라미터
     const intensityParams = {
@@ -336,6 +344,9 @@ class VideoRenderer {
     const params = intensityParams[intensity] || intensityParams['medium'];
     const fps = 30; // 프레임레이트
     const frames = Math.floor(duration * fps);
+    
+    // 배경 이미지가 있으면 decrease (배경 보이도록), 없으면 increase (화면 채움)
+    const aspectRatio = hasBackground ? 'decrease' : 'increase';
     
     switch(effect) {
       case 'zoom-in':
@@ -384,8 +395,8 @@ class VideoRenderer {
         
       case 'none':
       default:
-        // 효과 없음: 기본 스케일/크롭
-        return `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+        // 효과 없음: 기본 스케일/크롭 (배경 유무에 따라 다름)
+        return `scale=1080:1920:force_original_aspect_ratio=${aspectRatio},crop=1080:1920`;
     }
   }
 
@@ -429,20 +440,19 @@ class VideoRenderer {
       
       // 배경 이미지 처리 (맨 앞 레이어)
       if (bgImagePath) {
-        // 배경 이미지에 효과 적용
-        const bgEffectFilter = this.createImageEffectFilter('none', effectIntensity, sceneDuration);
-        filters.push(`[0:v]${bgEffectFilter}[bg]`);
+        // 배경 이미지: 화면 전체를 채움 (효과 없음)
+        filters.push(`[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg]`);
         
-        // 원본 이미지에 효과 적용
-        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration);
+        // 원본 이미지: 효과를 적용하되 배경이 보이도록 (hasBackground=true)
+        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration, true);
         filters.push(`[1:v]${imageEffectFilter}[overlay]`);
         
-        // 오버레이
+        // 오버레이: 원본 이미지를 배경 위에 중앙 배치
         const opacity = settings.bgImage.opacity || 1.0;
         filters.push(`[bg][overlay]overlay=(W-w)/2:(H-h)/2:format=auto,format=yuv420p[main]`);
       } else {
-        // 배경 이미지 없으면 원본 이미지에 효과 적용
-        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration);
+        // 배경 이미지 없으면 원본 이미지에 효과 적용 (화면 전체 채움, hasBackground=false)
+        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration, false);
         filters.push(`[0:v]${imageEffectFilter}[main]`);
       }
 
