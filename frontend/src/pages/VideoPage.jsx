@@ -455,10 +455,22 @@ export default function VideoPage() {
         console.log('   첫 번째 음성:', audioFiles[0]);
       }
       
+      // 스크립트와 음성 파일 결합
+      const scenesWithAudio = script.map((scene, index) => ({
+        ...scene,
+        audioUrl: audioFiles[index] || '' // 각 장면에 해당하는 음성 URL 추가
+      }));
+      
+      console.log('📝 최종 전송 데이터:', {
+        scenes: scenesWithAudio.length,
+        audioCount: audioFiles.length,
+        firstSceneHasAudio: !!scenesWithAudio[0]?.audioUrl
+      });
+      
       // FormData 생성 (파일 업로드용)
       const formData = new FormData();
-      formData.append('parts', JSON.stringify(script));
-      formData.append('audioFiles', JSON.stringify(audioFiles));
+      formData.append('parts', JSON.stringify(scenesWithAudio)); // audioUrl이 포함된 scenes 전송
+      formData.append('audioFiles', JSON.stringify(audioFiles)); // 백엔드 호환성 유지
       formData.append('title', script[0]?.text || '유튜브 쇼츠');
       
       // 설정 객체 생성
