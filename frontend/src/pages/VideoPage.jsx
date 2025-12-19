@@ -435,11 +435,24 @@ export default function VideoPage() {
     setStatus('비디오 생성 요청 중...');
 
     try {
-      const audioFiles = voiceData?.audioFiles || [];
+      const audioFilesData = voiceData?.audioFiles || [];
+      
+      // audioFiles가 객체 배열인 경우 URL만 추출 (예: [{url: '...', duration: ...}] → ['...'])
+      const audioFiles = audioFilesData.map(file => {
+        if (typeof file === 'string') {
+          return file; // 이미 문자열이면 그대로 반환
+        }
+        return file.url || file.filepath || file; // 객체면 url 속성 추출
+      });
       
       // 음성이 없을 때 경고 (배경 음악만 있을 경우)
       if (audioFiles.length === 0) {
         console.warn('⚠️  음성 없이 비디오 생성 (자막과 제목만 표시됨, 배경 음악은 있을 수 있음)');
+      }
+      
+      console.log('🎤 음성 파일:', audioFiles.length > 0 ? `${audioFiles.length}개 준비됨` : '없음');
+      if (audioFiles.length > 0) {
+        console.log('   첫 번째 음성:', audioFiles[0]);
       }
       
       // FormData 생성 (파일 업로드용)

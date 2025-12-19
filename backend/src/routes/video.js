@@ -58,6 +58,32 @@ router.post('/generate', upload.fields([{ name: 'bgMusicFile' }, { name: 'bgImag
       scenes = parts;
     }
     
+    // audioFiles 파싱 및 각 장면에 매핑
+    let audioFiles = req.body.audioFiles;
+    if (typeof audioFiles === 'string') {
+      try {
+        audioFiles = JSON.parse(audioFiles);
+      } catch (e) {
+        console.error('❌ audioFiles JSON 파싱 실패:', e);
+        audioFiles = [];
+      }
+    }
+    
+    // audioFiles가 있으면 각 장면에 audioUrl 추가
+    if (audioFiles && audioFiles.length > 0) {
+      console.log(`🎤 ${audioFiles.length}개 음성 파일을 장면에 매핑`);
+      for (let i = 0; i < scenes.length && i < audioFiles.length; i++) {
+        // audioFiles[i]가 문자열(URL)이면 그대로, 객체면 url 속성 추출
+        const audioUrl = typeof audioFiles[i] === 'string' ? audioFiles[i] : (audioFiles[i]?.url || audioFiles[i]?.filepath);
+        if (audioUrl) {
+          scenes[i].audioUrl = audioUrl;
+          console.log(`   장면 ${i + 1}: ${audioUrl}`);
+        }
+      }
+    } else {
+      console.log('⚠️  음성 파일 없음 - 자막과 제목만 생성됩니다');
+    }
+    
     if (typeof settings === 'string') {
       try {
         settings = JSON.parse(settings);
