@@ -361,6 +361,34 @@ class VideoRenderer {
           // 줌아웃: 역방향 줌
           return `zoompan=z='if(lte(zoom,1.0),1.0,max(zoom-0.0015,1.0))':d=${totalFrames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}`;
           
+        case 'zoom-pulse':
+          // 펄스 효과: 확대/축소 반복 (심장 박동 효과)
+          return `zoompan=z='1+0.05*sin(2*PI*t/${duration}*2)':d=${totalFrames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}`;
+          
+        case 'fade-in':
+          // 페이드인: 점점 나타남
+          return `scale=1080:1920:force_original_aspect_ratio=decrease,fade=in:st=0:d=${duration/2}`;
+          
+        case 'fade-out':
+          // 페이드아웃: 점점 사라짐
+          return `scale=1080:1920:force_original_aspect_ratio=decrease,fade=out:st=${duration/2}:d=${duration/2}`;
+          
+        case 'slide-in-left':
+          // 좌측에서 슬라이드 등장
+          return `scale=1080:1920:force_original_aspect_ratio=decrease,pad=2160:1920:(2160-iw)/2:(1920-ih)/2,crop=1080:1920:if(lte(t\\,${duration/3})\\,1080-1080*t/(${duration/3})\\,0):0`;
+          
+        case 'slide-in-right':
+          // 우측에서 슬라이드 등장
+          return `scale=1080:1920:force_original_aspect_ratio=decrease,pad=2160:1920:(2160-iw)/2:(1920-ih)/2,crop=1080:1920:if(lte(t\\,${duration/3})\\,1080*t/(${duration/3})\\,1080):0`;
+          
+        case 'slide-in-up':
+          // 위에서 슬라이드 등장
+          return `scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:3840:(1080-iw)/2:(3840-ih)/2,crop=1080:1920:0:if(lte(t\\,${duration/3})\\,1920-1920*t/(${duration/3})\\,0)`;
+          
+        case 'slide-in-down':
+          // 아래에서 슬라이드 등장
+          return `scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:3840:(1080-iw)/2:(3840-ih)/2,crop=1080:1920:0:if(lte(t\\,${duration/3})\\,1920*t/(${duration/3})\\,1920)`;
+          
         case 'pan-left':
         case 'pan-right':
         case 'pan-up':
@@ -376,8 +404,12 @@ class VideoRenderer {
           return `zoompan=z='min(zoom+0.0015,${params.zoomFactor})':d=${totalFrames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}`;
           
         case 'rotate-slow':
-          // 회전: 비율 유지하며 회전 (작은따옴표 제거)
+          // 회전: 비율 유지하며 회전
           return `rotate=a=PI*2*t/${duration}/4:fillcolor=none,scale=1080:1920:force_original_aspect_ratio=decrease`;
+          
+        case 'rotate-fast':
+          // 빠른 회전: 2배 속도
+          return `rotate=a=PI*2*t/${duration}/2:fillcolor=none,scale=1080:1920:force_original_aspect_ratio=decrease`;
           
         case 'none':
         default:
@@ -430,6 +462,38 @@ class VideoRenderer {
         case 'rotate-slow':
           // 느린 회전 (시계방향)
           return `rotate=a='PI*2*n/${frames}/4':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+          
+        case 'rotate-fast':
+          // 빠른 회전 (2배 속도)
+          return `rotate=a='PI*2*n/${frames}/2':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+          
+        case 'zoom-pulse':
+          // 펄스 효과: 확대/축소 반복
+          return `zoompan=z='1+0.1*sin(2*PI*n/${frames}*2)':d=${frames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}`;
+          
+        case 'fade-in':
+          // 페이드인: 점점 나타남
+          return `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fade=in:st=0:d=${duration/2}`;
+          
+        case 'fade-out':
+          // 페이드아웃: 점점 사라짐
+          return `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fade=out:st=${duration/2}:d=${duration/2}`;
+          
+        case 'slide-in-left':
+          // 좌측에서 슬라이드 등장
+          return `scale=1280:1920,crop=1080:1920:if(lte(n\\,${frames/3})\\,200-200*n/(${frames/3})\\,0):0`;
+          
+        case 'slide-in-right':
+          // 우측에서 슬라이드 등장
+          return `scale=1280:1920,crop=1080:1920:if(lte(n\\,${frames/3})\\,200*n/(${frames/3})\\,200):0`;
+          
+        case 'slide-in-up':
+          // 위에서 슬라이드 등장
+          return `scale=1080:2200,crop=1080:1920:0:if(lte(n\\,${frames/3})\\,280-280*n/(${frames/3})\\,0)`;
+          
+        case 'slide-in-down':
+          // 아래에서 슬라이드 등장
+          return `scale=1080:2200,crop=1080:1920:0:if(lte(n\\,${frames/3})\\,280*n/(${frames/3})\\,280)`;
           
         case 'none':
         default:
