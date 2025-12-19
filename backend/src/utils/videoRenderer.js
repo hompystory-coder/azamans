@@ -421,51 +421,51 @@ class VideoRenderer {
       switch(effect) {
         case 'zoom-in':
           // 줌인 효과: 점점 확대
-          return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+          return `scale=w='iw*min(1+((${params.zoomFactor}-1)*t/${duration})\\,${params.zoomFactor})':h='ih*min(1+((${params.zoomFactor}-1)*t/${duration})\\,${params.zoomFactor})',crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
           
         case 'zoom-out':
           // 줌아웃 효과: 확대된 상태에서 축소
-          return `scale=w=iw*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}):h=ih*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+          return `scale=w='iw*min(${params.zoomFactor}-(${params.zoomFactor}-1)*t/${duration}\\,${params.zoomFactor})':h='ih*min(${params.zoomFactor}-(${params.zoomFactor}-1)*t/${duration}\\,${params.zoomFactor})',crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
           
         case 'pan-left':
           // 좌측으로 패닝
-          return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance}*n/${frames}):0`;
+          return `scale=1280:1920,crop=1080:1920:'min(iw-1080\\,${params.panDistance}*t/${duration})':0`;
           
         case 'pan-right':
           // 우측으로 패닝
-          return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance}*n/${frames}):0`;
+          return `scale=1280:1920,crop=1080:1920:'max(0\\,iw-1080-${params.panDistance}*t/${duration})':0`;
           
         case 'pan-up':
           // 위로 패닝
-          return `scale=1080:2200,crop=1080:1920:0:max(0\\,ih-1920-${params.panDistance}*n/${frames})`;
+          return `scale=1080:2200,crop=1080:1920:0:'max(0\\,ih-1920-${params.panDistance}*t/${duration})'`;
           
         case 'pan-down':
           // 아래로 패닝
-          return `scale=1080:2200,crop=1080:1920:0:min(ih-1920\\,${params.panDistance}*n/${frames})`;
+          return `scale=1080:2200,crop=1080:1920:0:'min(ih-1920\\,${params.panDistance}*t/${duration})'`;
           
         case 'pan-lr':
           // 좌우 패닝 (좌 -> 우)
-          return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance*2}*n/${frames}):0`;
+          return `scale=1280:1920,crop=1080:1920:'min(iw-1080\\,${params.panDistance*2}*t/${duration})':0`;
           
         case 'pan-rl':
           // 우좌 패닝 (우 -> 좌)
-          return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance*2}*n/${frames}):0`;
+          return `scale=1280:1920,crop=1080:1920:'max(0\\,iw-1080-${params.panDistance*2}*t/${duration})':0`;
           
         case 'ken-burns':
           // Ken Burns 효과: 줌인 + 패닝
-          return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:min((iw-1080)/2+(${params.panDistance}*n/${frames})\\,iw-1080):(ih-1920)/2`;
+          return `scale=w='iw*min(1+((${params.zoomFactor}-1)*t/${duration})\\,${params.zoomFactor})':h='ih*min(1+((${params.zoomFactor}-1)*t/${duration})\\,${params.zoomFactor})',crop=1080:1920:'min((iw-1080)/2+(${params.panDistance}*t/${duration})\\,iw-1080)':(ih-1920)/2`;
           
         case 'ken-burns-center':
           // Ken Burns 중앙 줌인
-          return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+          return `scale=w='iw*min(1+((${params.zoomFactor}-1)*t/${duration})\\,${params.zoomFactor})':h='ih*min(1+((${params.zoomFactor}-1)*t/${duration})\\,${params.zoomFactor})',crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
           
         case 'rotate-slow':
           // 느린 회전 (시계방향)
-          return `rotate=a='PI*2*n/${frames}/4':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+          return `rotate=a='PI*2*t/${duration}/4':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
           
         case 'rotate-fast':
           // 빠른 회전 (2배 속도)
-          return `rotate=a='PI*2*n/${frames}/2':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+          return `rotate=a='PI*2*t/${duration}/2':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
           
         case 'zoom-pulse':
           // 펄스 효과: 확대/축소 반복
@@ -481,19 +481,19 @@ class VideoRenderer {
           
         case 'slide-in-left':
           // 좌측에서 슬라이드 등장
-          return `scale=1280:1920,crop=1080:1920:if(lte(n\\,${frames/3})\\,200-200*n/(${frames/3})\\,0):0`;
+          return `scale=1280:1920,crop=1080:1920:'if(lte(t\\,${duration/3})\\,200-200*t/(${duration/3})\\,0)':0`;
           
         case 'slide-in-right':
           // 우측에서 슬라이드 등장
-          return `scale=1280:1920,crop=1080:1920:if(lte(n\\,${frames/3})\\,200*n/(${frames/3})\\,200):0`;
+          return `scale=1280:1920,crop=1080:1920:'if(lte(t\\,${duration/3})\\,200*t/(${duration/3})\\,200)':0`;
           
         case 'slide-in-up':
           // 위에서 슬라이드 등장
-          return `scale=1080:2200,crop=1080:1920:0:if(lte(n\\,${frames/3})\\,280-280*n/(${frames/3})\\,0)`;
+          return `scale=1080:2200,crop=1080:1920:0:'if(lte(t\\,${duration/3})\\,280-280*t/(${duration/3})\\,0)'`;
           
         case 'slide-in-down':
           // 아래에서 슬라이드 등장
-          return `scale=1080:2200,crop=1080:1920:0:if(lte(n\\,${frames/3})\\,280*n/(${frames/3})\\,280)`;
+          return `scale=1080:2200,crop=1080:1920:0:'if(lte(t\\,${duration/3})\\,280*t/(${duration/3})\\,280)'`;
           
         case 'none':
         default:
