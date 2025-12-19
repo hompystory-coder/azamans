@@ -112,42 +112,115 @@ class VideoRenderer {
   }
 
   /**
+   * 폰트 파일 경로 가져오기 (폴백 지원)
+   */
+  getFontPath(fontFamily) {
+    // 폰트 매핑: 요청된 폰트 -> 실제 파일명
+    const fontMap = {
+      'NanumGothicBold': 'NanumGothicBold.ttf',
+      'NanumGothic': 'NanumGothic.ttf',
+      'NanumBarunGothicBold': 'NanumBarunGothicBold.ttf',
+      'NanumBarunGothic': 'NanumBarunGothic.ttf',
+      'NanumMyeongjoBold': 'NanumMyeongjoBold.ttf',
+      'NanumMyeongjo': 'NanumMyeongjo.ttf',
+      // 다른 폰트들은 NanumGothicBold로 폴백
+      'BlackHanSans': 'NanumGothicBold.ttf',
+      'DoHyeon': 'NanumGothicBold.ttf',
+      'Jua': 'NanumGothicBold.ttf',
+      'Noto Sans KR': 'NanumGothicBold.ttf',
+      'CuteFont': 'NanumGothicBold.ttf'
+    };
+
+    const filename = fontMap[fontFamily] || 'NanumGothicBold.ttf';
+    return `/usr/share/fonts/truetype/nanum/${filename}`;
+  }
+
+  /**
+   * 텍스트를 2줄로 분리 (한글 기준 약 20자)
+   */
+  splitTextToTwoLines(text, maxCharsPerLine = 20) {
+    console.log(`📝 텍스트 분리 시도: "${text}" (길이: ${text.length}, 최대: ${maxCharsPerLine})`);
+    
+    if (text.length <= maxCharsPerLine) {
+      console.log(`   ✅ 짧은 텍스트, 분리 안함`);
+      return text;
+    }
+
+    // 중간 지점 찾기
+    const midPoint = Math.floor(text.length / 2);
+    
+    // 띄어쓰기나 구두점을 찾아서 자연스럽게 나누기
+    let splitPoint = midPoint;
+    for (let i = midPoint; i < text.length && i < midPoint + 10; i++) {
+      if (text[i] === ' ' || text[i] === ',' || text[i] === '.' || text[i] === '!' || text[i] === '?') {
+        splitPoint = i + 1;
+        break;
+      }
+    }
+
+    const firstLine = text.substring(0, splitPoint).trim();
+    const secondLine = text.substring(splitPoint).trim();
+    const result = `${firstLine}\n${secondLine}`;
+    
+    console.log(`   ✂️ 텍스트 분리 완료: "${firstLine}" / "${secondLine}"`);
+    
+    return result;
+  }
+
+  /**
    * 자막 텍스트를 FFmpeg 필터 형식으로 변환
    * 2줄 중앙 정렬, 그림자 효과, 테두리 지원
    */
   createSubtitleFilter(text, settings = {}) {
+    console.log(`\n🎨 [자막 필터 생성] 원본 텍스트: "${text}"`);
+    
     const {
       fontFamily = 'NanumGothicBold',
       fontSize = 56,
       fontColor = 'white',
-      yOffset = 250,  // 더 위로 (화면 하단에서 250px)
+      yOffset = 250,
       borderWidth = 4,
       borderColor = 'black',
       shadowX = 3,
       shadowY = 3
     } = settings;
 
+    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yOffset=${yOffset}`);
+
+    // 텍스트를 2줄로 분리
+    const multilineText = this.splitTextToTwoLines(text, 20);
+    console.log(`   분리 후: "${multilineText.replace(/\n/g, '\\\\n')}"`);
+
     // 텍스트 이스케이프
-    const escapedText = text
+    const escapedText = multilineText
       .replace(/\\/g, '\\\\')
       .replace(/'/g, "\\'")
       .replace(/:/g, '\\:')
-      .replace(/\n/g, '\\n');
+      .replace(/\n/g, '\\n');  // \n을 FFmpeg가 인식하도록
 
-    // FFmpeg drawtext 필터 (2줄 지원: text_w 대신 최대 너비 설정)
-    return `drawtext=` +
+    console.log(`   이스케이프 후: "${escapedText}"`);
+
+    // 폰트 파일 경로 가져오기
+    const fontPath = this.getFontPath(fontFamily);
+    console.log(`   폰트 경로: ${fontPath}`);
+
+    // FFmpeg drawtext 필터
+    const filter = `drawtext=` +
       `text='${escapedText}':` +
-      `fontfile=/usr/share/fonts/truetype/nanum/${fontFamily}.ttf:` +
+      `fontfile=${fontPath}:` +
       `fontsize=${fontSize}:` +
       `fontcolor=${fontColor}:` +
-      `x=(w-text_w)/2:` +  // 중앙 정렬
+      `x=(w-text_w)/2:` +
       `y=h-${yOffset}:` +
-      `line_spacing=10:` +  // 줄 간격 10px
-      `text_align=C:` +  // 중앙 정렬
+      `line_spacing=10:` +
+      `text_align=C:` +
       `borderw=${borderWidth}:` +
       `bordercolor=${borderColor}:` +
       `shadowx=${shadowX}:` +
       `shadowy=${shadowY}`;
+    
+    console.log(`   ✅ 최종 필터: ${filter.substring(0, 150)}...`);
+    return filter;
   }
 
   /**
@@ -155,36 +228,54 @@ class VideoRenderer {
    * 2줄 중앙 정렬
    */
   createTitleFilter(text, settings = {}) {
+    console.log(`\n🎬 [제목 필터 생성] 원본 텍스트: "${text}"`);
+    
     const {
       fontFamily = 'NanumGothicBold',
       fontSize = 72,
-      fontColor = 'yellow',  // 노란색으로 변경
-      yPosition = 280,  // 상단에서 280px로 변경
+      fontColor = 'yellow',
+      yPosition = 280,
       borderWidth = 5,
       borderColor = 'black',
       shadowX = 4,
       shadowY = 4
     } = settings;
 
-    const escapedText = text
+    console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yPosition=${yPosition}`);
+
+    // 텍스트를 2줄로 분리 (제목은 좀 더 길게 허용)
+    const multilineText = this.splitTextToTwoLines(text, 18);
+    console.log(`   분리 후: "${multilineText.replace(/\n/g, '\\\\n')}"`);
+
+    // 텍스트 이스케이프
+    const escapedText = multilineText
       .replace(/\\/g, '\\\\')
       .replace(/'/g, "\\'")
       .replace(/:/g, '\\:')
-      .replace(/\n/g, '\\n');
+      .replace(/\n/g, '\\n');  // \n을 FFmpeg가 인식하도록
 
-    return `drawtext=` +
+    console.log(`   이스케이프 후: "${escapedText}"`);
+
+    // 폰트 파일 경로 가져오기
+    const fontPath = this.getFontPath(fontFamily);
+    console.log(`   폰트 경로: ${fontPath}`);
+
+    const filter = `drawtext=` +
       `text='${escapedText}':` +
-      `fontfile=/usr/share/fonts/truetype/nanum/${fontFamily}.ttf:` +
+      `fontfile=${fontPath}:` +
       `fontsize=${fontSize}:` +
       `fontcolor=${fontColor}:` +
       `x=(w-text_w)/2:` +
-      `y=${yPosition}:` +  // 상단에서 280px
-      `line_spacing=10:` +  // 줄 간격 10px
-      `text_align=C:` +  // 중앙 정렬
+      `y=${yPosition}:` +
+      `line_spacing=10:` +
+      `text_align=C:` +
       `borderw=${borderWidth}:` +
       `bordercolor=${borderColor}:` +
       `shadowx=${shadowX}:` +
       `shadowy=${shadowY}`;
+    
+    console.log(`   ✅ 최종 필터: ${filter.substring(0, 150)}...`);
+    return filter;
   }
 
   /**
