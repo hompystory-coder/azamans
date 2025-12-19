@@ -213,8 +213,8 @@ class VideoRenderer {
       yOffset = 250,
       borderWidth = 4,
       borderColor = 'black',
-      shadowX = 3,
-      shadowY = 3
+      shadowX = 0,  // 그림자 제거
+      shadowY = 0   // 그림자 제거
     } = settings;
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yOffset=${yOffset}`);
@@ -264,8 +264,8 @@ class VideoRenderer {
       yPosition = 280,
       borderWidth = 5,
       borderColor = 'black',
-      shadowX = 4,
-      shadowY = 4
+      shadowX = 0,  // 그림자 제거
+      shadowY = 0   // 그림자 제거
     } = settings;
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yPosition=${yPosition}`);
