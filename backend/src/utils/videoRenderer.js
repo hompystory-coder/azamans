@@ -219,16 +219,11 @@ class VideoRenderer {
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yOffset=${yOffset}`);
 
-    // 텍스트를 2줄로 분리
-    const multilineText = this.splitTextToTwoLines(text, 20);
-    console.log(`   분리 후: "${multilineText.replace(/\n/g, '\\\\n')}"`);
-
-    // 텍스트 이스케이프
-    const escapedText = multilineText
+    // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
+    const escapedText = text
       .replace(/\\/g, '\\\\')
       .replace(/'/g, "\\'")
-      .replace(/:/g, '\\:')
-      .replace(/\n/g, '\\n');  // \n을 FFmpeg가 인식하도록
+      .replace(/:/g, '\\:');
 
     console.log(`   이스케이프 후: "${escapedText}"`);
 
@@ -275,16 +270,11 @@ class VideoRenderer {
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yPosition=${yPosition}`);
 
-    // 텍스트를 2줄로 분리 (제목은 좀 더 길게 허용)
-    const multilineText = this.splitTextToTwoLines(text, 18);
-    console.log(`   분리 후: "${multilineText.replace(/\n/g, '\\\\n')}"`);
-
-    // 텍스트 이스케이프
-    const escapedText = multilineText
+    // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
+    const escapedText = text
       .replace(/\\/g, '\\\\')
       .replace(/'/g, "\\'")
-      .replace(/:/g, '\\:')
-      .replace(/\n/g, '\\n');  // \n을 FFmpeg가 인식하도록
+      .replace(/:/g, '\\:');
 
     console.log(`   이스케이프 후: "${escapedText}"`);
 
