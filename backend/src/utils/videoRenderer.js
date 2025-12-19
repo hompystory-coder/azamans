@@ -514,6 +514,22 @@ class VideoRenderer {
     console.log(`🎬 장면 ${sceneIndex + 1} 생성 중...`);
 
     try {
+      // AI 이미지투비디오 모드 확인
+      const useAiVideo = settings.useAiVideo || false;
+      const aiVideoModel = settings.aiVideoModel || 'kling/v2.6/pro';
+      
+      if (useAiVideo && scene.imageUrl) {
+        // ========== AI 이미지투비디오 모드 ==========
+        console.log(`   🤖 AI 이미지투비디오 생성 (모델: ${aiVideoModel})`);
+        
+        // AI 비디오 생성을 위한 video_generation 도구 호출
+        // 이 부분은 별도 함수로 분리하여 처리
+        return await this.createAiVideoScene(scene, sceneIndex, settings, sceneId, outputPath);
+      }
+      
+      // ========== 기존 FFmpeg 모드 ==========
+      console.log(`   🎨 FFmpeg 비디오 생성 (효과: ${settings.imageEffect || 'none'})`);
+      
       // 1. 원본 이미지 다운로드
       const imagePath = path.join(TEMP_DIR, `${sceneId}_image.jpg`);
       if (scene.imageUrl) {
@@ -819,6 +835,65 @@ class VideoRenderer {
       } catch (error) {
         // 파일이 없으면 무시
       }
+    }
+  }
+
+  /**
+   * AI 이미지투비디오로 장면 생성
+   * video_generation 도구를 사용하여 자연스러운 움직임 생성
+   */
+  async createAiVideoScene(scene, sceneIndex, settings, sceneId, outputPath) {
+    console.log(`   🤖 AI 비디오 생성 시작...`);
+    
+    try {
+      // 1. AI 비디오 생성 설정
+      const aiVideoModel = settings.aiVideoModel || 'kling/v2.6/pro';
+      const sceneDuration = scene.duration || 5;
+      const aspectRatio = '9:16'; // 세로 쇼츠 형식
+      
+      // 2. AI 프롬프트 생성 (자막 기반)
+      let prompt = scene.subtitle || scene.title || 'Natural subtle movement, cinematic';
+      
+      // 자연스러운 움직임 키워드 추가
+      const movementKeywords = [
+        'subtle movement',
+        'natural motion',
+        'cinematic camera movement',
+        'smooth transition',
+        'gentle animation'
+      ];
+      
+      // 기존 프롬프트에 움직임 키워드 추가
+      prompt = `${prompt}. ${movementKeywords.join(', ')}`;
+      
+      console.log(`   📝 AI 프롬프트: "${prompt}"`);
+      console.log(`   ⏱️  지속시간: ${sceneDuration}초`);
+      console.log(`   📐 비율: ${aspectRatio}`);
+      console.log(`   🎨 모델: ${aiVideoModel}`);
+      
+      // 3. video_generation 도구 호출
+      // 주의: 이 함수는 실제로는 외부 API를 호출해야 합니다
+      // 여기서는 구조만 만들고, 실제 구현은 routes에서 처리
+      
+      // AI 비디오 생성 요청 정보 반환 (실제 생성은 별도 처리 필요)
+      return {
+        needsAiGeneration: true,
+        sceneId,
+        outputPath,
+        imageUrl: scene.imageUrl,
+        audioUrl: scene.audioUrl,
+        subtitle: scene.subtitle,
+        title: scene.title,
+        prompt,
+        duration: sceneDuration,
+        aspectRatio,
+        model: aiVideoModel,
+        settings
+      };
+      
+    } catch (error) {
+      console.error(`❌ AI 비디오 생성 실패:`, error);
+      throw error;
     }
   }
 
