@@ -330,6 +330,7 @@ class VideoRenderer {
 
   /**
    * 이미지 효과 필터 생성 (Ken Burns, Pan, Zoom 등)
+   * hasBackground=true: 오버레이용 (비율 유지), false: 전체 화면용 (1080x1920 crop)
    */
   createImageEffectFilter(effect = 'none', intensity = 'medium', duration = 3.5, hasBackground = false) {
     console.log(`🎬 이미지 효과: ${effect} (강도: ${intensity}, 배경: ${hasBackground ? '있음' : '없음'})`);
@@ -345,64 +346,93 @@ class VideoRenderer {
     const fps = 30; // 프레임레이트
     const frames = Math.floor(duration * fps);
     
-    // 배경 이미지가 있으면 decrease (배경 보이도록), 없으면 increase (화면 채움)
-    const aspectRatio = hasBackground ? 'decrease' : 'increase';
-    
-    switch(effect) {
-      case 'zoom-in':
-        // 줌인 효과: 점점 확대
-        return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
-        
-      case 'zoom-out':
-        // 줌아웃 효과: 확대된 상태에서 축소
-        return `scale=w=iw*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}):h=ih*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
-        
-      case 'pan-left':
-        // 좌측으로 패닝
-        return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance}*n/${frames}):0`;
-        
-      case 'pan-right':
-        // 우측으로 패닝
-        return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance}*n/${frames}):0`;
-        
-      case 'pan-up':
-        // 위로 패닝
-        return `scale=1080:2200,crop=1080:1920:0:max(0\\,ih-1920-${params.panDistance}*n/${frames})`;
-        
-      case 'pan-down':
-        // 아래로 패닝
-        return `scale=1080:2200,crop=1080:1920:0:min(ih-1920\\,${params.panDistance}*n/${frames})`;
-        
-      case 'pan-lr':
-        // 좌우 패닝 (좌 -> 우)
-        return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance*2}*n/${frames}):0`;
-        
-      case 'pan-rl':
-        // 우좌 패닝 (우 -> 좌)
-        return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance*2}*n/${frames}):0`;
-        
-      case 'ken-burns':
-        // Ken Burns 효과: 줌인 + 패닝
-        return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:min((iw-1080)/2+(${params.panDistance}*n/${frames})\\,iw-1080):(ih-1920)/2`;
-        
-      case 'ken-burns-center':
-        // Ken Burns 중앙 줌인
-        return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
-        
-      case 'rotate-slow':
-        // 느린 회전 (시계방향)
-        return `rotate=a='PI*2*n/${frames}/4':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
-        
-      case 'none':
-      default:
-        // 효과 없음: 기본 스케일 (배경 유무에 따라 다름)
-        if (hasBackground) {
-          // 배경 있으면: decrease만 사용 (crop 없음, 비율 유지)
+    // 배경이 있으면 오버레이용으로 비율 유지하며 효과 적용
+    if (hasBackground) {
+      // 오버레이 모드: 비율 유지하며 효과 적용 (최대 1080x1920 이내)
+      switch(effect) {
+        case 'zoom-in':
+          // 줌인: 비율 유지하며 확대 (1080 이내)
+          return `scale=w='if(gt(iw,ih),min(1080,iw*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)':h='if(gt(ih,iw),min(1920,ih*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)'`;
+          
+        case 'zoom-out':
+          // 줌아웃: 비율 유지하며 축소
+          return `scale=w='if(gt(iw,ih),min(1080,iw*max(1,${params.zoomFactor}-(${params.zoomFactor}-1)*t/${duration})),-1)':h='if(gt(ih,iw),min(1920,ih*max(1,${params.zoomFactor}-(${params.zoomFactor}-1)*t/${duration})),-1)'`;
+          
+        case 'pan-left':
+        case 'pan-right':
+        case 'pan-up':
+        case 'pan-down':
+        case 'pan-lr':
+        case 'pan-rl':
+          // 패닝 효과: 배경 있을 때는 간단히 스케일만 적용 (패닝은 전체 화면용)
           return `scale=1080:1920:force_original_aspect_ratio=decrease`;
-        } else {
-          // 배경 없으면: increase + crop (화면 채움)
+          
+        case 'ken-burns':
+        case 'ken-burns-center':
+          // Ken Burns: 비율 유지하며 중앙 줌인
+          return `scale=w='if(gt(iw,ih),min(1080,iw*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)':h='if(gt(ih,iw),min(1920,ih*min(1+((${params.zoomFactor}-1)*t/${duration}),${params.zoomFactor})),-1)'`;
+          
+        case 'rotate-slow':
+          // 회전: 비율 유지하며 회전
+          return `rotate=a='PI*2*t/${duration}/4':fillcolor=none,scale=1080:1920:force_original_aspect_ratio=decrease`;
+          
+        case 'none':
+        default:
+          // 효과 없음: 비율 유지
+          return `scale=1080:1920:force_original_aspect_ratio=decrease`;
+      }
+    } else {
+      // 전체 화면 모드: 화면 채우며 효과 적용 (1080x1920 crop)
+      switch(effect) {
+        case 'zoom-in':
+          // 줌인 효과: 점점 확대
+          return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+          
+        case 'zoom-out':
+          // 줌아웃 효과: 확대된 상태에서 축소
+          return `scale=w=iw*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}):h=ih*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+          
+        case 'pan-left':
+          // 좌측으로 패닝
+          return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance}*n/${frames}):0`;
+          
+        case 'pan-right':
+          // 우측으로 패닝
+          return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance}*n/${frames}):0`;
+          
+        case 'pan-up':
+          // 위로 패닝
+          return `scale=1080:2200,crop=1080:1920:0:max(0\\,ih-1920-${params.panDistance}*n/${frames})`;
+          
+        case 'pan-down':
+          // 아래로 패닝
+          return `scale=1080:2200,crop=1080:1920:0:min(ih-1920\\,${params.panDistance}*n/${frames})`;
+          
+        case 'pan-lr':
+          // 좌우 패닝 (좌 -> 우)
+          return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance*2}*n/${frames}):0`;
+          
+        case 'pan-rl':
+          // 우좌 패닝 (우 -> 좌)
+          return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance*2}*n/${frames}):0`;
+          
+        case 'ken-burns':
+          // Ken Burns 효과: 줌인 + 패닝
+          return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:min((iw-1080)/2+(${params.panDistance}*n/${frames})\\,iw-1080):(ih-1920)/2`;
+          
+        case 'ken-burns-center':
+          // Ken Burns 중앙 줌인
+          return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+          
+        case 'rotate-slow':
+          // 느린 회전 (시계방향)
+          return `rotate=a='PI*2*n/${frames}/4':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+          
+        case 'none':
+        default:
+          // 효과 없음: 화면 채움
           return `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
-        }
+      }
     }
   }
 
@@ -449,9 +479,10 @@ class VideoRenderer {
         // 배경 이미지: 화면 전체를 채움 (효과 없음)
         filters.push(`[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg]`);
         
-        // 원본 이미지: 배경이 있으면 효과 없이 decrease만 (비율 유지)
-        // 배경 이미지와 함께 사용할 때는 효과를 적용하지 않음
-        filters.push(`[1:v]scale=1080:1920:force_original_aspect_ratio=decrease[overlay]`);
+        // 원본 이미지: 배경이 있어도 이미지 효과 적용 (장면 이미지에만 효과)
+        console.log(`   🎨 장면 이미지 효과 적용: ${imageEffect} (배경 있음)`);
+        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration, true);
+        filters.push(`[1:v]${imageEffectFilter}[overlay]`);
         
         // 오버레이: 원본 이미지를 배경 위에 중앙 배치
         const opacity = settings.bgImage.opacity || 1.0;
