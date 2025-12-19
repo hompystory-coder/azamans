@@ -321,6 +321,75 @@ class VideoRenderer {
   }
 
   /**
+   * 이미지 효과 필터 생성 (Ken Burns, Pan, Zoom 등)
+   */
+  createImageEffectFilter(effect = 'none', intensity = 'medium', duration = 3.5) {
+    console.log(`🎬 이미지 효과: ${effect} (강도: ${intensity})`);
+    
+    // 강도별 파라미터
+    const intensityParams = {
+      'low': { zoomFactor: 1.1, panDistance: 50 },
+      'medium': { zoomFactor: 1.2, panDistance: 100 },
+      'high': { zoomFactor: 1.3, panDistance: 150 }
+    };
+    
+    const params = intensityParams[intensity] || intensityParams['medium'];
+    const fps = 30; // 프레임레이트
+    const frames = Math.floor(duration * fps);
+    
+    switch(effect) {
+      case 'zoom-in':
+        // 줌인 효과: 점점 확대
+        return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+        
+      case 'zoom-out':
+        // 줌아웃 효과: 확대된 상태에서 축소
+        return `scale=w=iw*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}):h=ih*min(${params.zoomFactor}-(${params.zoomFactor}-1)*n/${frames}\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+        
+      case 'pan-left':
+        // 좌측으로 패닝
+        return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance}*n/${frames}):0`;
+        
+      case 'pan-right':
+        // 우측으로 패닝
+        return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance}*n/${frames}):0`;
+        
+      case 'pan-up':
+        // 위로 패닝
+        return `scale=1080:2200,crop=1080:1920:0:max(0\\,ih-1920-${params.panDistance}*n/${frames})`;
+        
+      case 'pan-down':
+        // 아래로 패닝
+        return `scale=1080:2200,crop=1080:1920:0:min(ih-1920\\,${params.panDistance}*n/${frames})`;
+        
+      case 'pan-lr':
+        // 좌우 패닝 (좌 -> 우)
+        return `scale=1280:1920,crop=1080:1920:min(iw-1080\\,${params.panDistance*2}*n/${frames}):0`;
+        
+      case 'pan-rl':
+        // 우좌 패닝 (우 -> 좌)
+        return `scale=1280:1920,crop=1080:1920:max(0\\,iw-1080-${params.panDistance*2}*n/${frames}):0`;
+        
+      case 'ken-burns':
+        // Ken Burns 효과: 줌인 + 패닝
+        return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:min((iw-1080)/2+(${params.panDistance}*n/${frames})\\,iw-1080):(ih-1920)/2`;
+        
+      case 'ken-burns-center':
+        // Ken Burns 중앙 줌인
+        return `scale=w=iw*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}):h=ih*min(1+((${params.zoomFactor}-1)*n/${frames})\\,${params.zoomFactor}),crop=1080:1920:(iw-1080)/2:(ih-1920)/2`;
+        
+      case 'rotate-slow':
+        // 느린 회전 (시계방향)
+        return `rotate=a='PI*2*n/${frames}/4':fillcolor=black,scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+        
+      case 'none':
+      default:
+        // 효과 없음: 기본 스케일/크롭
+        return `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`;
+    }
+  }
+
+  /**
    * 단일 장면 비디오 생성
    * 이미지 + 음성 + 자막 + 제목 결합
    */
@@ -353,17 +422,28 @@ class VideoRenderer {
       // 4. FFmpeg 필터 생성
       const filters = [];
 
+      // 이미지 효과 설정 가져오기
+      const imageEffect = settings.imageEffect || 'none';
+      const effectIntensity = settings.effectIntensity || 'medium';
+      const sceneDuration = scene.duration || 3.5;
+      
       // 배경 이미지 처리 (맨 앞 레이어)
       if (bgImagePath) {
-        // 배경 이미지를 1080x1920으로 스케일
-        filters.push(`[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg]`);
-        // 원본 이미지를 배경 이미지 위에 오버레이
+        // 배경 이미지에 효과 적용
+        const bgEffectFilter = this.createImageEffectFilter('none', effectIntensity, sceneDuration);
+        filters.push(`[0:v]${bgEffectFilter}[bg]`);
+        
+        // 원본 이미지에 효과 적용
+        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration);
+        filters.push(`[1:v]${imageEffectFilter}[overlay]`);
+        
+        // 오버레이
         const opacity = settings.bgImage.opacity || 1.0;
-        filters.push(`[1:v]scale=1080:1920:force_original_aspect_ratio=decrease[overlay]`);
         filters.push(`[bg][overlay]overlay=(W-w)/2:(H-h)/2:format=auto,format=yuv420p[main]`);
       } else {
-        // 배경 이미지 없으면 원본 이미지를 전체 화면으로
-        filters.push(`[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[main]`);
+        // 배경 이미지 없으면 원본 이미지에 효과 적용
+        const imageEffectFilter = this.createImageEffectFilter(imageEffect, effectIntensity, sceneDuration);
+        filters.push(`[0:v]${imageEffectFilter}[main]`);
       }
 
       // 자막 추가
