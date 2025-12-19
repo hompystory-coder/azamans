@@ -115,24 +115,56 @@ class VideoRenderer {
    * 폰트 파일 경로 가져오기 (폴백 지원)
    */
   getFontPath(fontFamily) {
-    // 폰트 매핑: 요청된 폰트 -> 실제 파일명
+    console.log(`🔍 폰트 검색: "${fontFamily}"`);
+    
+    // 폰트 매핑: 요청된 폰트 -> { path, file }
     const fontMap = {
-      'NanumGothicBold': 'NanumGothicBold.ttf',
-      'NanumGothic': 'NanumGothic.ttf',
-      'NanumBarunGothicBold': 'NanumBarunGothicBold.ttf',
-      'NanumBarunGothic': 'NanumBarunGothic.ttf',
-      'NanumMyeongjoBold': 'NanumMyeongjoBold.ttf',
-      'NanumMyeongjo': 'NanumMyeongjo.ttf',
-      // 다른 폰트들은 NanumGothicBold로 폴백
-      'BlackHanSans': 'NanumGothicBold.ttf',
-      'DoHyeon': 'NanumGothicBold.ttf',
-      'Jua': 'NanumGothicBold.ttf',
-      'Noto Sans KR': 'NanumGothicBold.ttf',
-      'CuteFont': 'NanumGothicBold.ttf'
+      // === Nanum 계열 (실제 설치됨) ===
+      'NanumGothicBold': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumGothicBold.ttf' },
+      'NanumGothic': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumGothic.ttf' },
+      'NanumBarunGothicBold': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumBarunGothicBold.ttf' },
+      'NanumBarunGothic': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumBarunGothic.ttf' },
+      'NanumMyeongjoBold': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumMyeongjoBold.ttf' },
+      'NanumMyeongjo': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumMyeongjo.ttf' },
+      'NanumSquare': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumSquareR.ttf' },
+      'NanumSquareB': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumSquareB.ttf' },
+      'NanumSquareRound': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumSquareRoundR.ttf' },
+      
+      // === Noto Sans CJK KR (실제 설치됨) ===
+      'Noto Sans KR': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
+      'Noto Sans KR Bold': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
+      'Noto Sans KR Medium': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Medium.ttc' },
+      'Noto Sans KR Black': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Black.ttc' },
+      'Noto Serif KR': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSerifCJK-Regular.ttc' },
+      
+      // === 미설치 폰트 -> Noto Sans로 매핑 (더 선명함) ===
+      'BlackHanSans': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Black.ttc' },
+      'DoHyeon': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
+      'Jua': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Medium.ttc' },
+      'GaeguBold': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
+      'Gaegu': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
+      'CuteFont': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Medium.ttc' },
+      'KirangHaerang': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
+      'GamjaFlower': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumGothic.ttf' },
+      'YeonSung': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumMyeongjo.ttf' },
+      'Stylish': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
+      'Sunflower': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
+      'SunflowerBold': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
     };
 
-    const filename = fontMap[fontFamily] || 'NanumGothicBold.ttf';
-    return `/usr/share/fonts/truetype/nanum/${filename}`;
+    // 폰트 찾기
+    const fontInfo = fontMap[fontFamily];
+    
+    if (fontInfo) {
+      const fullPath = `${fontInfo.path}/${fontInfo.file}`;
+      console.log(`   ✅ 매핑됨: ${fullPath}`);
+      return fullPath;
+    }
+    
+    // 기본 폴백: Noto Sans CJK KR Bold (선명하고 깔끔함)
+    const fallbackPath = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc';
+    console.log(`   ⚠️ 폰트 없음, 폴백 사용: ${fallbackPath}`);
+    return fallbackPath;
   }
 
   /**
