@@ -117,7 +117,7 @@ class VideoRenderer {
   getFontPath(fontFamily) {
     console.log(`🔍 폰트 검색: "${fontFamily}"`);
     
-    const path = require('path');
+    // path는 이미 상단에 import됨
     const customFontsPath = path.join(__dirname, '../..', 'fonts');
     
     // 폰트 매핑: 요청된 폰트 -> { path, file }
