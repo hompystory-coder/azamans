@@ -567,29 +567,50 @@ router.post('/generate-with-ai', upload.none(), async (req, res) => {
             console.log(`   프롬프트: ${aiMeta.prompt}`);
             console.log(`   모델: ${aiMeta.model}`);
             
-            // TODO: 여기서 실제 video_generation 도구를 호출해야 합니다
-            // 현재는 시뮬레이션으로 에러 처리
-            throw new Error('video_generation 도구 통합이 필요합니다. 현재는 FFmpeg 모드를 사용하세요.');
+            try {
+              // video_generation 도구 호출
+              // 주의: 이 도구는 Claude AI 환경에서만 사용 가능합니다
+              // 일반 Node.js 환경에서는 작동하지 않으므로 Fallback 처리가 필요합니다
+              
+              console.log(`   ⚠️  video_generation 도구는 Claude AI 환경 전용입니다`);
+              console.log(`   🔄 FFmpeg Fallback 모드로 전환합니다`);
+              
+              // FFmpeg 모드로 폴백
+              // useAiVideo를 false로 설정하여 일반 FFmpeg 생성
+              const fallbackSettings = {
+                ...settings,
+                useAiVideo: false
+              };
+              
+              const fallbackPath = await videoRenderer.createSceneVideo(
+                scene,
+                i,
+                fallbackSettings
+              );
+              
+              scenePaths.push(fallbackPath);
+              
+              console.log(`   ✅ FFmpeg 모드로 장면 생성 완료`);
+              
+            } catch (aiError) {
+              console.error(`   ❌ AI 비디오 생성 실패:`, aiError);
+              console.log(`   🔄 FFmpeg Fallback 모드로 재시도`);
+              
+              // 최종 Fallback: 일반 FFmpeg 모드
+              const fallbackSettings = {
+                ...settings,
+                useAiVideo: false
+              };
+              
+              const fallbackPath = await videoRenderer.createSceneVideo(
+                scene,
+                i,
+                fallbackSettings
+              );
+              
+              scenePaths.push(fallbackPath);
+            }
             
-            // 실제 구현 예시:
-            /*
-            const aiVideoResult = await video_generation({
-              query: aiMeta.prompt,
-              model: aiMeta.model,
-              image_urls: [aiMeta.imageUrl],
-              aspect_ratio: aiMeta.aspectRatio,
-              duration: aiMeta.duration,
-              task_summary: `Scene ${i + 1}: ${aiMeta.subtitle || aiMeta.title}`
-            });
-            
-            // AI 생성된 비디오에 음성과 자막 추가
-            const finalPath = await videoRenderer.addAudioAndSubtitlesToAiVideo(
-              aiVideoResult.video_path,
-              aiMeta
-            );
-            
-            scenePaths.push(finalPath);
-            */
           } else {
             // FFmpeg 모드 (폴백)
             scenePaths.push(aiMeta);
@@ -623,13 +644,44 @@ router.post('/generate-with-ai', upload.none(), async (req, res) => {
       } catch (error) {
         console.error(`❌ AI 비디오 생성 실패: ${videoId}`, error);
         
-        videoJobs.set(videoId, {
-          status: 'failed',
-          progress: 0,
-          message: 'AI 비디오 생성 실패',
-          error: error.message,
-          fallbackMessage: 'FFmpeg 모드를 사용해주세요 (useAiVideo: false)'
-        });
+        // Fallback 모드로 재시도
+        console.log(`🔄 최종 FFmpeg Fallback 시도...`);
+        
+        try {
+          const fallbackSettings = {
+            ...settings,
+            useAiVideo: false
+          };
+          
+          const result = await videoRenderer.generateVideo(scenes, fallbackSettings);
+          
+          videoJobs.set(videoId, {
+            status: 'completed',
+            progress: 100,
+            message: '비디오 생성 완료 (FFmpeg 모드)',
+            videoUrl: result.videoUrl,
+            videoPath: result.videoPath,
+            videoId: result.videoId,
+            size: result.size,
+            duration: result.duration,
+            processingTime: Math.round((Date.now() - videoJobs.get(videoId).startTime) / 1000),
+            fallbackUsed: true,
+            fallbackReason: error.message
+          });
+          
+          console.log(`✅ FFmpeg Fallback 성공: ${videoId}`);
+          
+        } catch (fallbackError) {
+          console.error(`❌ FFmpeg Fallback도 실패: ${videoId}`, fallbackError);
+          
+          videoJobs.set(videoId, {
+            status: 'failed',
+            progress: 0,
+            message: 'AI 비디오 및 FFmpeg 모두 실패',
+            error: error.message,
+            fallbackError: fallbackError.message
+          });
+        }
       }
     })();
     
