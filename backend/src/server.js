@@ -15,6 +15,7 @@ import voiceRouter from './routes/voice.js';
 import videoRouter from './routes/video.js';
 import renderRouter from './routes/render.js';
 import imageProxyRouter from './routes/imageProxy.js';
+import advancedRouter from './routes/advanced.js';
 
 // Utils
 import { ensureDirectories } from './utils/storage.js';
@@ -62,6 +63,7 @@ app.use('/api/voice', voiceRouter);
 app.use('/api/video', videoRouter);
 app.use('/api/render', renderRouter);
 app.use('/api/image-proxy', imageProxyRouter);
+app.use('/api/advanced', advancedRouter);
 
 // 404 Handler
 app.use((req, res) => {

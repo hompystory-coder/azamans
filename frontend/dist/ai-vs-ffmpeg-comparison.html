@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 자연스러운 움직임 vs FFmpeg 정적 효과 비교</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 36px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .video-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .badge-ffmpeg {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        video {
+            width: 100%;
+            display: block;
+        }
+        
+        .video-info {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .features-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features-list li {
+            padding: 12px 0;
+            color: #4a5568;
+            font-size: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .features-list li::before {
+            content: "✓";
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #48bb78;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        .ai-features li::before {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .summary {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .summary h2 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .comparison-table th {
+            background: #f7fafc;
+            font-weight: 700;
+            color: #2d3748;
+            font-size: 15px;
+        }
+        
+        .comparison-table td {
+            color: #4a5568;
+            font-size: 14px;
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #f39c12;
+            margin-top: 30px;
+        }
+        
+        .highlight h3 {
+            color: #e67e22;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .highlight p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 AI 자연스러운 움직임 vs FFmpeg 정적 효과</h1>
+        <div class="subtitle">
+            동일한 이미지에서 생성된 두 가지 방식의 비교
+        </div>
+        
+        <div class="comparison-grid">
+            <!-- AI Video -->
+            <div class="video-card">
+                <div class="card-header">
+                    <h2 class="card-title">AI 자연스러운 움직임</h2>
+                    <span class="badge badge-ai">Runway Gen4 Turbo</span>
+                </div>
+                
+                <div class="video-container">
+                    <video controls autoplay loop muted>
+                        <source src="ai_natural_movement.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                
+                <div class="video-info">
+                    <div class="info-row">
+                        <span class="info-label">생성 방식</span>
+                        <span class="info-value">AI Image-to-Video</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">모델</span>
+                        <span class="info-value">Runway Gen4 Turbo</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">길이</span>
+                        <span class="info-value">5초</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">파일 크기</span>
+                        <span class="info-value">1.2MB</span>
+                    </div>
+                </div>
+                
+                <ul class="features-list ai-features">
+                    <li><strong>자연스러운 카메라 움직임</strong><br>
+                        부드러운 회전 및 줌 효과</li>
+                    <li><strong>물리 기반 애니메이션</strong><br>
+                        제품의 질감과 빛 반사 표현</li>
+                    <li><strong>영화 같은 느낌</strong><br>
+                        전문가 수준의 제품 홍보 영상</li>
+                    <li><strong>유기적인 움직임</strong><br>
+                        AI가 생성한 자연스러운 동작</li>
+                </ul>
+            </div>
+            
+            <!-- FFmpeg Video -->
+            <div class="video-card">
+                <div class="card-header">
+                    <h2 class="card-title">FFmpeg 정적 효과</h2>
+                    <span class="badge badge-ffmpeg">Ken Burns</span>
+                </div>
+                
+                <div class="video-container">
+                    <video controls loop muted>
+                        <source src="test_video.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                
+                <div class="video-info">
+                    <div class="info-row">
+                        <span class="info-label">생성 방식</span>
+                        <span class="info-value">FFmpeg Filter</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">효과</span>
+                        <span class="info-value">Ken Burns (Scale + Crop)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">길이</span>
+                        <span class="info-value">3.5초</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">파일 크기</span>
+                        <span class="info-value">361KB</span>
+                    </div>
+                </div>
+                
+                <ul class="features-list">
+                    <li><strong>빠른 생성 속도</strong><br>
+                        3초 이내 렌더링 완료</li>
+                    <li><strong>비용 효율적</strong><br>
+                        로컬 FFmpeg 무료 사용</li>
+                    <li><strong>작은 파일 크기</strong><br>
+                        웹 배포에 최적화</li>
+                    <li><strong>안정적인 처리</strong><br>
+                        100% 성공률 보장</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Summary Section -->
+        <div class="summary">
+            <h2>📊 상세 비교 분석</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>AI 자연스러운 움직임</th>
+                        <th>FFmpeg 정적 효과</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>움직임 품질</strong></td>
+                        <td>⭐⭐⭐⭐⭐ 영화 같은 자연스러움</td>
+                        <td>⭐⭐⭐ 단순한 줌/패닝</td>
+                    </tr>
+                    <tr>
+                        <td><strong>생성 속도</strong></td>
+                        <td>⏱️ 약 30~60초</td>
+                        <td>⚡ 약 3초</td>
+                    </tr>
+                    <tr>
+                        <td><strong>비용</strong></td>
+                        <td>💰 장면당 약 $0.10~0.30</td>
+                        <td>🆓 무료 (로컬 FFmpeg)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>파일 크기</strong></td>
+                        <td>📦 1.2MB (고품질)</td>
+                        <td>📦 361KB (최적화)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>사용 사례</strong></td>
+                        <td>고급 제품 홍보, 브랜드 영상</td>
+                        <td>빠른 SNS 콘텐츠, 대량 생성</td>
+                    </tr>
+                    <tr>
+                        <td><strong>안정성</strong></td>
+                        <td>⚠️ API 의존성 (외부 서비스)</td>
+                        <td>✅ 100% 로컬 처리</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight">
+                <h3>💡 언제 어떤 방식을 사용해야 할까요?</h3>
+                <p>
+                    <strong>AI 자연스러운 움직임</strong>은 고급 제품 홍보 영상, 브랜드 마케팅, 프리미엄 콘텐츠 제작에 적합합니다. 
+                    시간과 예산이 있다면 AI 방식이 훨씬 더 전문적이고 매력적인 결과물을 만들어냅니다.
+                    <br><br>
+                    <strong>FFmpeg 정적 효과</strong>는 빠른 SNS 콘텐츠 생성, 대량의 비디오 자동화, 비용 절감이 필요한 경우에 완벽합니다. 
+                    3초 만에 무료로 생성할 수 있어 실용적입니다.
+                </p>
+            </div>
+            
+            <div class="highlight" style="border-left-color: #3498db; background: #ebf5fb; margin-top: 20px;">
+                <h3>🚀 Shorts Creator Pro의 자동 선택 기능</h3>
+                <p>
+                    우리 시스템은 <strong>두 가지 방식을 모두 지원</strong>합니다!
+                    <br><br>
+                    • <code>/api/video/generate</code> → FFmpeg 빠른 생성 (무료)<br>
+                    • <code>/api/video/generate-with-ai</code> → AI 자연스러운 움직임 (유료)<br>
+                    <br>
+                    AI 모드에서도 문제 발생 시 <strong>자동으로 FFmpeg 폴백</strong>이 작동하여 100% 성공률을 보장합니다!
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

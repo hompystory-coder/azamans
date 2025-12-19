@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 쇼츠 비디오 - 간단 재생</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', Arial, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+        
+        .video-wrapper {
+            max-width: 500px;
+            width: 100%;
+            background: #111;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.1);
+        }
+        
+        video {
+            width: 100%;
+            border-radius: 12px;
+            display: block;
+        }
+        
+        .info {
+            color: #aaa;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .links a {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin: 5px;
+            font-weight: 600;
+        }
+        
+        .links a:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎬 AI 자연스러운 움직임 쇼츠</h1>
+    
+    <div class="video-wrapper">
+        <video controls autoplay loop muted playsinline>
+            <source src="naver_blog_ai_shorts.mp4" type="video/mp4">
+            비디오를 재생할 수 없습니다.
+        </video>
+        
+        <div class="info">
+            <p><strong>신일 휴대용 분유포트</strong></p>
+            <p>15초 | 720x1280 | 2.0MB</p>
+            <p>Runway Gen4 Turbo AI</p>
+        </div>
+    </div>
+    
+    <div class="links">
+        <a href="naver_blog_ai_shorts.mp4" download>⬇️ 다운로드</a>
+        <a href="naver-ai-shorts-final.html">📄 상세 페이지</a>
+    </div>
+    
+    <script>
+        // 비디오 로드 확인
+        const video = document.querySelector('video');
+        video.addEventListener('loadeddata', () => {
+            console.log('✅ 비디오 로드 성공!');
+        });
+        video.addEventListener('error', (e) => {
+            console.error('❌ 비디오 로드 실패:', e);
+            alert('비디오를 로드할 수 없습니다. 파일을 확인해주세요.');
+        });
+    </script>
+</body>
+</html>

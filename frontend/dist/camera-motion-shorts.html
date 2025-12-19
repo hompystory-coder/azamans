@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카메라 모션으로만 만든 자연스러운 쇼츠</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', Arial, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .video-wrapper {
+            max-width: 500px;
+            width: 100%;
+            background: #111;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.1);
+        }
+        
+        video {
+            width: 100%;
+            border-radius: 12px;
+            display: block;
+        }
+        
+        .info {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .info h3 {
+            color: #67e8f9;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .motion-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .motion-list li {
+            color: #ccc;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+        }
+        
+        .motion-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .motion-list li::before {
+            content: "🎥";
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .motion-list strong {
+            color: white;
+            margin-right: 8px;
+        }
+        
+        .features {
+            background: #1a2332;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #67e8f9;
+        }
+        
+        .features h3 {
+            color: #67e8f9;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            color: #ccc;
+            padding: 8px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .features li::before {
+            content: "✓";
+            color: #67e8f9;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .links a {
+            display: inline-block;
+            background: #67e8f9;
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin: 5px;
+            font-weight: 600;
+        }
+        
+        .links a:hover {
+            background: #38bdf8;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            color: #67e8f9;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎥 카메라 모션으로만 만든 자연스러운 쇼츠</h1>
+    <div class="subtitle">제품은 정적, 카메라만 움직여서 시네마틱한 느낌 구현</div>
+    
+    <div class="video-wrapper">
+        <video controls autoplay loop muted playsinline>
+            <source src="camera_motion_shorts.mp4" type="video/mp4">
+            비디오를 재생할 수 없습니다.
+        </video>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value">15초</div>
+                <div class="stat-label">총 길이</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">1.8MB</div>
+                <div class="stat-label">파일 크기</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">3장면</div>
+                <div class="stat-label">카메라 모션</div>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>🎬 카메라 모션 구성</h3>
+            <ul class="motion-list">
+                <li>
+                    <strong>장면 1:</strong> Push-in (카메라가 제품으로 천천히 다가감)
+                </li>
+                <li>
+                    <strong>장면 2:</strong> Orbit (카메라가 제품 주위를 원형으로 회전)
+                </li>
+                <li>
+                    <strong>장면 3:</strong> Tilt-up (카메라가 아래에서 위로 패닝)
+                </li>
+            </ul>
+        </div>
+        
+        <div class="features">
+            <h3>✨ 카메라 모션 기법의 장점</h3>
+            <ul>
+                <li><strong>자연스러움:</strong> 제품은 고정, 카메라만 움직여 실제 촬영처럼 보임</li>
+                <li><strong>시네마틱:</strong> 영화 같은 전문적인 카메라 워크</li>
+                <li><strong>부드러운 움직임:</strong> Dolly, Orbit, Pan 등 전문 기법 사용</li>
+                <li><strong>안정적:</strong> AI가 제품을 왜곡하거나 변형하지 않음</li>
+                <li><strong>깔끔함:</strong> 불필요한 움직임 없이 깔끔한 느낌</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="links">
+        <a href="camera_motion_shorts.mp4" download>⬇️ 다운로드</a>
+        <a href="ai-vs-ffmpeg-comparison.html">📊 다른 버전 비교</a>
+    </div>
+    
+    <script>
+        const video = document.querySelector('video');
+        video.addEventListener('loadeddata', () => {
+            console.log('✅ 카메라 모션 비디오 로드 성공!');
+        });
+    </script>
+</body>
+</html>
