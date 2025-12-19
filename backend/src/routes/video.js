@@ -483,4 +483,163 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
+/**
+ * POST /api/video/generate-with-ai
+ * AI 이미지투비디오로 쇼츠 생성
+ * - image-to-video AI 사용
+ * - 자연스러운 움직임 생성
+ */
+router.post('/generate-with-ai', upload.none(), async (req, res) => {
+  console.log('🤖 AI 이미지투비디오 생성 요청 받음');
+  
+  try {
+    // 요청 파싱
+    let { scenes, settings } = req.body;
+    
+    if (typeof scenes === 'string') {
+      scenes = JSON.parse(scenes);
+    }
+    if (typeof settings === 'string') {
+      settings = JSON.parse(settings);
+    }
+    
+    if (!scenes || scenes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'scenes가 필요합니다'
+      });
+    }
+    
+    // AI 비디오 모드 활성화
+    settings.useAiVideo = true;
+    settings.aiVideoModel = settings.aiVideoModel || 'runway/gen4_turbo';
+    
+    // videoId 생성
+    const videoId = `ai_video_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    
+    // 초기 상태 저장
+    videoJobs.set(videoId, {
+      status: 'processing',
+      progress: 0,
+      message: 'AI 비디오 생성 준비 중...',
+      startTime: Date.now()
+    });
+    
+    // 즉시 응답
+    res.json({
+      success: true,
+      data: {
+        videoId,
+        message: 'AI 비디오 생성이 시작되었습니다',
+        status: 'processing',
+        estimatedTime: scenes.length * 60 // 장면당 약 60초 예상
+      }
+    });
+    
+    // 백그라운드에서 AI 비디오 생성
+    (async () => {
+      try {
+        console.log(`🚀 AI 비디오 생성 시작: ${videoId}`);
+        console.log(`   장면 수: ${scenes.length}`);
+        console.log(`   모델: ${settings.aiVideoModel}`);
+        
+        const scenePaths = [];
+        
+        // 각 장면별로 AI 비디오 생성
+        for (let i = 0; i < scenes.length; i++) {
+          const scene = scenes[i];
+          const progress = Math.round((i / scenes.length) * 90);
+          
+          videoJobs.set(videoId, {
+            ...videoJobs.get(videoId),
+            progress,
+            message: `장면 ${i + 1}/${scenes.length} AI 생성 중...`
+          });
+          
+          console.log(`\n📹 장면 ${i + 1}/${scenes.length} AI 생성 시작`);
+          
+          // AI 비디오 메타데이터 생성
+          const aiMeta = await videoRenderer.createSceneVideo(scene, i, settings);
+          
+          if (aiMeta.needsAiGeneration) {
+            console.log(`   🤖 video_generation 호출 준비`);
+            console.log(`   이미지: ${aiMeta.imageUrl}`);
+            console.log(`   프롬프트: ${aiMeta.prompt}`);
+            console.log(`   모델: ${aiMeta.model}`);
+            
+            // TODO: 여기서 실제 video_generation 도구를 호출해야 합니다
+            // 현재는 시뮬레이션으로 에러 처리
+            throw new Error('video_generation 도구 통합이 필요합니다. 현재는 FFmpeg 모드를 사용하세요.');
+            
+            // 실제 구현 예시:
+            /*
+            const aiVideoResult = await video_generation({
+              query: aiMeta.prompt,
+              model: aiMeta.model,
+              image_urls: [aiMeta.imageUrl],
+              aspect_ratio: aiMeta.aspectRatio,
+              duration: aiMeta.duration,
+              task_summary: `Scene ${i + 1}: ${aiMeta.subtitle || aiMeta.title}`
+            });
+            
+            // AI 생성된 비디오에 음성과 자막 추가
+            const finalPath = await videoRenderer.addAudioAndSubtitlesToAiVideo(
+              aiVideoResult.video_path,
+              aiMeta
+            );
+            
+            scenePaths.push(finalPath);
+            */
+          } else {
+            // FFmpeg 모드 (폴백)
+            scenePaths.push(aiMeta);
+          }
+        }
+        
+        // 모든 장면 결합
+        videoJobs.set(videoId, {
+          ...videoJobs.get(videoId),
+          progress: 95,
+          message: '장면 결합 중...'
+        });
+        
+        const finalVideo = await videoRenderer.concatenateScenes(scenePaths, settings);
+        
+        // 완료
+        videoJobs.set(videoId, {
+          status: 'completed',
+          progress: 100,
+          message: 'AI 비디오 생성 완료!',
+          videoUrl: finalVideo.videoUrl,
+          videoPath: finalVideo.videoPath,
+          videoId: finalVideo.videoId,
+          size: finalVideo.size,
+          duration: finalVideo.duration,
+          processingTime: Math.round((Date.now() - videoJobs.get(videoId).startTime) / 1000)
+        });
+        
+        console.log(`✅ AI 비디오 생성 완료: ${videoId}`);
+        
+      } catch (error) {
+        console.error(`❌ AI 비디오 생성 실패: ${videoId}`, error);
+        
+        videoJobs.set(videoId, {
+          status: 'failed',
+          progress: 0,
+          message: 'AI 비디오 생성 실패',
+          error: error.message,
+          fallbackMessage: 'FFmpeg 모드를 사용해주세요 (useAiVideo: false)'
+        });
+      }
+    })();
+    
+  } catch (error) {
+    console.error('❌ AI 비디오 생성 요청 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 export default router;
