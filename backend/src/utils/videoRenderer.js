@@ -841,44 +841,44 @@ class VideoRenderer {
   /**
    * AI 이미지투비디오로 장면 생성
    * video_generation 도구를 사용하여 자연스러운 움직임 생성
+   * 
+   * 참고: 실제 AI 비디오 생성은 routes에서 video_generation 도구를 호출해야 함
+   * 여기서는 AI 생성이 필요한 장면임을 표시하고 메타데이터 반환
    */
   async createAiVideoScene(scene, sceneIndex, settings, sceneId, outputPath) {
-    console.log(`   🤖 AI 비디오 생성 시작...`);
+    console.log(`   🤖 AI 비디오 생성 모드 (실제 생성은 routes에서 처리)`);
     
     try {
       // 1. AI 비디오 생성 설정
-      const aiVideoModel = settings.aiVideoModel || 'kling/v2.6/pro';
+      const aiVideoModel = settings.aiVideoModel || 'runway/gen4_turbo';
       const sceneDuration = scene.duration || 5;
       const aspectRatio = '9:16'; // 세로 쇼츠 형식
       
       // 2. AI 프롬프트 생성 (자막 기반)
-      let prompt = scene.subtitle || scene.title || 'Natural subtle movement, cinematic';
+      let prompt = scene.subtitle || scene.title || 'Product showcase with natural movement';
       
       // 자연스러운 움직임 키워드 추가
       const movementKeywords = [
-        'subtle movement',
+        'subtle camera movement',
         'natural motion',
-        'cinematic camera movement',
-        'smooth transition',
-        'gentle animation'
+        'smooth cinematic shot',
+        'professional video'
       ];
       
       // 기존 프롬프트에 움직임 키워드 추가
-      prompt = `${prompt}. ${movementKeywords.join(', ')}`;
+      prompt = `${prompt}, ${movementKeywords.join(', ')}`;
       
       console.log(`   📝 AI 프롬프트: "${prompt}"`);
       console.log(`   ⏱️  지속시간: ${sceneDuration}초`);
       console.log(`   📐 비율: ${aspectRatio}`);
       console.log(`   🎨 모델: ${aiVideoModel}`);
       
-      // 3. video_generation 도구 호출
-      // 주의: 이 함수는 실제로는 외부 API를 호출해야 합니다
-      // 여기서는 구조만 만들고, 실제 구현은 routes에서 처리
-      
-      // AI 비디오 생성 요청 정보 반환 (실제 생성은 별도 처리 필요)
+      // 3. AI 비디오 생성 요청 정보 반환
+      // routes에서 video_generation 도구를 호출하여 실제 생성
       return {
         needsAiGeneration: true,
         sceneId,
+        sceneIndex,
         outputPath,
         imageUrl: scene.imageUrl,
         audioUrl: scene.audioUrl,
@@ -888,13 +888,133 @@ class VideoRenderer {
         duration: sceneDuration,
         aspectRatio,
         model: aiVideoModel,
-        settings
+        subtitleSettings: settings.subtitleSettings,
+        titleSettings: settings.titleSettings
       };
       
     } catch (error) {
-      console.error(`❌ AI 비디오 생성 실패:`, error);
+      console.error(`❌ AI 비디오 메타데이터 생성 실패:`, error);
       throw error;
     }
+  }
+
+  /**
+   * AI 생성된 비디오에 음성과 자막 추가
+   * @param {string} aiVideoPath - AI로 생성된 비디오 파일 경로
+   * @param {object} sceneInfo - 장면 정보 (자막, 제목, 음성 등)
+   * @returns {Promise<string>} - 최종 비디오 경로
+   */
+  async addAudioAndSubtitlesToAiVideo(aiVideoPath, sceneInfo) {
+    console.log(`   🎬 AI 비디오에 음성과 자막 추가 중...`);
+    
+    const sceneId = sceneInfo.sceneId;
+    const outputPath = sceneInfo.outputPath;
+    
+    return new Promise(async (resolve, reject) => {
+      try {
+        // 1. 음성 파일 다운로드
+        let audioPath = null;
+        if (sceneInfo.audioUrl) {
+          audioPath = path.join(TEMP_DIR, `${sceneId}_audio.mp3`);
+          await this.downloadFile(sceneInfo.audioUrl, audioPath);
+        }
+        
+        // 2. FFmpeg 필터 생성
+        const filters = [];
+        let currentLabel = '[0:v]';
+        let nextLabel = '[v1]';
+        
+        // 자막 추가
+        if (sceneInfo.subtitle) {
+          const subtitleFilter = this.createSubtitleFilter(
+            sceneInfo.subtitle,
+            sceneInfo.subtitleSettings || {}
+          );
+          filters.push(`${currentLabel}${subtitleFilter}${nextLabel}`);
+          currentLabel = nextLabel;
+          nextLabel = '[v2]';
+        }
+        
+        // 제목 추가
+        if (sceneInfo.title) {
+          const titleFilter = this.createTitleFilter(
+            sceneInfo.title,
+            sceneInfo.titleSettings || {}
+          );
+          const finalLabel = '[final]';
+          filters.push(`${currentLabel}${titleFilter}${finalLabel}`);
+          currentLabel = finalLabel;
+        }
+        
+        // 3. FFmpeg 명령 실행
+        const command = ffmpeg();
+        
+        // AI 생성 비디오 입력
+        command.input(aiVideoPath);
+        
+        // 음성 입력 (있을 경우)
+        if (audioPath) {
+          command.input(audioPath);
+        }
+        
+        // 필터 적용
+        if (filters.length > 0) {
+          command.complexFilter(filters.join(';'));
+        }
+        
+        // 출력 옵션
+        const outputOpts = ['-map'];
+        
+        if (filters.length > 0) {
+          outputOpts.push(currentLabel);
+        } else {
+          outputOpts.push('[0:v]');
+        }
+        
+        // 오디오 매핑
+        if (audioPath) {
+          outputOpts.push('-map', '1:a');
+        } else {
+          // AI 비디오의 원본 오디오 유지 (있을 경우)
+          outputOpts.push('-map', '0:a?');
+        }
+        
+        outputOpts.push(
+          '-c:v', 'libx264',
+          '-preset', 'medium',
+          '-crf', '23',
+          '-pix_fmt', 'yuv420p',
+          '-shortest'
+        );
+        
+        if (audioPath) {
+          outputOpts.push('-c:a', 'aac', '-b:a', '128k');
+        }
+        
+        command
+          .outputOptions(outputOpts)
+          .output(outputPath)
+          .on('start', (cmd) => {
+            console.log(`   FFmpeg 시작: ${cmd}`);
+          })
+          .on('progress', (progress) => {
+            console.log(`   진행률: ${Math.round(progress.percent || 0)}%`);
+          })
+          .on('end', () => {
+            console.log(`   ✅ 음성/자막 합성 완료: ${outputPath}`);
+            resolve(outputPath);
+          })
+          .on('error', (err) => {
+            console.error(`   ❌ FFmpeg 실패:`, err);
+            reject(err);
+          })
+          .run();
+          
+      } catch (error) {
+        console.error(`   ❌ 음성/자막 추가 실패:`, error);
+        reject(error);
+      }
+    });
   }
 
   /**
