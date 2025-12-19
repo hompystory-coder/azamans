@@ -134,7 +134,7 @@ class VideoRenderer {
       .replace(/:/g, '\\:')
       .replace(/\n/g, '\\n');
 
-    // FFmpeg drawtext 필터
+    // FFmpeg drawtext 필터 (2줄 지원: text_w 대신 최대 너비 설정)
     return `drawtext=` +
       `text='${escapedText}':` +
       `fontfile=/usr/share/fonts/truetype/nanum/${fontFamily}.ttf:` +
@@ -142,6 +142,8 @@ class VideoRenderer {
       `fontcolor=${fontColor}:` +
       `x=(w-text_w)/2:` +  // 중앙 정렬
       `y=h-${yOffset}:` +
+      `line_spacing=10:` +  // 줄 간격 10px
+      `text_align=C:` +  // 중앙 정렬
       `borderw=${borderWidth}:` +
       `bordercolor=${borderColor}:` +
       `shadowx=${shadowX}:` +
@@ -157,7 +159,7 @@ class VideoRenderer {
       fontFamily = 'NanumGothicBold',
       fontSize = 72,
       fontColor = 'yellow',  // 노란색으로 변경
-      yPosition = 150,  // 상단에서 150px
+      yPosition = 280,  // 상단에서 280px로 변경
       borderWidth = 5,
       borderColor = 'black',
       shadowX = 4,
@@ -176,7 +178,9 @@ class VideoRenderer {
       `fontsize=${fontSize}:` +
       `fontcolor=${fontColor}:` +
       `x=(w-text_w)/2:` +
-      `y=${yPosition}:` +  // 상단 기준 (h- 제거)
+      `y=${yPosition}:` +  // 상단에서 280px
+      `line_spacing=10:` +  // 줄 간격 10px
+      `text_align=C:` +  // 중앙 정렬
       `borderw=${borderWidth}:` +
       `bordercolor=${borderColor}:` +
       `shadowx=${shadowX}:` +
