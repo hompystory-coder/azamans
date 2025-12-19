@@ -117,9 +117,27 @@ class VideoRenderer {
   getFontPath(fontFamily) {
     console.log(`🔍 폰트 검색: "${fontFamily}"`);
     
+    const path = require('path');
+    const customFontsPath = path.join(__dirname, '../..', 'fonts');
+    
     // 폰트 매핑: 요청된 폰트 -> { path, file }
     const fontMap = {
-      // === Nanum 계열 (실제 설치됨) ===
+      // === 커스텀 Google Fonts (다운로드한 실제 폰트) ===
+      'BlackHanSans': { path: customFontsPath, file: 'BlackHanSans-Regular.ttf' },
+      'DoHyeon': { path: customFontsPath, file: 'DoHyeon-Regular.ttf' },
+      'Jua': { path: customFontsPath, file: 'Jua-Regular.ttf' },
+      'Gaegu': { path: customFontsPath, file: 'Gaegu-Regular.ttf' },
+      'GaeguBold': { path: customFontsPath, file: 'Gaegu-Bold.ttf' },
+      'CuteFont': { path: customFontsPath, file: 'CuteFont-Regular.ttf' },
+      'KirangHaerang': { path: customFontsPath, file: 'KirangHaerang-Regular.ttf' },
+      'GamjaFlower': { path: customFontsPath, file: 'GamjaFlower-Regular.ttf' },
+      'YeonSung': { path: customFontsPath, file: 'YeonSung-Regular.ttf' },
+      'Stylish': { path: customFontsPath, file: 'Stylish-Regular.ttf' },
+      'Sunflower': { path: customFontsPath, file: 'Sunflower-Light.ttf' },
+      'SunflowerMedium': { path: customFontsPath, file: 'Sunflower-Medium.ttf' },
+      'SunflowerBold': { path: customFontsPath, file: 'Sunflower-Bold.ttf' },
+      
+      // === Nanum 계열 (시스템 설치) ===
       'NanumGothicBold': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumGothicBold.ttf' },
       'NanumGothic': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumGothic.ttf' },
       'NanumBarunGothicBold': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumBarunGothicBold.ttf' },
@@ -130,26 +148,12 @@ class VideoRenderer {
       'NanumSquareB': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumSquareB.ttf' },
       'NanumSquareRound': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumSquareRoundR.ttf' },
       
-      // === Noto Sans CJK KR (실제 설치됨) ===
+      // === Noto Sans CJK KR (시스템 설치) ===
       'Noto Sans KR': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
       'Noto Sans KR Bold': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
       'Noto Sans KR Medium': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Medium.ttc' },
       'Noto Sans KR Black': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Black.ttc' },
       'Noto Serif KR': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSerifCJK-Regular.ttc' },
-      
-      // === 미설치 폰트 -> Noto Sans로 매핑 (더 선명함) ===
-      'BlackHanSans': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Black.ttc' },
-      'DoHyeon': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
-      'Jua': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Medium.ttc' },
-      'GaeguBold': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
-      'Gaegu': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
-      'CuteFont': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Medium.ttc' },
-      'KirangHaerang': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
-      'GamjaFlower': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumGothic.ttf' },
-      'YeonSung': { path: '/usr/share/fonts/truetype/nanum', file: 'NanumMyeongjo.ttf' },
-      'Stylish': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
-      'Sunflower': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Regular.ttc' },
-      'SunflowerBold': { path: '/usr/share/fonts/opentype/noto', file: 'NotoSansCJK-Bold.ttc' },
     };
 
     // 폰트 찾기
@@ -161,8 +165,8 @@ class VideoRenderer {
       return fullPath;
     }
     
-    // 기본 폴백: Noto Sans CJK KR Bold (선명하고 깔끔함)
-    const fallbackPath = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc';
+    // 기본 폴백: NanumGothicBold (안정적인 한글 폰트)
+    const fallbackPath = '/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf';
     console.log(`   ⚠️ 폰트 없음, 폴백 사용: ${fallbackPath}`);
     return fallbackPath;
   }
