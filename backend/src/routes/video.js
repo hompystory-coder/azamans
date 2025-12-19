@@ -187,7 +187,8 @@ router.post('/generate', upload.fields([{ name: 'bgMusicFile' }, { name: 'bgImag
     } else if (settings.title && typeof settings.title === 'object') {
       // settings.title이 설정 객체인 경우
       settings.titleSettings = settings.title;
-      console.log(`🔄 title → titleSettings 변환 (fontSize: ${settings.title.fontSize})`);
+      console.log(`🔄 title → titleSettings 변환 (fontSize: ${settings.title.fontSize}, fontFamily: ${settings.title.fontFamily})`);
+      console.log(`   전체 title 설정:`, JSON.stringify(settings.title));
     }
 
     console.log(`🎬 로컬 FFmpeg 비디오 생성 시작: ${scenes.length}개 장면`);

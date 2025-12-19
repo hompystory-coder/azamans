@@ -212,10 +212,12 @@ class VideoRenderer {
       fontColor = 'white',
       yOffset = 250,
       borderWidth = 4,
-      borderColor = 'black',
-      shadowX = 0,  // 그림자 제거
-      shadowY = 0   // 그림자 제거
+      borderColor = 'black'
     } = settings;
+    
+    // 그림자 강제 제거 (사용자 요청)
+    const shadowX = 0;
+    const shadowY = 0;
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yOffset=${yOffset}`);
 
@@ -263,10 +265,12 @@ class VideoRenderer {
       fontColor = 'yellow',
       yPosition = 280,
       borderWidth = 5,
-      borderColor = 'black',
-      shadowX = 0,  // 그림자 제거
-      shadowY = 0   // 그림자 제거
+      borderColor = 'black'
     } = settings;
+    
+    // 그림자 강제 제거 (사용자 요청)
+    const shadowX = 0;
+    const shadowY = 0;
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, yPosition=${yPosition}`);
 
