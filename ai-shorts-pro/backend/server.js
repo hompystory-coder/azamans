@@ -12,6 +12,7 @@ const voiceRoutes = require('./routes/voices');
 const crawlerRoutes = require('./routes/crawler');
 const generationRoutes = require('./routes/generation');
 const assetsRoutes = require('./routes/assets');
+const youtubeRoutes = require('./routes/youtube');
 
 const app = express();
 const server = http.createServer(app);
