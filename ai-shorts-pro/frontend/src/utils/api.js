@@ -40,7 +40,13 @@ export const projectsAPI = {
 // Crawler API
 export const crawlerAPI = {
   crawl: (url) => api.post('/crawler/crawl', { url }),
-  analyze: (content, images) => api.post('/crawler/analyze', { content, images }),
+  analyze: (urlOrContent, images) => {
+    // Support both URL-only and content-based analysis
+    if (typeof urlOrContent === 'string' && urlOrContent.startsWith('http')) {
+      return api.post('/crawler/analyze', { url: urlOrContent, images });
+    }
+    return api.post('/crawler/analyze', { content: urlOrContent, images });
+  },
   generateScript: (data) => api.post('/crawler/generate-script', data),
   extractImages: (images) => api.post('/crawler/extract-images', { images })
 };
