@@ -86,17 +86,57 @@ exports.crawlContent = async (req, res) => {
 // Analyze crawled content
 exports.analyzeContent = async (req, res) => {
   try {
-    const { content, images } = req.body;
+    const { url, content, images } = req.body;
 
-    if (!content) {
+    // If content is not provided but URL is, try to crawl first
+    if (!content && !url) {
       return res.status(400).json({
         success: false,
-        error: 'Content is required'
+        error: 'Either URL or content is required'
+      });
+    }
+
+    let analysisContent = content;
+    let analysisImages = images || [];
+
+    // If only URL is provided, crawl it first
+    if (!content && url) {
+      try {
+        const crawlResponse = await axios.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+
+        const $ = cheerio.load(crawlResponse.data);
+        
+        // Extract paragraphs
+        const paragraphs = [];
+        $('p').each((i, elem) => {
+          const text = $(elem).text().trim();
+          if (text.length > 20) {
+            paragraphs.push(text);
+          }
+        });
+
+        analysisContent = paragraphs.join('\n\n');
+      } catch (crawlError) {
+        return res.status(400).json({
+          success: false,
+          error: 'Failed to crawl URL. Please provide content directly or check the URL.'
+        });
+      }
+    }
+
+    if (!analysisContent || analysisContent.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No content found to analyze'
       });
     }
 
     // Extract keywords (simple implementation)
-    const words = content.toLowerCase().split(/\s+/);
+    const words = analysisContent.toLowerCase().split(/\s+/);
     const wordCount = {};
     const stopWords = ['은', '는', '이', '가', '을', '를', '의', '에', '과', '와', '으로', '로'];
     
@@ -112,7 +152,7 @@ exports.analyzeContent = async (req, res) => {
       .map(([word]) => word);
 
     // Detect product name (heuristic)
-    const sentences = content.split(/[.!?]/);
+    const sentences = analysisContent.split(/[.!?]/);
     let productName = '';
     for (const sentence of sentences) {
       if (sentence.includes('제품') || sentence.includes('상품') || sentence.includes('추천')) {
@@ -140,7 +180,7 @@ exports.analyzeContent = async (req, res) => {
     for (const [category, catKeywords] of Object.entries(categoryKeywords)) {
       let score = 0;
       catKeywords.forEach(keyword => {
-        if (content.includes(keyword)) score++;
+        if (analysisContent.includes(keyword)) score++;
       });
       if (score > maxScore) {
         maxScore = score;
@@ -154,8 +194,8 @@ exports.analyzeContent = async (req, res) => {
         keywords: keywords,
         productName: productName,
         suggestedCategory: suggestedCategory,
-        contentLength: content.length,
-        imageCount: images ? images.length : 0
+        contentLength: analysisContent.length,
+        imageCount: analysisImages.length
       }
     });
 

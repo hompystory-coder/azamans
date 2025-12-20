@@ -17,41 +17,18 @@ exports.generateSample = async (req, res) => {
       });
     }
 
-    // Check if sample already exists in cache
-    const sampleDir = path.join(__dirname, '../generated/audio/samples');
-    await fs.mkdir(sampleDir, { recursive: true });
-    const sampleFile = path.join(sampleDir, `${voiceId}_sample.mp3`);
-    
-    try {
-      await fs.access(sampleFile);
-      // Sample exists, return URL
-      return res.json({
-        success: true,
-        data: {
-          voiceId: voice.id,
-          audioUrl: `/generated/audio/samples/${voiceId}_sample.mp3`,
-          cached: true
-        }
-      });
-    } catch (error) {
-      // Sample doesn't exist, need to generate
-    }
-
-    // Generate sample audio using AI service
-    const audioData = await generateVoiceAudio(
-      voice.sampleText,
-      voice.parameters
-    );
-
-    // Save to file
-    await fs.writeFile(sampleFile, audioData);
-
+    // TODO: Implement actual TTS generation
+    // For now, return success without actual audio file
     res.json({
       success: true,
       data: {
         voiceId: voice.id,
-        audioUrl: `/generated/audio/samples/${voiceId}_sample.mp3`,
-        cached: false
+        name: voice.name,
+        description: voice.description,
+        sampleText: voice.sampleText,
+        // Audio will be generated when AI service is integrated
+        audioUrl: null,
+        message: 'Voice preview will be available after AI service integration'
       }
     });
 
