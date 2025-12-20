@@ -1,0 +1,116 @@
+{
+  "voices": [
+    {
+      "id": "leda",
+      "name": "레다 (Leda)",
+      "provider": "google-gemini",
+      "language": "ko",
+      "gender": "female",
+      "style": "energetic",
+      "description": "밝고 활기찬 여성 목소리 - 친근한 느낌",
+      "sampleText": "안녕하세요! 저는 레다입니다. 오늘도 멋진 하루 보내세요!",
+      "parameters": {
+        "model": "google/gemini-2.5-pro-preview-tts",
+        "voice": "Leda"
+      }
+    },
+    {
+      "id": "charon",
+      "name": "카론 (Charon)",
+      "provider": "google-gemini",
+      "language": "ko",
+      "gender": "male",
+      "style": "professional",
+      "description": "차분하고 신뢰감 있는 남성 목소리 - 전문적",
+      "sampleText": "안녕하십니까. 저는 카론입니다. 오늘 소개할 내용은 매우 중요합니다.",
+      "parameters": {
+        "model": "google/gemini-2.5-pro-preview-tts",
+        "voice": "Charon"
+      }
+    },
+    {
+      "id": "puck",
+      "name": "퍽 (Puck)",
+      "provider": "google-gemini",
+      "language": "ko",
+      "gender": "neutral",
+      "style": "friendly",
+      "description": "부드럽고 친근한 중성 목소리 - 편안한 느낌",
+      "sampleText": "안녕! 나는 퍽이야. 우리 함께 재미있게 알아보자!",
+      "parameters": {
+        "model": "google/gemini-2.5-pro-preview-tts",
+        "voice": "Puck"
+      }
+    },
+    {
+      "id": "kore",
+      "name": "코레 (Kore)",
+      "provider": "google-gemini",
+      "language": "ko",
+      "gender": "female",
+      "style": "calm",
+      "description": "따뜻하고 차분한 여성 목소리 - 안정적",
+      "sampleText": "안녕하세요. 저는 코레예요. 천천히 함께 알아가봐요.",
+      "parameters": {
+        "model": "google/gemini-2.5-pro-preview-tts",
+        "voice": "Kore"
+      }
+    },
+    {
+      "id": "aoede",
+      "name": "아오에데 (Aoede)",
+      "provider": "google-gemini",
+      "language": "ko",
+      "gender": "female",
+      "style": "cheerful",
+      "description": "상냥하고 밝은 여성 목소리 - 귀여운 느낌",
+      "sampleText": "안녕하세요~ 저는 아오에데예요! 정말 기쁘네요!",
+      "parameters": {
+        "model": "google/gemini-2.5-pro-preview-tts",
+        "voice": "Aoede"
+      }
+    },
+    {
+      "id": "minimax-cheerful",
+      "name": "미니맥스 활기찬",
+      "provider": "minimax",
+      "language": "ko",
+      "gender": "female",
+      "style": "energetic",
+      "description": "매우 활기차고 생동감 있는 목소리 - 광고용",
+      "sampleText": "여러분! 정말 대박 소식이에요! 꼭 확인해보세요!",
+      "parameters": {
+        "model": "fal-ai/minimax/speech-2.6-hd",
+        "emotion": "excited"
+      }
+    },
+    {
+      "id": "minimax-calm",
+      "name": "미니맥스 차분한",
+      "provider": "minimax",
+      "language": "ko",
+      "gender": "male",
+      "style": "professional",
+      "description": "침착하고 신뢰감 있는 남성 목소리",
+      "sampleText": "오늘 소개해드릴 제품은 여러분의 일상을 바꿔드릴 것입니다.",
+      "parameters": {
+        "model": "fal-ai/minimax/speech-2.6-hd",
+        "emotion": "calm"
+      }
+    },
+    {
+      "id": "elevenlabs-multilingual",
+      "name": "ElevenLabs 멀티링구얼",
+      "provider": "elevenlabs",
+      "language": "ko",
+      "gender": "female",
+      "style": "versatile",
+      "description": "감정 표현이 풍부한 고품질 목소리",
+      "sampleText": "안녕하세요! 오늘 정말 특별한 이야기를 준비했어요!",
+      "parameters": {
+        "model": "fal-ai/elevenlabs/tts/multilingual-v2"
+      }
+    }
+  ],
+  "defaultVoice": "leda"
+}

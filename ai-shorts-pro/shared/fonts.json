@@ -1,0 +1,79 @@
+{
+  "fonts": [
+    {
+      "id": "nanum-gothic-bold",
+      "name": "나눔고딕 볼드",
+      "nameEn": "Nanum Gothic Bold",
+      "file": "NanumGothicBold.ttf",
+      "style": "modern",
+      "weight": "bold",
+      "description": "깔끔하고 읽기 쉬운 기본 폰트",
+      "category": "sans-serif",
+      "bestFor": ["general", "business", "tech"]
+    },
+    {
+      "id": "nanum-gothic",
+      "name": "나눔고딕",
+      "nameEn": "Nanum Gothic",
+      "file": "NanumGothic.ttf",
+      "style": "modern",
+      "weight": "normal",
+      "description": "부드럽고 자연스러운 고딕체",
+      "category": "sans-serif",
+      "bestFor": ["general", "education"]
+    },
+    {
+      "id": "nanum-square-round-bold",
+      "name": "나눔스퀘어라운드 볼드",
+      "nameEn": "Nanum Square Round Bold",
+      "file": "NanumSquareRoundB.ttf",
+      "style": "rounded",
+      "weight": "bold",
+      "description": "귀엽고 친근한 둥근 폰트",
+      "category": "rounded",
+      "bestFor": ["food", "pets", "kids", "beauty"]
+    },
+    {
+      "id": "nanum-myeongjo-bold",
+      "name": "나눔명조 볼드",
+      "nameEn": "Nanum Myeongjo Bold",
+      "file": "NanumMyeongjoBold.ttf",
+      "style": "serif",
+      "weight": "bold",
+      "description": "고급스럽고 전통적인 명조체",
+      "category": "serif",
+      "bestFor": ["home", "travel", "luxury"]
+    },
+    {
+      "id": "noto-sans-kr-bold",
+      "name": "본고딕 볼드",
+      "nameEn": "Noto Sans KR Bold",
+      "file": "NotoSansKR-Bold.ttf",
+      "style": "modern",
+      "weight": "bold",
+      "description": "Google 본고딕 - 깔끔한 현대식",
+      "category": "sans-serif",
+      "bestFor": ["general", "tech", "business"]
+    },
+    {
+      "id": "gmarket-sans-bold",
+      "name": "지마켓산스 볼드",
+      "nameEn": "Gmarket Sans Bold",
+      "file": "GmarketSansBold.ttf",
+      "style": "impact",
+      "weight": "bold",
+      "description": "강렬하고 눈에 띄는 제목용 폰트",
+      "category": "display",
+      "bestFor": ["fitness", "sales", "impact"]
+    }
+  ],
+  "defaultFont": "nanum-gothic-bold",
+  "downloadUrls": {
+    "NanumGothicBold.ttf": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumGothic/NanumGothicBold.ttf",
+    "NanumGothic.ttf": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumGothic/NanumGothic.ttf",
+    "NanumSquareRoundB.ttf": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundB.ttf",
+    "NanumMyeongjoBold.ttf": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumMyeongjo/NanumMyeongjoBold.ttf",
+    "NotoSansKR-Bold.ttf": "https://fonts.gstatic.com/ea/notosanskr/v2/NotoSansKR-Bold.woff2",
+    "GmarketSansBold.ttf": "https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff"
+  }
+}

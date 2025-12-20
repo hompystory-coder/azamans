@@ -1,0 +1,91 @@
+{
+  "subtitle": {
+    "fontSize": {
+      "title": 40,
+      "subtitle": 35
+    },
+    "position": {
+      "title": {
+        "y": 50
+      },
+      "subtitle": {
+        "y": "h-150"
+      }
+    },
+    "colors": {
+      "title": "white",
+      "subtitle": "yellow"
+    },
+    "effects": {
+      "borderWidth": 3,
+      "borderColor": "black",
+      "boxEnabled": true,
+      "boxColor": "black@0.6",
+      "boxBorderWidth": 8,
+      "shadowEnabled": false
+    },
+    "timing": {
+      "fadeIn": 0.3,
+      "fadeOut": 0.3
+    }
+  },
+  "video": {
+    "resolution": {
+      "width": 720,
+      "height": 1280
+    },
+    "aspectRatio": "9:16",
+    "fps": 30,
+    "videoBitrate": "750k",
+    "audioBitrate": "128k"
+  },
+  "images": {
+    "resolution": {
+      "width": 1024,
+      "height": 1024
+    },
+    "effects": {
+      "zoom": {
+        "enabled": true,
+        "scale": "1.0:1.1",
+        "duration": 5
+      },
+      "pan": {
+        "enabled": false,
+        "direction": "left-to-right"
+      },
+      "kenburns": {
+        "enabled": false
+      }
+    }
+  },
+  "audio": {
+    "voice": {
+      "volume": 1.0
+    },
+    "bgm": {
+      "volume": 0.25,
+      "fadeIn": 1.0,
+      "fadeOut": 2.0
+    }
+  },
+  "generation": {
+    "mode": "auto",
+    "style": "character",
+    "sceneCount": 5,
+    "sceneDuration": 6,
+    "totalDuration": 30
+  },
+  "ai": {
+    "imageModel": "nano-banana-pro",
+    "videoModel": "minimax/hailuo-2.3/standard",
+    "voiceModel": "google/gemini-2.5-pro-preview-tts",
+    "musicModel": "elevenlabs/music"
+  },
+  "prompts": {
+    "default": "Create a professional, engaging shorts video showcasing {product} with emphasis on {features}. Use dynamic visuals and clear messaging.",
+    "character": "Cute 3D mascot character {characterName} {action}, {emotion} expression, showcasing {product}, clean background",
+    "realistic": "High-quality professional product photography of {product}, {angle} view, studio lighting, commercial style",
+    "mixed": "Blend of cute 3D character {characterName} and real {product} image, creative composition, professional quality"
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "characters": [
+    {
+      "id": "forty",
+      "name": "포티 (Forty)",
+      "nameEn": "Forty",
+      "description": "귀여운 오렌지 마스코트 - 범용 콘텐츠",
+      "category": "general",
+      "emoji": "🎭",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/rfX6Nw2Y",
+      "promptTemplate": "Cute 3D mascot character with orange ears, round adorable design, {action}, happy expression, clean white background",
+      "sampleScenes": [
+        "jumping excitedly with joy",
+        "holding and presenting products",
+        "demonstrating features enthusiastically",
+        "giving thumbs up with big smile"
+      ]
+    },
+    {
+      "id": "bizny",
+      "name": "비즈니 (Bizny)",
+      "nameEn": "Bizny",
+      "description": "전문 비즈니스 캐릭터 - 업무/비즈니스",
+      "category": "business",
+      "emoji": "💼",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/sXbZiJ88",
+      "promptTemplate": "Cute 3D business mascot character wearing suit and tie, professional appearance, {action}, confident expression, clean white background",
+      "sampleScenes": [
+        "presenting business plan professionally",
+        "analyzing data with focus",
+        "making professional presentation",
+        "showing success metrics"
+      ]
+    },
+    {
+      "id": "cookie",
+      "name": "쿠키 (Cookie)",
+      "nameEn": "Cookie",
+      "description": "음식 리뷰 전문 - 요리/음식",
+      "category": "food",
+      "emoji": "🍪",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/fJFifFwA",
+      "promptTemplate": "Cute 3D chef mascot character with chef hat, cookie-shaped design, {action}, cheerful expression, clean white background",
+      "sampleScenes": [
+        "tasting delicious food happily",
+        "cooking with enthusiasm",
+        "presenting beautiful dishes",
+        "recommending tasty recipes"
+      ]
+    },
+    {
+      "id": "techy",
+      "name": "테키 (Techy)",
+      "nameEn": "Techy",
+      "description": "IT/가전 전문 로봇 - 기술/가전",
+      "category": "tech",
+      "emoji": "🤖",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/GoDVuMvc",
+      "promptTemplate": "Cute 3D robot mascot character with digital elements, modern tech design, {action}, tech-savvy expression, clean white background",
+      "sampleScenes": [
+        "demonstrating high-tech features",
+        "explaining technology simply",
+        "testing gadgets excitedly",
+        "showing innovation proudly"
+      ]
+    },
+    {
+      "id": "beauty",
+      "name": "뷰티 (Beauty)",
+      "nameEn": "Beauty",
+      "description": "뷰티/패션 캐릭터 - 화장품/의류",
+      "category": "beauty",
+      "emoji": "💄",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/xzmoDpCH",
+      "promptTemplate": "Cute 3D beauty mascot character with makeup elements, stylish and elegant, {action}, beautiful expression, clean white background",
+      "sampleScenes": [
+        "applying makeup gracefully",
+        "showing beauty products",
+        "demonstrating skincare routine",
+        "presenting fashion items"
+      ]
+    },
+    {
+      "id": "homey",
+      "name": "홈이 (Homey)",
+      "nameEn": "Homey",
+      "description": "인테리어/가구 전문 - 홈데코/가구",
+      "category": "home",
+      "emoji": "🏠",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/hN1gEzXP",
+      "promptTemplate": "Cute 3D house-shaped mascot character, cozy and warm design, {action}, friendly expression, clean white background",
+      "sampleScenes": [
+        "decorating home beautifully",
+        "arranging furniture perfectly",
+        "creating cozy atmosphere",
+        "showing interior design"
+      ]
+    },
+    {
+      "id": "fitty",
+      "name": "피티 (Fitty)",
+      "nameEn": "Fitty",
+      "description": "운동/헬스 캐릭터 - 피트니스/스포츠",
+      "category": "fitness",
+      "emoji": "💪",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/XYECEX3Y",
+      "promptTemplate": "Cute 3D fitness mascot character with athletic gear, energetic and strong, {action}, motivated expression, clean white background",
+      "sampleScenes": [
+        "doing exercises energetically",
+        "demonstrating workout moves",
+        "showing sports equipment",
+        "motivating healthy lifestyle"
+      ]
+    },
+    {
+      "id": "travvy",
+      "name": "트래비 (Travvy)",
+      "nameEn": "Travvy",
+      "description": "여행 전문 캐릭터 - 관광/여행",
+      "category": "travel",
+      "emoji": "✈️",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/oxcTap6T",
+      "promptTemplate": "Cute 3D traveler mascot character with backpack, adventurous explorer, {action}, excited expression, clean white background",
+      "sampleScenes": [
+        "exploring new destinations",
+        "showing travel spots",
+        "planning adventure trips",
+        "sharing travel experiences"
+      ]
+    },
+    {
+      "id": "petty",
+      "name": "페티 (Petty)",
+      "nameEn": "Petty",
+      "description": "반려동물 전문 - 펫케어/동물",
+      "category": "pets",
+      "emoji": "🐶",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/gRxYIPru",
+      "promptTemplate": "Cute 3D puppy mascot character with paw prints, playful and loving, {action}, caring expression, clean white background",
+      "sampleScenes": [
+        "playing with pets happily",
+        "caring for animals",
+        "showing pet products",
+        "teaching pet care tips"
+      ]
+    },
+    {
+      "id": "edu",
+      "name": "에듀 (Edu)",
+      "nameEn": "Edu",
+      "description": "교육 콘텐츠 전문 - 학습/교육",
+      "category": "education",
+      "emoji": "📚",
+      "baseImageUrl": "https://www.genspark.ai/api/files/s/3Dp3WoVk",
+      "promptTemplate": "Cute 3D scholar mascot character with glasses and book, smart and friendly, {action}, wise expression, clean white background",
+      "sampleScenes": [
+        "teaching enthusiastically",
+        "explaining concepts clearly",
+        "sharing knowledge",
+        "encouraging learning"
+      ]
+    }
+  ]
+}
