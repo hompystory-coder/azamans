@@ -1,0 +1,544 @@
+2025-12-20T03:46:55: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:55:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:55:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:55:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:55:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:55:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:55:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:55:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:55:   code: 'EADDRINUSE',
+2025-12-20T03:46:55:   errno: -98,
+2025-12-20T03:46:55:   syscall: 'listen',
+2025-12-20T03:46:55:   address: '::',
+2025-12-20T03:46:55:   port: 5555
+2025-12-20T03:46:55: }
+2025-12-20T03:46:55: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:55:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:55:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:55:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:55:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:55:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:55:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:55:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:55:   code: 'EADDRINUSE',
+2025-12-20T03:46:55:   errno: -98,
+2025-12-20T03:46:55:   syscall: 'listen',
+2025-12-20T03:46:55:   address: '::',
+2025-12-20T03:46:55:   port: 5555
+2025-12-20T03:46:55: }
+2025-12-20T03:46:55: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:55:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:55:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:55:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:55:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:55:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:55:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:55:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:55:   code: 'EADDRINUSE',
+2025-12-20T03:46:55:   errno: -98,
+2025-12-20T03:46:55:   syscall: 'listen',
+2025-12-20T03:46:55:   address: '::',
+2025-12-20T03:46:55:   port: 5555
+2025-12-20T03:46:55: }
+2025-12-20T03:46:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:56:   code: 'EADDRINUSE',
+2025-12-20T03:46:56:   errno: -98,
+2025-12-20T03:46:56:   syscall: 'listen',
+2025-12-20T03:46:56:   address: '::',
+2025-12-20T03:46:56:   port: 5555
+2025-12-20T03:46:56: }
+2025-12-20T03:46:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:56:   code: 'EADDRINUSE',
+2025-12-20T03:46:56:   errno: -98,
+2025-12-20T03:46:56:   syscall: 'listen',
+2025-12-20T03:46:56:   address: '::',
+2025-12-20T03:46:56:   port: 5555
+2025-12-20T03:46:56: }
+2025-12-20T03:46:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:56:   code: 'EADDRINUSE',
+2025-12-20T03:46:56:   errno: -98,
+2025-12-20T03:46:56:   syscall: 'listen',
+2025-12-20T03:46:56:   address: '::',
+2025-12-20T03:46:56:   port: 5555
+2025-12-20T03:46:56: }
+2025-12-20T03:46:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:56:   code: 'EADDRINUSE',
+2025-12-20T03:46:56:   errno: -98,
+2025-12-20T03:46:56:   syscall: 'listen',
+2025-12-20T03:46:56:   address: '::',
+2025-12-20T03:46:56:   port: 5555
+2025-12-20T03:46:56: }
+2025-12-20T03:46:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:57:   code: 'EADDRINUSE',
+2025-12-20T03:46:57:   errno: -98,
+2025-12-20T03:46:57:   syscall: 'listen',
+2025-12-20T03:46:57:   address: '::',
+2025-12-20T03:46:57:   port: 5555
+2025-12-20T03:46:57: }
+2025-12-20T03:46:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:57:   code: 'EADDRINUSE',
+2025-12-20T03:46:57:   errno: -98,
+2025-12-20T03:46:57:   syscall: 'listen',
+2025-12-20T03:46:57:   address: '::',
+2025-12-20T03:46:57:   port: 5555
+2025-12-20T03:46:57: }
+2025-12-20T03:46:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:57:   code: 'EADDRINUSE',
+2025-12-20T03:46:57:   errno: -98,
+2025-12-20T03:46:57:   syscall: 'listen',
+2025-12-20T03:46:57:   address: '::',
+2025-12-20T03:46:57:   port: 5555
+2025-12-20T03:46:57: }
+2025-12-20T03:46:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:57:   code: 'EADDRINUSE',
+2025-12-20T03:46:57:   errno: -98,
+2025-12-20T03:46:57:   syscall: 'listen',
+2025-12-20T03:46:57:   address: '::',
+2025-12-20T03:46:57:   port: 5555
+2025-12-20T03:46:57: }
+2025-12-20T03:46:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:57:   code: 'EADDRINUSE',
+2025-12-20T03:46:57:   errno: -98,
+2025-12-20T03:46:57:   syscall: 'listen',
+2025-12-20T03:46:57:   address: '::',
+2025-12-20T03:46:57:   port: 5555
+2025-12-20T03:46:57: }
+2025-12-20T03:46:58: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:58:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:58:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:58:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:58:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:58:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:58:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:58:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:58:   code: 'EADDRINUSE',
+2025-12-20T03:46:58:   errno: -98,
+2025-12-20T03:46:58:   syscall: 'listen',
+2025-12-20T03:46:58:   address: '::',
+2025-12-20T03:46:58:   port: 5555
+2025-12-20T03:46:58: }
+2025-12-20T03:46:58: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:58:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:58:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:58:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:58:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:58:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:58:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:58:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:58:   code: 'EADDRINUSE',
+2025-12-20T03:46:58:   errno: -98,
+2025-12-20T03:46:58:   syscall: 'listen',
+2025-12-20T03:46:58:   address: '::',
+2025-12-20T03:46:58:   port: 5555
+2025-12-20T03:46:58: }
+2025-12-20T03:46:58: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:58:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:58:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:58:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:58:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:58:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:58:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:58:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:58:   code: 'EADDRINUSE',
+2025-12-20T03:46:58:   errno: -98,
+2025-12-20T03:46:58:   syscall: 'listen',
+2025-12-20T03:46:58:   address: '::',
+2025-12-20T03:46:58:   port: 5555
+2025-12-20T03:46:58: }
+2025-12-20T03:46:58: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:46:58:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:46:58:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:46:58:     at Server.listen (node:net:2067:7)
+2025-12-20T03:46:58:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:46:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:46:58:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:46:58:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:46:58:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:46:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:46:58:   code: 'EADDRINUSE',
+2025-12-20T03:46:58:   errno: -98,
+2025-12-20T03:46:58:   syscall: 'listen',
+2025-12-20T03:46:58:   address: '::',
+2025-12-20T03:46:58:   port: 5555
+2025-12-20T03:46:58: }
+2025-12-20T03:50:54: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:54:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:54:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:54:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:54:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:54:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:54:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:54:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:54:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:54:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:54:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:54:   code: 'EADDRINUSE',
+2025-12-20T03:50:54:   errno: -98,
+2025-12-20T03:50:54:   syscall: 'listen',
+2025-12-20T03:50:54:   address: '::',
+2025-12-20T03:50:54:   port: 5555
+2025-12-20T03:50:54: }
+2025-12-20T03:50:55: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:55:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:55:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:55:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:55:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:55:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:55:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:55:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:55:   code: 'EADDRINUSE',
+2025-12-20T03:50:55:   errno: -98,
+2025-12-20T03:50:55:   syscall: 'listen',
+2025-12-20T03:50:55:   address: '::',
+2025-12-20T03:50:55:   port: 5555
+2025-12-20T03:50:55: }
+2025-12-20T03:50:55: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:55:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:55:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:55:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:55:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:55:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:55:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:55:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:55:   code: 'EADDRINUSE',
+2025-12-20T03:50:55:   errno: -98,
+2025-12-20T03:50:55:   syscall: 'listen',
+2025-12-20T03:50:55:   address: '::',
+2025-12-20T03:50:55:   port: 5555
+2025-12-20T03:50:55: }
+2025-12-20T03:50:55: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:55:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:55:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:55:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:55:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:55:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:55:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:55:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:55:   code: 'EADDRINUSE',
+2025-12-20T03:50:55:   errno: -98,
+2025-12-20T03:50:55:   syscall: 'listen',
+2025-12-20T03:50:55:   address: '::',
+2025-12-20T03:50:55:   port: 5555
+2025-12-20T03:50:55: }
+2025-12-20T03:50:55: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:55:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:55:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:55:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:55:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:55:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:55:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:55:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:55:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:55:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:55:   code: 'EADDRINUSE',
+2025-12-20T03:50:55:   errno: -98,
+2025-12-20T03:50:55:   syscall: 'listen',
+2025-12-20T03:50:55:   address: '::',
+2025-12-20T03:50:55:   port: 5555
+2025-12-20T03:50:55: }
+2025-12-20T03:50:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:56:   code: 'EADDRINUSE',
+2025-12-20T03:50:56:   errno: -98,
+2025-12-20T03:50:56:   syscall: 'listen',
+2025-12-20T03:50:56:   address: '::',
+2025-12-20T03:50:56:   port: 5555
+2025-12-20T03:50:56: }
+2025-12-20T03:50:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:56:   code: 'EADDRINUSE',
+2025-12-20T03:50:56:   errno: -98,
+2025-12-20T03:50:56:   syscall: 'listen',
+2025-12-20T03:50:56:   address: '::',
+2025-12-20T03:50:56:   port: 5555
+2025-12-20T03:50:56: }
+2025-12-20T03:50:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:56:   code: 'EADDRINUSE',
+2025-12-20T03:50:56:   errno: -98,
+2025-12-20T03:50:56:   syscall: 'listen',
+2025-12-20T03:50:56:   address: '::',
+2025-12-20T03:50:56:   port: 5555
+2025-12-20T03:50:56: }
+2025-12-20T03:50:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:56:   code: 'EADDRINUSE',
+2025-12-20T03:50:56:   errno: -98,
+2025-12-20T03:50:56:   syscall: 'listen',
+2025-12-20T03:50:56:   address: '::',
+2025-12-20T03:50:56:   port: 5555
+2025-12-20T03:50:56: }
+2025-12-20T03:50:56: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:56:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:56:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:56:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:56:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:56:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:56:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:56:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:56:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:56:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:56:   code: 'EADDRINUSE',
+2025-12-20T03:50:56:   errno: -98,
+2025-12-20T03:50:56:   syscall: 'listen',
+2025-12-20T03:50:56:   address: '::',
+2025-12-20T03:50:56:   port: 5555
+2025-12-20T03:50:56: }
+2025-12-20T03:50:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:57:   code: 'EADDRINUSE',
+2025-12-20T03:50:57:   errno: -98,
+2025-12-20T03:50:57:   syscall: 'listen',
+2025-12-20T03:50:57:   address: '::',
+2025-12-20T03:50:57:   port: 5555
+2025-12-20T03:50:57: }
+2025-12-20T03:50:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:57:   code: 'EADDRINUSE',
+2025-12-20T03:50:57:   errno: -98,
+2025-12-20T03:50:57:   syscall: 'listen',
+2025-12-20T03:50:57:   address: '::',
+2025-12-20T03:50:57:   port: 5555
+2025-12-20T03:50:57: }
+2025-12-20T03:50:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:57:   code: 'EADDRINUSE',
+2025-12-20T03:50:57:   errno: -98,
+2025-12-20T03:50:57:   syscall: 'listen',
+2025-12-20T03:50:57:   address: '::',
+2025-12-20T03:50:57:   port: 5555
+2025-12-20T03:50:57: }
+2025-12-20T03:50:57: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:57:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:57:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:57:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:57:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:57:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:57:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:57:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:57:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:57:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:57:   code: 'EADDRINUSE',
+2025-12-20T03:50:57:   errno: -98,
+2025-12-20T03:50:57:   syscall: 'listen',
+2025-12-20T03:50:57:   address: '::',
+2025-12-20T03:50:57:   port: 5555
+2025-12-20T03:50:57: }
+2025-12-20T03:50:58: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:58:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:58:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:58:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:58:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:58:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:58:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:58:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:58:   code: 'EADDRINUSE',
+2025-12-20T03:50:58:   errno: -98,
+2025-12-20T03:50:58:   syscall: 'listen',
+2025-12-20T03:50:58:   address: '::',
+2025-12-20T03:50:58:   port: 5555
+2025-12-20T03:50:58: }
+2025-12-20T03:50:58: Error: listen EADDRINUSE: address already in use :::5555
+2025-12-20T03:50:58:     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+2025-12-20T03:50:58:     at listenInCluster (node:net:1965:12)
+2025-12-20T03:50:58:     at Server.listen (node:net:2067:7)
+2025-12-20T03:50:58:     at Object.<anonymous> (/home/azamans/webapp/ai-shorts-pro/backend/server.js:79:8)
+2025-12-20T03:50:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+2025-12-20T03:50:58:     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+2025-12-20T03:50:58:     at Module.load (node:internal/modules/cjs/loader:1266:32)
+2025-12-20T03:50:58:     at Module._load (node:internal/modules/cjs/loader:1091:12)
+2025-12-20T03:50:58:     at Object.<anonymous> (/usr/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+2025-12-20T03:50:58:     at Module._compile (node:internal/modules/cjs/loader:1521:14) {
+2025-12-20T03:50:58:   code: 'EADDRINUSE',
+2025-12-20T03:50:58:   errno: -98,
+2025-12-20T03:50:58:   syscall: 'listen',
+2025-12-20T03:50:58:   address: '::',
+2025-12-20T03:50:58:   port: 5555
+2025-12-20T03:50:58: }

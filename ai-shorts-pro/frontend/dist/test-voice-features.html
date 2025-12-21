@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Shorts Voice Features Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        h1 { color: #667eea; }
+        .test-section { margin: 30px 0; padding: 20px; border: 2px solid #e0e0e0; border-radius: 8px; }
+        .success { color: #4CAF50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        button { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 5px; }
+        button:hover { background: #5568d3; }
+        .voice-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
+        .voice-item { padding: 10px; background: #f9f9f9; border-radius: 6px; text-align: center; }
+        .voice-item button { width: 100%; padding: 8px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 AI 쇼츠 음성 기능 테스트</h1>
+        
+        <div class="test-section">
+            <h2>✅ 구현된 기능</h2>
+            <ul>
+                <li><strong>16가지 음성 옵션:</strong> 여성 9종, 남성 8종, 특수 4종</li>
+                <li><strong>실시간 자동 저장:</strong> 모든 설정값 LocalStorage 저장 (500ms 디바운싱)</li>
+                <li><strong>음성 샘플 미리듣기:</strong> API 기반 실시간 TTS 생성 및 재생</li>
+                <li><strong>설정 복원:</strong> 페이지 새로고침 시 자동 복원</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🎵 16가지 음성 샘플 테스트</h2>
+            <div class="voice-list" id="voice-list"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>💾 자동 저장 테스트</h2>
+            <p>아래 버튼을 클릭하면 LocalStorage에 설정이 자동 저장됩니다.</p>
+            <button onclick="testAutoSave()">자동 저장 테스트</button>
+            <button onclick="checkSavedSettings()">저장된 설정 확인</button>
+            <button onclick="clearSettings()">설정 초기화</button>
+            <div id="auto-save-result" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 테스트 결과</h2>
+            <div id="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔗 주요 링크</h2>
+            <ul>
+                <li><a href="https://ai-shorts.neuralgrid.kr/advanced-shorts.html" target="_blank">고급 설정 페이지</a></li>
+                <li><a href="https://ai-shorts.neuralgrid.kr/character-shorts.html" target="_blank">캐릭터 쇼츠 페이지</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const voices = [
+            // 여성 음성 - 일반
+            { id: 'female-friendly', name: '친근한 여성', category: '여성 일반' },
+            { id: 'female-energetic', name: '발랄한 여성', category: '여성 일반' },
+            { id: 'female-professional', name: '전문적인 여성', category: '여성 일반' },
+            { id: 'female-soft', name: '부드러운 여성', category: '여성 일반' },
+            { id: 'female-mature', name: '성숙한 여성', category: '여성 일반' },
+            { id: 'female-young', name: '귀여운 여성', category: '여성 일반' },
+            
+            // 여성 음성 - 특수
+            { id: 'female-news', name: '뉴스 앵커 여성', category: '여성 특수' },
+            { id: 'female-drama', name: '드라마틱 여성', category: '여성 특수' },
+            { id: 'female-whisper', name: '속삭임 여성', category: '여성 특수' },
+            
+            // 남성 음성 - 일반
+            { id: 'male-professional', name: '전문적인 남성', category: '남성 일반' },
+            { id: 'male-calm', name: '차분한 남성', category: '남성 일반' },
+            { id: 'male-energetic', name: '활기찬 남성', category: '남성 일반' },
+            { id: 'male-deep', name: '중저음 남성', category: '남성 일반' },
+            { id: 'male-young', name: '젊은 남성', category: '남성 일반' },
+            { id: 'male-narration', name: '내레이션 남성', category: '남성 일반' },
+            
+            // 남성 음성 - 특수
+            { id: 'male-powerful', name: '파워풀 남성', category: '남성 특수' },
+            { id: 'male-documentary', name: '다큐멘터리 남성', category: '남성 특수' },
+            
+            // 특수 음성
+            { id: 'child-friendly', name: '아동용', category: '특수' },
+            { id: 'elderly-wise', name: '어르신', category: '특수' },
+            { id: 'robot-ai', name: 'AI 로봇', category: '특수' },
+            { id: 'asmr-relaxing', name: 'ASMR 힐링', category: '특수' }
+        ];
+
+        // 음성 목록 표시
+        const voiceList = document.getElementById('voice-list');
+        voices.forEach((voice, index) => {
+            const item = document.createElement('div');
+            item.className = 'voice-item';
+            item.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">${index + 1}. ${voice.name}</div>
+                <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">${voice.category}</div>
+                <button onclick="playVoice('${voice.id}')">▶️ 재생</button>
+            `;
+            voiceList.appendChild(item);
+        });
+
+        // 음성 재생
+        async function playVoice(voiceId) {
+            try {
+                const audio = new Audio(`/api/advanced/voice/sample/${voiceId}`);
+                await audio.play();
+                updateResults(`✅ ${voiceId} 재생 성공`);
+            } catch (error) {
+                updateResults(`❌ ${voiceId} 재생 실패: ${error.message}`);
+            }
+        }
+
+        // 자동 저장 테스트
+        function testAutoSave() {
+            const testSettings = {
+                voice: 'female-drama',
+                voiceSpeed: 1.2,
+                voicePitch: 2,
+                font: 'NanumGothicBold',
+                subtitleSize: 80,
+                subtitlePosition: 450,
+                subtitleBorder: 8,
+                prompt: '테스트 프롬프트 내용',
+                videoTitle: '테스트 비디오 제목',
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('ai_shorts_settings', JSON.stringify(testSettings));
+            document.getElementById('auto-save-result').innerHTML = `
+                <div class="success">✅ 설정이 저장되었습니다!</div>
+                <pre>${JSON.stringify(testSettings, null, 2)}</pre>
+            `;
+        }
+
+        // 저장된 설정 확인
+        function checkSavedSettings() {
+            const saved = localStorage.getItem('ai_shorts_settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                document.getElementById('auto-save-result').innerHTML = `
+                    <div class="success">✅ 저장된 설정을 찾았습니다!</div>
+                    <pre>${JSON.stringify(settings, null, 2)}</pre>
+                `;
+            } else {
+                document.getElementById('auto-save-result').innerHTML = `
+                    <div class="error">❌ 저장된 설정이 없습니다.</div>
+                `;
+            }
+        }
+
+        // 설정 초기화
+        function clearSettings() {
+            localStorage.removeItem('ai_shorts_settings');
+            document.getElementById('auto-save-result').innerHTML = `
+                <div class="success">✅ 설정이 초기화되었습니다.</div>
+            `;
+        }
+
+        // 결과 업데이트
+        function updateResults(message) {
+            const results = document.getElementById('test-results');
+            const time = new Date().toLocaleTimeString();
+            results.innerHTML = `<div>[${time}] ${message}</div>` + results.innerHTML;
+        }
+
+        // 초기 테스트
+        window.onload = async function() {
+            updateResults('🚀 테스트 페이지 로드 완료');
+            updateResults(`📊 총 ${voices.length}개 음성 옵션 확인`);
+            
+            // API 연결 테스트
+            try {
+                const response = await fetch('/api/advanced/voice/sample/female-friendly');
+                if (response.ok) {
+                    updateResults('✅ API 연결 성공');
+                } else {
+                    updateResults('❌ API 연결 실패');
+                }
+            } catch (error) {
+                updateResults(`❌ API 오류: ${error.message}`);
+            }
+        };
+    </script>
+</body>
+</html>

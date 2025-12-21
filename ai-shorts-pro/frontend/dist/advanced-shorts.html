@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 쇼츠 자동화 Pro - 고급 설정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .auto-save-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 4px 12px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: normal;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .auto-save-indicator.saving {
+            background: #ff9800;
+            opacity: 1;
+        }
+
+        .auto-save-indicator.saved {
+            background: #4CAF50;
+            opacity: 1;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background: #f9f9f9;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .file-item button {
+            background: #ff5252;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .character-card {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .character-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+        }
+
+        .character-avatar {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .character-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .voice-sample {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .voice-sample audio {
+            flex: 1;
+            height: 35px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .mode-option {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+        }
+
+        .mode-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .script-preview {
+            margin-top: 20px;
+        }
+
+        .scene-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .scene-item.selected {
+            border-color: #667eea;
+        }
+
+        .scene-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .scene-content {
+            flex: 1;
+        }
+
+        .scene-checkbox {
+            display: flex;
+            align-items: center;
+        }
+
+        .video-result {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .video-result video {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .youtube-metadata {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider-group input[type="range"] {
+            flex: 1;
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 AI 쇼츠 자동화 Pro
+                <span class="auto-save-indicator" id="autoSaveIndicator">💾 저장됨</span>
+            </h1>
+            <p>전문가급 쇼츠를 자동으로 생성하세요</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 탭 네비게이션 -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('settings')">⚙️ 기본 설정</button>
+                <button class="tab" onclick="switchTab('character')">👤 캐릭터 선택</button>
+                <button class="tab" onclick="switchTab('create')">🎥 쇼츠 생성</button>
+                <button class="tab" onclick="switchTab('result')">✨ 결과</button>
+            </div>
+
+            <!-- 탭 1: 기본 설정 -->
+            <div id="tab-settings" class="tab-content active">
+                <div class="section">
+                    <div class="section-title">🎵 배경 음악</div>
+                    <div class="form-group">
+                        <label class="file-upload" for="bgm-upload">
+                            <div>📁 배경 음악 파일 선택 (MP3, WAV)</div>
+                            <input type="file" id="bgm-upload" accept="audio/*" multiple onchange="handleFileUpload(event, 'bgm')">
+                        </label>
+                        <div class="file-list" id="bgm-list"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🖼️ 배경 이미지</div>
+                    <div class="form-group">
+                        <label class="file-upload" for="bg-upload">
+                            <div>📁 배경 이미지 파일 선택 (JPG, PNG)</div>
+                            <input type="file" id="bg-upload" accept="image/*" multiple onchange="handleFileUpload(event, 'bg')">
+                        </label>
+                        <div class="file-list" id="bg-list"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🎤 음성 선택 (16가지)</div>
+                    <div class="form-group">
+                        <label>음성 유형</label>
+                        <select id="voice-type" onchange="loadVoiceSamples(); autoSaveSettings();">
+                            <optgroup label="여성 음성 - 일반">
+                                <option value="female-friendly">친근한 여성 음성 (추천)</option>
+                                <option value="female-energetic">발랄한 여성 음성</option>
+                                <option value="female-professional">전문적인 여성 음성</option>
+                                <option value="female-soft">부드러운 여성 음성</option>
+                                <option value="female-mature">성숙한 여성 음성</option>
+                                <option value="female-young">귀여운 여성 음성</option>
+                            </optgroup>
+                            <optgroup label="여성 음성 - 특수">
+                                <option value="female-news">뉴스 앵커 여성 음성</option>
+                                <option value="female-drama">드라마틱한 여성 음성</option>
+                                <option value="female-whisper">속삭이는 여성 음성</option>
+                            </optgroup>
+                            <optgroup label="남성 음성 - 일반">
+                                <option value="male-professional">전문적인 남성 음성 (추천)</option>
+                                <option value="male-calm">차분한 남성 음성</option>
+                                <option value="male-energetic">활기찬 남성 음성</option>
+                                <option value="male-deep">중저음 남성 음성</option>
+                                <option value="male-young">젊은 남성 음성</option>
+                                <option value="male-narration">내레이션 남성 음성</option>
+                            </optgroup>
+                            <optgroup label="남성 음성 - 특수">
+                                <option value="male-powerful">파워풀한 남성 음성</option>
+                                <option value="male-documentary">다큐멘터리 남성 음성</option>
+                            </optgroup>
+                            <optgroup label="특수 음성">
+                                <option value="child-friendly">아동용 친근한 음성</option>
+                                <option value="elderly-wise">어르신 지혜로운 음성</option>
+                                <option value="robot-ai">AI 로봇 음성</option>
+                                <option value="asmr-relaxing">ASMR 힐링 음성</option>
+                            </optgroup>
+                        </select>
+                        <div class="voice-sample" id="voice-sample">
+                            <!-- 음성 샘플이 여기에 동적으로 추가됩니다 -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>음성 속도</label>
+                        <div class="slider-group">
+                            <input type="range" id="voice-speed" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSliderValue('voice-speed'); autoSaveSettings();">
+                            <span class="slider-value" id="voice-speed-value">1.0x</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>음성 톤</label>
+                        <div class="slider-group">
+                            <input type="range" id="voice-pitch" min="-10" max="10" step="1" value="0" oninput="updateSliderValue('voice-pitch'); autoSaveSettings();">
+                            <span class="slider-value" id="voice-pitch-value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">✍️ 자막 설정</div>
+                    <div class="form-group">
+                        <label>폰트</label>
+                        <select id="font-select" onchange="autoSaveSettings();">
+                            <option value="NanumGothic">나눔고딕</option>
+                            <option value="NanumGothicBold">나눔고딕 Bold</option>
+                            <option value="NanumMyeongjo">나눔명조</option>
+                            <option value="NotoSansKR">Noto Sans KR</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>자막 크기</label>
+                        <div class="slider-group">
+                            <input type="range" id="subtitle-size" min="40" max="120" value="75" oninput="updateSliderValue('subtitle-size'); autoSaveSettings();">
+                            <span class="slider-value" id="subtitle-size-value">75px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>자막 위치 (하단으로부터)</label>
+                        <div class="slider-group">
+                            <input type="range" id="subtitle-position" min="100" max="800" value="400" oninput="updateSliderValue('subtitle-position'); autoSaveSettings();">
+                            <span class="slider-value" id="subtitle-position-value">400px</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>테두리 두께</label>
+                        <div class="slider-group">
+                            <input type="range" id="subtitle-border" min="0" max="10" value="6" oninput="updateSliderValue('subtitle-border'); autoSaveSettings();">
+                            <span class="slider-value" id="subtitle-border-value">6px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📝 프롬프트 설정</div>
+                    <div class="form-group">
+                        <label>AI 스크립트 생성 프롬프트</label>
+                        <textarea id="script-prompt" rows="6" onchange="autoSaveSettings();">블로그 내용을 바탕으로 30초 분량의 매력적인 쇼츠 스크립트를 작성해주세요.
+- 5개의 장면으로 구성
+- 각 장면은 6초 분량
+- 친근하고 매력적인 톤
+- 핵심 정보를 명확하게 전달
+- 마지막에 행동 유도 문구 포함</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>영상 제목 (선택사항)</label>
+                        <input type="text" id="video-title" placeholder="예: 놀라운 제품 리뷰" onchange="autoSaveSettings();">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="nextTab('character')" style="width: 100%; margin-top: 20px;">
+                    다음: 캐릭터 선택 →
+                </button>
+            </div>
+
+            <!-- 탭 2: 캐릭터 선택 -->
+            <div id="tab-character" class="tab-content">
+                <div class="section">
+                    <div class="section-title">👥 캐릭터 선택 (10가지)</div>
+                    <div class="character-grid" id="character-grid">
+                        <!-- 캐릭터들이 동적으로 추가됩니다 -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🎨 영상 스타일</div>
+                    <div class="mode-selector">
+                        <div class="mode-option" onclick="selectMode('character')" id="mode-character">
+                            <div class="mode-icon">👤</div>
+                            <div><strong>캐릭터만</strong></div>
+                            <div style="font-size: 0.9rem; color: #666;">AI 생성 캐릭터</div>
+                        </div>
+                        <div class="mode-option selected" onclick="selectMode('hybrid')" id="mode-hybrid">
+                            <div class="mode-icon">🎭</div>
+                            <div><strong>캐릭터 + 실사</strong></div>
+                            <div style="font-size: 0.9rem; color: #666;">혼합 스타일</div>
+                        </div>
+                        <div class="mode-option" onclick="selectMode('realistic')" id="mode-realistic">
+                            <div class="mode-icon">📸</div>
+                            <div><strong>실사만</strong></div>
+                            <div style="font-size: 0.9rem; color: #666;">블로그 이미지</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="nextTab('create')" style="width: 100%; margin-top: 20px;">
+                    다음: 쇼츠 생성 →
+                </button>
+            </div>
+
+            <!-- 탭 3: 쇼츠 생성 -->
+            <div id="tab-create" class="tab-content">
+                <div class="section">
+                    <div class="section-title">🔄 생성 모드</div>
+                    <div class="mode-selector">
+                        <div class="mode-option selected" onclick="selectGenerationMode('auto')" id="gen-mode-auto">
+                            <div class="mode-icon">🤖</div>
+                            <div><strong>자동 생성</strong></div>
+                            <div style="font-size: 0.9rem; color: #666;">AI가 자동으로</div>
+                        </div>
+                        <div class="mode-option" onclick="selectGenerationMode('manual')" id="gen-mode-manual">
+                            <div class="mode-icon">✋</div>
+                            <div><strong>수동 생성</strong></div>
+                            <div style="font-size: 0.9rem; color: #666;">직접 선택</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🔗 블로그/기사 URL</div>
+                    <div class="form-group">
+                        <input type="text" id="blog-url" placeholder="예: https://blog.naver.com/..." value="https://blog.naver.com/alphahome/224106828152">
+                    </div>
+                    <button class="btn btn-secondary" onclick="crawlBlog()">📥 크롤링 시작</button>
+                </div>
+
+                <div class="section" id="script-preview-section" style="display: none;">
+                    <div class="section-title">📋 스크립트 미리보기</div>
+                    <div class="script-preview" id="script-preview">
+                        <!-- 스크립트와 이미지가 여기에 표시됩니다 -->
+                    </div>
+                    <button class="btn btn-primary" onclick="generateScenes()" style="margin-top: 15px;">
+                        ✅ 선택한 장면으로 영상 생성
+                    </button>
+                </div>
+
+                <div class="progress-section" id="progress-section">
+                    <h3 style="margin-bottom: 15px;">⏳ 생성 진행 중...</h3>
+                    <div id="progress-message">준비 중...</div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="progress-bar">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 4: 결과 -->
+            <div id="tab-result" class="tab-content">
+                <div class="section">
+                    <div class="section-title">🎉 생성 완료!</div>
+                    <div class="video-result" id="video-result">
+                        <p>영상이 생성되면 여기에 표시됩니다.</p>
+                    </div>
+                </div>
+
+                <div class="section" id="youtube-section" style="display: none;">
+                    <div class="section-title">📺 유튜브 업로드 정보</div>
+                    <div class="youtube-metadata">
+                        <div class="form-group">
+                            <label>제목</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="yt-title" readonly style="flex: 1;">
+                                <button class="copy-btn" onclick="copyToClipboard('yt-title')">📋 복사</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>설명</label>
+                            <div style="display: flex; gap: 10px;">
+                                <textarea id="yt-description" readonly rows="6" style="flex: 1;"></textarea>
+                                <button class="copy-btn" onclick="copyToClipboard('yt-description')">📋 복사</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>키워드</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="yt-tags" readonly style="flex: 1;">
+                                <button class="copy-btn" onclick="copyToClipboard('yt-tags')">📋 복사</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="resetAll()" style="width: 100%; margin-top: 20px;">
+                    🔄 새로운 쇼츠 만들기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 상태
+        const state = {
+            settings: {
+                bgm: [],
+                backgrounds: [],
+                voice: 'female-friendly',
+                voiceSpeed: 1.0,
+                voicePitch: 0,
+                font: 'NanumGothicBold',
+                subtitleSize: 75,
+                subtitlePosition: 400,
+                subtitleBorder: 6,
+                prompt: '',
+                videoTitle: ''
+            },
+            character: null,
+            videoMode: 'hybrid',
+            generationMode: 'auto',
+            blogUrl: '',
+            crawledData: null,
+            scripts: [],
+            selectedScenes: [],
+            finalVideo: null
+        };
+
+        // 자동 저장 디바운스 타이머
+        let autoSaveTimer = null;
+
+        // LocalStorage 키
+        const STORAGE_KEY = 'ai_shorts_settings';
+
+        // 음성 샘플 텍스트 매핑 (16가지 음성)
+        const voiceSamples = {
+            // 여성 음성 - 일반
+            'female-friendly': '안녕하세요! 저는 친근한 여성 음성이에요. 이 음성으로 쇼츠를 만들어드릴게요!',
+            'female-energetic': '안녕! 나는 발랄한 여성 음성이야! 재미있고 활기찬 쇼츠를 만들어줄게!',
+            'female-professional': '안녕하십니까. 전문적인 여성 음성입니다. 신뢰감 있는 내용을 전달하겠습니다.',
+            'female-soft': '안녕하세요... 부드러운 여성 음성이에요. 편안하게 들려드릴게요.',
+            'female-mature': '안녕하세요. 성숙한 여성 음성입니다. 깊이 있는 내용을 전달해드립니다.',
+            'female-young': '안녕하세용! 귀여운 여성 음성이에용! 즐거운 쇼츠를 만들어요!',
+            
+            // 여성 음성 - 특수
+            'female-news': '안녕하십니까. 뉴스 앵커 여성 음성입니다. 명확하고 권위 있게 전달하겠습니다.',
+            'female-drama': '안녕하세요! 드라마틱한 여성 음성이에요! 감동적인 이야기를 들려드릴게요!',
+            'female-whisper': '안녕하세요... 속삭이는 여성 음성이에요... 편안하고 조용하게 전달할게요...',
+            
+            // 남성 음성 - 일반
+            'male-professional': '안녕하십니까. 전문적인 남성 음성입니다. 신뢰감 있는 내레이션을 제공합니다.',
+            'male-calm': '안녕하세요. 차분한 남성 음성입니다. 편안하고 안정적인 분위기를 만들어드립니다.',
+            'male-energetic': '안녕하세요! 활기찬 남성 음성입니다! 에너지 넘치는 쇼츠를 만들어드리겠습니다!',
+            'male-deep': '안녕하십니까. 중저음 남성 음성입니다. 깊이 있고 묵직한 느낌을 전달합니다.',
+            'male-young': '안녕하세요! 젊은 남성 음성입니다! 트렌디하고 활발한 내용을 전달해요!',
+            'male-narration': '안녕하십니까. 내레이션 전문 남성 음성입니다. 명확하고 정확한 전달을 약속드립니다.',
+            
+            // 남성 음성 - 특수
+            'male-powerful': '안녕하십니까! 파워풀한 남성 음성입니다! 강렬하고 힘있게 전달하겠습니다!',
+            'male-documentary': '안녕하십니까. 다큐멘터리 남성 음성입니다. 깊이 있고 지적인 내용을 전달합니다.',
+            
+            // 특수 음성
+            'child-friendly': '안녕! 친근한 아동용 음성이야! 재미있게 놀면서 배워보자!',
+            'elderly-wise': '안녕하시오. 어르신의 지혜로운 음성이오. 경험에서 우러나온 말씀을 전하겠소.',
+            'robot-ai': '안녕하세요. 저는 AI 로봇 음성입니다. 정확하고 논리적인 정보를 전달합니다.',
+            'asmr-relaxing': '안녕하세요... 편안한 ASMR 힐링 음성이에요... 차분하고 평온하게 들려드릴게요...'
+        };
+
+        // 초기화
+        window.onload = function() {
+            loadCharacters();
+            loadVoiceSamples();
+            loadSavedSettings();
+        };
+
+        // 저장된 설정 불러오기
+        function loadSavedSettings() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const savedSettings = JSON.parse(saved);
+                    
+                    // 설정값 복원
+                    if (savedSettings.voice) {
+                        document.getElementById('voice-type').value = savedSettings.voice;
+                        state.settings.voice = savedSettings.voice;
+                    }
+                    
+                    if (savedSettings.voiceSpeed) {
+                        document.getElementById('voice-speed').value = savedSettings.voiceSpeed;
+                        updateSliderValue('voice-speed');
+                    }
+                    
+                    if (savedSettings.voicePitch !== undefined) {
+                        document.getElementById('voice-pitch').value = savedSettings.voicePitch;
+                        updateSliderValue('voice-pitch');
+                    }
+                    
+                    if (savedSettings.font) {
+                        document.getElementById('font-select').value = savedSettings.font;
+                        state.settings.font = savedSettings.font;
+                    }
+                    
+                    if (savedSettings.subtitleSize) {
+                        document.getElementById('subtitle-size').value = savedSettings.subtitleSize;
+                        updateSliderValue('subtitle-size');
+                    }
+                    
+                    if (savedSettings.subtitlePosition) {
+                        document.getElementById('subtitle-position').value = savedSettings.subtitlePosition;
+                        updateSliderValue('subtitle-position');
+                    }
+                    
+                    if (savedSettings.subtitleBorder !== undefined) {
+                        document.getElementById('subtitle-border').value = savedSettings.subtitleBorder;
+                        updateSliderValue('subtitle-border');
+                    }
+                    
+                    if (savedSettings.prompt) {
+                        document.getElementById('script-prompt').value = savedSettings.prompt;
+                    }
+                    
+                    if (savedSettings.videoTitle) {
+                        document.getElementById('video-title').value = savedSettings.videoTitle;
+                    }
+                    
+                    console.log('✅ 저장된 설정을 불러왔습니다.');
+                    showAutoSaveIndicator('saved');
+                }
+            } catch (error) {
+                console.error('설정 불러오기 실패:', error);
+            }
+        }
+
+        // 자동 저장 함수
+        function autoSaveSettings() {
+            // 디바운싱 (500ms 후 저장)
+            clearTimeout(autoSaveTimer);
+            
+            showAutoSaveIndicator('saving');
+            
+            autoSaveTimer = setTimeout(() => {
+                try {
+                    // 현재 설정값 수집
+                    const settings = {
+                        voice: document.getElementById('voice-type').value,
+                        voiceSpeed: parseFloat(document.getElementById('voice-speed').value),
+                        voicePitch: parseInt(document.getElementById('voice-pitch').value),
+                        font: document.getElementById('font-select').value,
+                        subtitleSize: parseInt(document.getElementById('subtitle-size').value),
+                        subtitlePosition: parseInt(document.getElementById('subtitle-position').value),
+                        subtitleBorder: parseInt(document.getElementById('subtitle-border').value),
+                        prompt: document.getElementById('script-prompt').value,
+                        videoTitle: document.getElementById('video-title').value,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // LocalStorage에 저장
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+                    
+                    // state 업데이트
+                    state.settings = { ...state.settings, ...settings };
+                    
+                    console.log('💾 설정이 자동 저장되었습니다.');
+                    showAutoSaveIndicator('saved');
+                    
+                } catch (error) {
+                    console.error('자동 저장 실패:', error);
+                }
+            }, 500);
+        }
+
+        // 자동 저장 표시기
+        function showAutoSaveIndicator(status) {
+            const indicator = document.getElementById('autoSaveIndicator');
+            
+            if (status === 'saving') {
+                indicator.textContent = '💾 저장 중...';
+                indicator.className = 'auto-save-indicator saving';
+            } else if (status === 'saved') {
+                indicator.textContent = '✅ 저장됨';
+                indicator.className = 'auto-save-indicator saved';
+                
+                // 3초 후 자동으로 숨김
+                setTimeout(() => {
+                    indicator.style.opacity = '0';
+                }, 3000);
+            }
+        }
+
+        // 10가지 캐릭터 데이터
+        const characters = [
+            { id: 'sophia', name: '소피아', emoji: '👩‍💼', desc: '친근한 쇼핑 도우미', voice: 'female-friendly' },
+            { id: 'james', name: '제임스', emoji: '👨‍💼', desc: '전문 비즈니스 전문가', voice: 'male-professional' },
+            { id: 'mina', name: '미나', emoji: '👧', desc: '발랄한 인플루언서', voice: 'female-energetic' },
+            { id: 'david', name: '데이빗', emoji: '🧑‍🏫', desc: '차분한 교육자', voice: 'male-calm' },
+            { id: 'lisa', name: '리사', emoji: '👩‍🎨', desc: '창의적인 아티스트', voice: 'female-soft' },
+            { id: 'kevin', name: '케빈', emoji: '👨‍💻', desc: '기술 전문가', voice: 'male-young' },
+            { id: 'yuna', name: '유나', emoji: '👩‍🍳', desc: '요리 전문가', voice: 'female-mature' },
+            { id: 'alex', name: '알렉스', emoji: '👨‍🎤', desc: '엔터테이너', voice: 'male-energetic' },
+            { id: 'emma', name: '엠마', emoji: '👩‍⚕️', desc: '건강 전문가', voice: 'female-professional' },
+            { id: 'mike', name: '마이크', emoji: '👨‍✈️', desc: '여행 가이드', voice: 'male-narration' }
+        ];
+
+        // 캐릭터 로드
+        function loadCharacters() {
+            const grid = document.getElementById('character-grid');
+            grid.innerHTML = characters.map(char => `
+                <div class="character-card" onclick="selectCharacter('${char.id}')">
+                    <div class="character-avatar">${char.emoji}</div>
+                    <div class="character-name">${char.name}</div>
+                    <div style="font-size: 0.85rem; color: #666;">${char.desc}</div>
+                </div>
+            `).join('');
+        }
+
+        // 캐릭터 선택
+        function selectCharacter(id) {
+            state.character = id;
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // 선택한 캐릭터의 음성으로 자동 변경
+            const character = characters.find(c => c.id === id);
+            if (character && character.voice) {
+                document.getElementById('voice-type').value = character.voice;
+                loadVoiceSamples();
+                autoSaveSettings();
+            }
+        }
+
+        // 파일 업로드 처리
+        function handleFileUpload(event, type) {
+            const files = Array.from(event.target.files);
+            const listId = type === 'bgm' ? 'bgm-list' : 'bg-list';
+            const list = document.getElementById(listId);
+            
+            files.forEach(file => {
+                if (type === 'bgm') {
+                    state.settings.bgm.push(file);
+                } else {
+                    state.settings.backgrounds.push(file);
+                }
+                
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span>${file.name}</span>
+                    <button onclick="removeFile('${type}', '${file.name}')">삭제</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // 파일 삭제
+        function removeFile(type, filename) {
+            if (type === 'bgm') {
+                state.settings.bgm = state.settings.bgm.filter(f => f.name !== filename);
+                document.getElementById('bgm-list').innerHTML = '';
+                state.settings.bgm.forEach(f => handleFileUpload({target: {files: [f]}}, 'bgm'));
+            } else {
+                state.settings.backgrounds = state.settings.backgrounds.filter(f => f.name !== filename);
+                document.getElementById('bg-list').innerHTML = '';
+                state.settings.backgrounds.forEach(f => handleFileUpload({target: {files: [f]}}, 'bg'));
+            }
+        }
+
+        // 음성 샘플 로드
+        function loadVoiceSamples() {
+            const voiceType = document.getElementById('voice-type').value;
+            const sampleDiv = document.getElementById('voice-sample');
+            const sampleText = voiceSamples[voiceType] || voiceSamples['female-friendly'];
+            
+            sampleDiv.innerHTML = `
+                <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">샘플 텍스트:</div>
+                        <div style="font-size: 0.95rem; color: #333;">"${sampleText}"</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="playVoiceSample()" style="padding: 10px 20px; white-space: nowrap;" id="play-sample-btn">
+                        ▶️ 미리듣기
+                    </button>
+                </div>
+                <audio id="voice-sample-audio" style="display: none;"></audio>
+            `;
+        }
+
+        async function playVoiceSample() {
+            const voiceType = document.getElementById('voice-type').value;
+            const audioElement = document.getElementById('voice-sample-audio');
+            const playBtn = document.getElementById('play-sample-btn');
+            
+            try {
+                playBtn.disabled = true;
+                playBtn.textContent = '⏳ 로딩 중...';
+                
+                // API에서 음성 샘플 가져오기
+                const sampleUrl = `/api/advanced/voice/sample/${voiceType}`;
+                
+                audioElement.src = sampleUrl;
+                audioElement.load();
+                
+                await audioElement.play();
+                
+                playBtn.textContent = '🔊 재생 중...';
+                
+                audioElement.onended = () => {
+                    playBtn.textContent = '▶️ 미리듣기';
+                    playBtn.disabled = false;
+                };
+                
+            } catch (error) {
+                console.error('Voice sample playback error:', error);
+                alert('음성 샘플을 재생할 수 없습니다. 잠시 후 다시 시도해주세요.');
+                playBtn.textContent = '▶️ 미리듣기';
+                playBtn.disabled = false;
+            }
+        }
+
+        // 슬라이더 값 업데이트
+        function updateSliderValue(id) {
+            const slider = document.getElementById(id);
+            const valueSpan = document.getElementById(id + '-value');
+            
+            if (id === 'voice-speed') {
+                valueSpan.textContent = parseFloat(slider.value).toFixed(1) + 'x';
+            } else if (id === 'voice-pitch') {
+                const value = parseInt(slider.value);
+                valueSpan.textContent = value > 0 ? `+${value}` : value.toString();
+            } else {
+                valueSpan.textContent = slider.value + 'px';
+            }
+        }
+
+        // 모드 선택
+        function selectMode(mode) {
+            state.videoMode = mode;
+            document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('selected'));
+            document.getElementById('mode-' + mode).classList.add('selected');
+        }
+
+        function selectGenerationMode(mode) {
+            state.generationMode = mode;
+            document.querySelectorAll('#gen-mode-auto, #gen-mode-manual').forEach(opt => opt.classList.remove('selected'));
+            document.getElementById('gen-mode-' + mode).classList.add('selected');
+        }
+
+        // 탭 전환
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        function nextTab(tabName) {
+            switchTab(tabName);
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        }
+
+        // 블로그 크롤링
+        async function crawlBlog() {
+            const url = document.getElementById('blog-url').value;
+            if (!url) {
+                alert('블로그 URL을 입력해주세요.');
+                return;
+            }
+
+            updateProgress('블로그 크롤링 중...', 10);
+            document.getElementById('progress-section').classList.add('active');
+
+            try {
+                const response = await fetch('/api/crawler/crawl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                state.crawledData = data.data || data;
+
+                updateProgress('AI 스크립트 생성 중...', 30);
+                await generateScript();
+
+            } catch (error) {
+                alert('크롤링 중 오류가 발생했습니다: ' + error.message);
+                document.getElementById('progress-section').classList.remove('active');
+            }
+        }
+
+        // 스크립트 생성
+        async function generateScript() {
+            try {
+                const response = await fetch('/api/advanced/generate-script', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: state.crawledData,
+                        prompt: state.settings.prompt || document.getElementById('script-prompt').value,
+                        character: state.character,
+                        mode: state.videoMode
+                    })
+                });
+
+                const data = await response.json();
+                state.scripts = data.scenes;
+
+                displayScriptPreview();
+                updateProgress('스크립트 생성 완료!', 50);
+
+            } catch (error) {
+                alert('스크립트 생성 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // 스크립트 미리보기 표시
+        function displayScriptPreview() {
+            const preview = document.getElementById('script-preview');
+            preview.innerHTML = state.scripts.map((scene, index) => `
+                <div class="scene-item" onclick="toggleScene(${index})">
+                    <img class="scene-image" src="${scene.image || '/placeholder.jpg'}" alt="Scene ${index + 1}">
+                    <div class="scene-content">
+                        <h4>장면 ${index + 1}</h4>
+                        <p>${scene.text}</p>
+                        <small>예상 시간: ${scene.duration || 6}초</small>
+                    </div>
+                    <div class="scene-checkbox">
+                        <input type="checkbox" checked>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('script-preview-section').style.display = 'block';
+            state.selectedScenes = state.scripts.map((_, i) => i);
+        }
+
+        // 장면 선택 토글
+        function toggleScene(index) {
+            const checkbox = event.currentTarget.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                if (!state.selectedScenes.includes(index)) {
+                    state.selectedScenes.push(index);
+                }
+            } else {
+                state.selectedScenes = state.selectedScenes.filter(i => i !== index);
+            }
+
+            event.currentTarget.classList.toggle('selected', checkbox.checked);
+        }
+
+        // 장면 생성
+        async function generateScenes() {
+            if (state.selectedScenes.length === 0) {
+                alert('최소 1개 이상의 장면을 선택해주세요.');
+                return;
+            }
+
+            updateProgress('비디오 장면 생성 중... (Minimax Hailuo 2.3)', 60);
+
+            try {
+                const response = await fetch('/api/advanced/generate-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        scenes: state.selectedScenes.map(i => state.scripts[i]),
+                        settings: state.settings,
+                        character: state.character,
+                        mode: state.videoMode
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    updateProgress('최종 렌더링 중... (FFmpeg)', 90);
+                    await checkVideoStatus(data.jobId);
+                } else {
+                    throw new Error(data.error || '비디오 생성 실패');
+                }
+
+            } catch (error) {
+                alert('비디오 생성 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // 비디오 상태 확인
+        async function checkVideoStatus(jobId) {
+            const maxAttempts = 60;
+            let attempts = 0;
+
+            const interval = setInterval(async () => {
+                attempts++;
+
+                try {
+                    const response = await fetch(`/api/advanced/status/${jobId}`);
+                    const data = await response.json();
+
+                    if (data.status === 'completed') {
+                        clearInterval(interval);
+                        updateProgress('완료!', 100);
+                        showResult(data);
+                    } else if (data.status === 'failed') {
+                        clearInterval(interval);
+                        throw new Error(data.error || '생성 실패');
+                    }
+
+                    if (attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        throw new Error('타임아웃');
+                    }
+
+                } catch (error) {
+                    clearInterval(interval);
+                    alert('상태 확인 중 오류: ' + error.message);
+                }
+            }, 5000);
+        }
+
+        // 결과 표시
+        function showResult(data) {
+            state.finalVideo = data;
+            
+            const videoResult = document.getElementById('video-result');
+            videoResult.innerHTML = `
+                <video controls autoplay>
+                    <source src="${data.videoUrl}" type="video/mp4">
+                </video>
+                <div style="margin-top: 15px;">
+                    <a href="${data.videoUrl}" class="btn btn-primary" download>⬇️ 다운로드</a>
+                </div>
+            `;
+
+            // 유튜브 메타데이터 표시
+            document.getElementById('yt-title').value = data.youtubeTitle || '';
+            document.getElementById('yt-description').value = data.youtubeDescription || '';
+            document.getElementById('yt-tags').value = data.youtubeTags || '';
+            document.getElementById('youtube-section').style.display = 'block';
+
+            nextTab('result');
+        }
+
+        // 진행 상태 업데이트
+        function updateProgress(message, percent) {
+            document.getElementById('progress-message').textContent = message;
+            const bar = document.getElementById('progress-bar');
+            bar.style.width = percent + '%';
+            bar.textContent = percent + '%';
+        }
+
+        // 클립보드 복사
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            document.execCommand('copy');
+            alert('복사되었습니다!');
+        }
+
+        // 초기화
+        function resetAll() {
+            if (confirm('모든 설정을 초기화하고 처음부터 시작하시겠습니까?')) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
