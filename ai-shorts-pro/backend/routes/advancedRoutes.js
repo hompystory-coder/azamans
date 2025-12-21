@@ -72,7 +72,7 @@ router.post('/upload-background', upload.array('background', 10), async (req, re
   }
 });
 
-// GET /api/advanced/voice/sample/:type - 음성 샘플 생성 (16가지 음성)
+// GET /api/advanced/voice/sample/:type - 음성 샘플 생성 (16가지 음성, 실제로 다른 음성)
 router.get('/voice/sample/:type', async (req, res) => {
   try {
     const { type } = req.params;
@@ -113,6 +113,40 @@ router.get('/voice/sample/:type', async (req, res) => {
       'asmr-relaxing': '안녕하세요... 편안한 ASMR 힐링 음성이에요... 차분하고 평온하게 들려드릴게요...'
     };
 
+    // 각 음성 타입별 FFmpeg 오디오 필터 설정 (pitch, tempo, reverb 등으로 차별화)
+    const voiceEffects = {
+      // 여성 음성 - 일반 (기본 음성보다 pitch 높게)
+      'female-friendly': 'asetrate=48000*1.15,aresample=48000,atempo=1.0', // 약간 높은 톤
+      'female-energetic': 'asetrate=48000*1.25,aresample=48000,atempo=1.15', // 높은 톤 + 빠른 속도
+      'female-professional': 'asetrate=48000*1.1,aresample=48000,atempo=0.95', // 약간 높은 톤 + 천천히
+      'female-soft': 'asetrate=48000*1.12,aresample=48000,volume=0.85,atempo=0.9', // 높은 톤 + 부드럽게 + 느리게
+      'female-mature': 'asetrate=48000*1.05,aresample=48000,atempo=0.92', // 약간 높은 톤 + 안정적으로
+      'female-young': 'asetrate=48000*1.3,aresample=48000,atempo=1.2', // 매우 높은 톤 + 빠르게
+      
+      // 여성 음성 - 특수
+      'female-news': 'asetrate=48000*1.08,aresample=48000,atempo=0.95,volume=1.1', // 명확하고 또렷하게
+      'female-drama': 'asetrate=48000*1.18,aresample=48000,atempo=1.05,aecho=0.8:0.9:100:0.3', // 높은 톤 + 에코
+      'female-whisper': 'asetrate=48000*1.15,aresample=48000,atempo=0.85,volume=0.7', // 높은 톤 + 조용히 + 느리게
+      
+      // 남성 음성 - 일반 (기본 음성보다 pitch 낮게)
+      'male-professional': 'asetrate=48000*0.92,aresample=48000,atempo=0.95', // 낮은 톤 + 안정적
+      'male-calm': 'asetrate=48000*0.9,aresample=48000,atempo=0.88,volume=0.9', // 낮은 톤 + 느리게 + 차분하게
+      'male-energetic': 'asetrate=48000*0.95,aresample=48000,atempo=1.12', // 약간 낮은 톤 + 빠르게
+      'male-deep': 'asetrate=48000*0.8,aresample=48000,atempo=0.9', // 매우 낮은 톤 + 천천히
+      'male-young': 'asetrate=48000*0.98,aresample=48000,atempo=1.08', // 약간 낮은 톤 + 빠르게
+      'male-narration': 'asetrate=48000*0.93,aresample=48000,atempo=0.93,volume=1.05', // 낮은 톤 + 명확하게
+      
+      // 남성 음성 - 특수
+      'male-powerful': 'asetrate=48000*0.88,aresample=48000,atempo=1.0,volume=1.15', // 낮은 톤 + 큰 볼륨
+      'male-documentary': 'asetrate=48000*0.91,aresample=48000,atempo=0.9,volume=1.0', // 낮은 톤 + 안정적
+      
+      // 특수 음성
+      'child-friendly': 'asetrate=48000*1.35,aresample=48000,atempo=1.18', // 매우 높은 톤 + 빠르게
+      'elderly-wise': 'asetrate=48000*0.85,aresample=48000,atempo=0.82,volume=0.88', // 매우 낮은 톤 + 매우 느리게
+      'robot-ai': 'asetrate=48000*1.0,aresample=48000,atempo=1.0,vibrato=f=5:d=0.3', // 기계적 떨림
+      'asmr-relaxing': 'asetrate=48000*1.1,aresample=48000,atempo=0.8,volume=0.75,aecho=0.8:0.9:200:0.2' // 높은 톤 + 매우 느리게 + 조용히 + 에코
+    };
+
     const text = sampleText[type] || sampleText['female-friendly'];
     const audioPath = path.join(AUDIO_DIR, `sample_${type}.mp3`);
 
@@ -123,7 +157,18 @@ router.get('/voice/sample/:type', async (req, res) => {
     } catch {
       // 없으면 생성
       console.log(`Generating voice sample for: ${type}`);
-      await execAsync(`gtts-cli "${text}" --lang ko --output "${audioPath}"`);
+      
+      // 1. 기본 TTS 생성
+      const tempBasePath = path.join(AUDIO_DIR, `temp_base_${type}.mp3`);
+      await execAsync(`gtts-cli "${text}" --lang ko --output "${tempBasePath}"`);
+      
+      // 2. FFmpeg로 음성 효과 적용
+      const effectFilter = voiceEffects[type] || voiceEffects['female-friendly'];
+      await execAsync(`ffmpeg -i "${tempBasePath}" -af "${effectFilter}" -y "${audioPath}"`);
+      
+      // 3. 임시 파일 삭제
+      await fs.unlink(tempBasePath).catch(() => {});
+      
       res.sendFile(audioPath);
     }
 
