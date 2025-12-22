@@ -216,9 +216,45 @@ class VideoRenderer {
    * 단어 기준으로 균등 분리
    */
   splitTextIntoTwoLines(text, maxCharsPerLine = 20) {
-    // 무조건 1줄로 표시 (음성 동기화 문제 해결)
-    console.log(`   ✅ 1줄 표시 강제: "${text}" (${text.length}자)`);
-    return [text];
+    // 자막: 무조건 1줄 (20-25자 권장)
+    // 제목: maxCharsPerLine 기준으로 2줄 허용
+    
+    // 텍스트가 짧으면 1줄로 반환
+    if (text.length <= maxCharsPerLine) {
+      console.log(`   ✅ 1줄 표시: "${text}" (${text.length}자)`);
+      return [text];
+    }
+    
+    // 공백으로 단어 분리
+    const words = text.split(' ');
+    if (words.length === 1) {
+      // 단어가 하나면 그대로 1줄로
+      console.log(`   ✅ 1줄 표시 (단일 단어): "${text}" (${text.length}자)`);
+      return [text];
+    }
+    
+    // 중간 지점 찾기 (균등 분배)
+    let firstLine = '';
+    let secondLine = '';
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const testLine = firstLine ? firstLine + ' ' + word : word;
+      
+      if (testLine.length <= maxCharsPerLine || firstLine === '') {
+        firstLine = testLine;
+      } else {
+        secondLine += (secondLine ? ' ' : '') + word;
+      }
+    }
+    
+    if (secondLine) {
+      console.log(`   ✅ 2줄 분리:\n      1줄: "${firstLine}" (${firstLine.length}자)\n      2줄: "${secondLine}" (${secondLine.length}자)`);
+      return [firstLine, secondLine];
+    }
+    
+    console.log(`   ✅ 1줄 표시: "${firstLine}" (${firstLine.length}자)`);
+    return [firstLine];
   }
 
   /**
@@ -257,9 +293,9 @@ class VideoRenderer {
     const fontPath = this.getFontPath(fontFamily);
     console.log(`   폰트 경로: ${fontPath}`);
 
-    // 자막: 1줄 우선, 너무 길면 2줄로 분리 (37.5자까지 1줄)
-    const lines = this.splitTextIntoTwoLines(text, 25);
-    console.log(`   분리된 줄: ${lines.length}줄`, lines);
+    // 자막: 무조건 1줄 표시 (음성 동기화 최적화)
+    const lines = [text];  // 강제로 1줄
+    console.log(`   자막 1줄 표시: "${text}" (${text.length}자)`);
 
     // 각 줄을 이스케이프
     const escapedLines = lines.map(line => 
