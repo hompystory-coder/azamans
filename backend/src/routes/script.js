@@ -12,7 +12,7 @@ router.post('/generate', async (req, res) => {
       content, 
       images, 
       prompt,
-      sceneCount = 5,
+      sceneCount = 12,  // 30초 이상 영상을 위해 12개 장면으로 증가 (평균 2.5초 × 12 = 30초)
       geminiApiKey 
     } = req.body;
     
@@ -179,9 +179,18 @@ router.post('/generate', async (req, res) => {
       sceneNumber: index + 1,
       narration: sentence,
       imageDescription: `장면 ${index + 1}`,
-      // 문장 길이에 따른 duration 계산 (10-15자 기준 2-4초)
-      duration: Math.min(Math.max(Math.ceil(sentence.length / 5), 2), 5)
+      // 문장 길이에 따른 duration 계산 (10-15자 기준 2.5-3.5초)
+      duration: Math.min(Math.max(Math.ceil(sentence.length / 4), 2.5), 4)
     }));
+    
+    // 총 영상 길이 계산
+    const totalDuration = scenes.reduce((sum, scene) => sum + scene.duration, 0);
+    console.log(`⏱️  총 영상 길이: ${totalDuration.toFixed(1)}초 (목표: 30초 이상)`);
+    
+    // 30초 미만이면 경고
+    if (totalDuration < 30) {
+      console.log(`⚠️  영상이 ${30 - totalDuration.toFixed(1)}초 부족합니다. 장면을 더 추가하거나 duration을 늘리세요.`);
+    }
     
     // 제목 생성: 원본 제목을 최대 12자로 축약 (자막과 조화)
     let shortTitle = title || '유튜브 쇼츠';
@@ -194,10 +203,11 @@ router.post('/generate', async (req, res) => {
       title: shortTitle,
       description: selectedSentences[0] || '',
       keywords: [],
-      scenes: scenes
+      scenes: scenes,
+      totalDuration: parseFloat(totalDuration.toFixed(1))  // 총 길이 정보 추가
     });
     
-    console.log(`✅ 템플릿 기반 스크립트 생성 완료: ${scenes.length}개 장면`);
+    console.log(`✅ 템플릿 기반 스크립트 생성 완료: ${scenes.length}개 장면, 총 ${totalDuration.toFixed(1)}초`);
     
     // JSON 추출 (```json ... ``` 형식 처리) 또는 순수 텍스트 처리
     let scriptData;
