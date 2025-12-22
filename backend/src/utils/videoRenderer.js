@@ -210,6 +210,56 @@ class VideoRenderer {
   }
 
   /**
+   * 긴 텍스트를 2줄로 자동 분리 (중앙 정렬용)
+   * 단어 기준으로 균등 분리
+   */
+  splitTextIntoTwoLines(text, maxCharsPerLine = 20) {
+    // 텍스트 길이가 짧으면 그대로 반환
+    if (text.length <= maxCharsPerLine) {
+      return [text];
+    }
+    
+    // 공백으로 단어 분리
+    const words = text.split(' ');
+    if (words.length === 1) {
+      // 단어가 하나면 중간에서 자르기
+      const mid = Math.ceil(text.length / 2);
+      return [text.substring(0, mid), text.substring(mid)];
+    }
+    
+    // 중간 지점 찾기
+    const totalLength = text.length;
+    const targetLength = totalLength / 2;
+    
+    let firstLine = '';
+    let secondLine = '';
+    let currentLength = 0;
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const wordWithSpace = (i > 0 ? ' ' : '') + word;
+      
+      if (currentLength + wordWithSpace.length <= targetLength || firstLine === '') {
+        firstLine += wordWithSpace;
+        currentLength += wordWithSpace.length;
+      } else {
+        secondLine += (secondLine ? ' ' : '') + word;
+      }
+    }
+    
+    // 두 줄이 너무 불균형하면 조정
+    if (secondLine && Math.abs(firstLine.length - secondLine.length) > maxCharsPerLine / 2) {
+      // 다시 균등 분배
+      const allWords = text.split(' ');
+      const midPoint = Math.ceil(allWords.length / 2);
+      firstLine = allWords.slice(0, midPoint).join(' ');
+      secondLine = allWords.slice(midPoint).join(' ');
+    }
+    
+    return secondLine ? [firstLine, secondLine] : [firstLine];
+  }
+
+  /**
    * 자막 텍스트를 FFmpeg 필터 형식으로 변환
    * 2줄 중앙 정렬, 그림자 효과, 테두리 지원
    */
@@ -241,35 +291,48 @@ class VideoRenderer {
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, fontColor=${finalFontColor}, yOffset=${yOffset}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
 
-    // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
-    const escapedText = text
-      .replace(/\\/g, '\\\\')
-      .replace(/'/g, "\\'")
-      .replace(/:/g, '\\:');
-
-    console.log(`   이스케이프 후: "${escapedText}"`);
-
     // 폰트 파일 경로 가져오기
     const fontPath = this.getFontPath(fontFamily);
     console.log(`   폰트 경로: ${fontPath}`);
 
-    // FFmpeg drawtext 필터
-    const filter = `drawtext=` +
-      `text='${escapedText}':` +
-      `fontfile=${fontPath}:` +
-      `fontsize=${fontSize}:` +
-      `fontcolor=${finalFontColor}:` +
-      `x=(w-text_w)/2:` +
-      `y=h-${yOffset}:` +
-      `line_spacing=10:` +
-      `text_align=C:` +
-      `borderw=${finalBorderWidth}:` +
-      `bordercolor=${finalBorderColor}:` +
-      `shadowx=${shadowX}:` +
-      `shadowy=${shadowY}`;
+    // 텍스트를 2줄로 분리
+    const lines = this.splitTextIntoTwoLines(text, 20);
+    console.log(`   분리된 줄: ${lines.length}줄`, lines);
+
+    // 각 줄을 이스케이프
+    const escapedLines = lines.map(line => 
+      line
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/:/g, '\\:')
+    );
+
+    // 줄 간격 (픽셀)
+    const lineSpacing = fontSize * 1.2;
+
+    // 2줄인 경우 첫 번째 줄을 위로, 두 번째 줄을 아래로
+    const filters = escapedLines.map((escapedLine, index) => {
+      const yPos = lines.length === 1 
+        ? `h-${yOffset}` // 1줄이면 그대로
+        : `h-${yOffset + lineSpacing * (lines.length - 1 - index)}`; // 2줄이면 첫줄 위, 둘째줄 아래
+
+      return `drawtext=` +
+        `text='${escapedLine}':` +
+        `fontfile=${fontPath}:` +
+        `fontsize=${fontSize}:` +
+        `fontcolor=${finalFontColor}:` +
+        `x=(w-text_w)/2:` +
+        `y=${yPos}:` +
+        `text_align=C:` +
+        `borderw=${finalBorderWidth}:` +
+        `bordercolor=${finalBorderColor}:` +
+        `shadowx=${shadowX}:` +
+        `shadowy=${shadowY}`;
+    });
     
-    console.log(`   ✅ 최종 필터: ${filter.substring(0, 150)}...`);
-    return filter;
+    const finalFilter = filters.join(',');
+    console.log(`   ✅ 최종 필터 (${lines.length}줄): ${finalFilter.substring(0, 200)}...`);
+    return finalFilter;
   }
 
   /**
@@ -304,34 +367,48 @@ class VideoRenderer {
 
     console.log(`   설정: fontSize=${fontSize}, fontFamily=${fontFamily}, fontColor=${finalFontColor}, yPosition=${yPosition}, borderWidth=${finalBorderWidth}, borderColor=${finalBorderColor}`);
 
-    // 텍스트를 한 줄로 유지 (2줄 분리 안함 - "n" 글자 방지)
-    const escapedText = text
-      .replace(/\\/g, '\\\\')
-      .replace(/'/g, "\\'")
-      .replace(/:/g, '\\:');
-
-    console.log(`   이스케이프 후: "${escapedText}"`);
-
     // 폰트 파일 경로 가져오기
     const fontPath = this.getFontPath(fontFamily);
     console.log(`   폰트 경로: ${fontPath}`);
 
-    const filter = `drawtext=` +
-      `text='${escapedText}':` +
-      `fontfile=${fontPath}:` +
-      `fontsize=${fontSize}:` +
-      `fontcolor=${finalFontColor}:` +
-      `x=(w-text_w)/2:` +
-      `y=${yPosition}:` +
-      `line_spacing=10:` +
-      `text_align=C:` +
-      `borderw=${finalBorderWidth}:` +
-      `bordercolor=${finalBorderColor}:` +
-      `shadowx=${shadowX}:` +
-      `shadowy=${shadowY}`;
+    // 텍스트를 2줄로 분리
+    const lines = this.splitTextIntoTwoLines(text, 20);
+    console.log(`   분리된 줄: ${lines.length}줄`, lines);
+
+    // 각 줄을 이스케이프
+    const escapedLines = lines.map(line => 
+      line
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/:/g, '\\:')
+    );
+
+    // 줄 간격 (픽셀)
+    const lineSpacing = fontSize * 1.2;
+
+    // 2줄인 경우 첫 번째 줄을 위로, 두 번째 줄을 아래로
+    const filters = escapedLines.map((escapedLine, index) => {
+      const yPos = lines.length === 1 
+        ? yPosition // 1줄이면 그대로
+        : yPosition + (lineSpacing * index); // 2줄이면 첫줄 위, 둘째줄 아래
+
+      return `drawtext=` +
+        `text='${escapedLine}':` +
+        `fontfile=${fontPath}:` +
+        `fontsize=${fontSize}:` +
+        `fontcolor=${finalFontColor}:` +
+        `x=(w-text_w)/2:` +
+        `y=${yPos}:` +
+        `text_align=C:` +
+        `borderw=${finalBorderWidth}:` +
+        `bordercolor=${finalBorderColor}:` +
+        `shadowx=${shadowX}:` +
+        `shadowy=${shadowY}`;
+    });
     
-    console.log(`   ✅ 최종 필터: ${filter.substring(0, 150)}...`);
-    return filter;
+    const finalFilter = filters.join(',');
+    console.log(`   ✅ 최종 필터 (${lines.length}줄): ${finalFilter.substring(0, 200)}...`);
+    return finalFilter;
   }
 
   /**
