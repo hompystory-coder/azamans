@@ -1594,11 +1594,11 @@ export default function VideoPage() {
               새로 만들기
             </button>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/preview')}
               className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-colors flex items-center gap-2 shadow-lg"
             >
               <ArrowRight className="w-5 h-5" />
-              처음으로
+              다음: 프리뷰
             </button>
           </div>
         </motion.div>
