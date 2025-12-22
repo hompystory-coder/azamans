@@ -972,11 +972,18 @@
             const sampleDiv = document.getElementById('voice-sample');
             const sampleText = voiceSamples[voiceType] || voiceSamples['female-friendly'];
             
+            // 현재 설정값 가져오기
+            const voiceSpeed = document.getElementById('voice-speed') ? parseFloat(document.getElementById('voice-speed').value) : 1.0;
+            const voicePitch = document.getElementById('voice-pitch') ? parseInt(document.getElementById('voice-pitch').value) : 0;
+            
             sampleDiv.innerHTML = `
                 <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
                     <div style="flex: 1;">
                         <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">샘플 텍스트:</div>
                         <div style="font-size: 0.95rem; color: #333;">"${sampleText}"</div>
+                        <div style="font-size: 0.85rem; color: #999; margin-top: 8px;">
+                            ⚙️ 현재 설정: 속도 ${voiceSpeed.toFixed(1)}x, 톤 ${voicePitch > 0 ? '+' : ''}${voicePitch}
+                        </div>
                     </div>
                     <button class="btn btn-secondary" onclick="playVoiceSample()" style="padding: 10px 20px; white-space: nowrap;" id="play-sample-btn">
                         ▶️ 미리듣기
@@ -986,28 +993,63 @@
             `;
         }
 
+        // Web Audio API 컨텍스트 (전역)
+        let audioContext = null;
+        let currentSource = null;
+
         async function playVoiceSample() {
             const voiceType = document.getElementById('voice-type').value;
-            const audioElement = document.getElementById('voice-sample-audio');
             const playBtn = document.getElementById('play-sample-btn');
+            
+            // 사용자 설정값 가져오기
+            const voiceSpeed = parseFloat(document.getElementById('voice-speed').value);
+            const voicePitch = parseInt(document.getElementById('voice-pitch').value);
             
             try {
                 playBtn.disabled = true;
                 playBtn.textContent = '⏳ 로딩 중...';
                 
+                // 이전 재생 중지
+                if (currentSource) {
+                    currentSource.stop();
+                    currentSource = null;
+                }
+                
+                // Web Audio API 컨텍스트 생성 (한 번만)
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
                 // API에서 음성 샘플 가져오기
                 const sampleUrl = `/api/advanced/voice/sample/${voiceType}`;
+                const response = await fetch(sampleUrl);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 
-                audioElement.src = sampleUrl;
-                audioElement.load();
+                // AudioBufferSource 생성
+                currentSource = audioContext.createBufferSource();
+                currentSource.buffer = audioBuffer;
                 
-                await audioElement.play();
+                // 속도 설정 (playbackRate)
+                currentSource.playbackRate.value = voiceSpeed;
                 
-                playBtn.textContent = '🔊 재생 중...';
+                // Pitch 조절을 위한 detune 설정 (100 cents = 1 semitone)
+                // voicePitch: -10 ~ +10 → detune: -1000 ~ +1000 cents
+                currentSource.detune.value = voicePitch * 100;
                 
-                audioElement.onended = () => {
+                // 출력 연결
+                currentSource.connect(audioContext.destination);
+                
+                // 재생 시작
+                currentSource.start(0);
+                
+                playBtn.textContent = `🔊 재생 중... (속도: ${voiceSpeed.toFixed(1)}x, 톤: ${voicePitch > 0 ? '+' : ''}${voicePitch})`;
+                
+                // 재생 종료 처리
+                currentSource.onended = () => {
                     playBtn.textContent = '▶️ 미리듣기';
                     playBtn.disabled = false;
+                    currentSource = null;
                 };
                 
             } catch (error) {
@@ -1015,6 +1057,9 @@
                 alert('음성 샘플을 재생할 수 없습니다. 잠시 후 다시 시도해주세요.');
                 playBtn.textContent = '▶️ 미리듣기';
                 playBtn.disabled = false;
+                if (currentSource) {
+                    currentSource = null;
+                }
             }
         }
 
@@ -1030,6 +1075,11 @@
                 valueSpan.textContent = value > 0 ? `+${value}` : value.toString();
             } else {
                 valueSpan.textContent = slider.value + 'px';
+            }
+            
+            // 음성 속도나 톤이 변경되면 미리듣기 정보 업데이트
+            if (id === 'voice-speed' || id === 'voice-pitch') {
+                loadVoiceSamples();
             }
         }
 
