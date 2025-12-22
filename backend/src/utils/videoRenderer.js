@@ -323,9 +323,7 @@ class VideoRenderer {
         `y=${yPos}:` +
         `text_align=C:` +
         `borderw=${finalBorderWidth}:` +
-        `bordercolor=${finalBorderColor}:` +
-        `shadowx=${shadowX}:` +
-        `shadowy=${shadowY}`;
+        `bordercolor=${finalBorderColor}`;
     });
     
     const finalFilter = filters.join(',');
@@ -399,9 +397,7 @@ class VideoRenderer {
         `y=${yPos}:` +
         `text_align=C:` +
         `borderw=${finalBorderWidth}:` +
-        `bordercolor=${finalBorderColor}:` +
-        `shadowx=${shadowX}:` +
-        `shadowy=${shadowY}`;
+        `bordercolor=${finalBorderColor}`;
     });
     
     const finalFilter = filters.join(',');
