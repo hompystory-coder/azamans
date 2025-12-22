@@ -216,20 +216,27 @@ class VideoRenderer {
    * 단어 기준으로 균등 분리
    */
   splitTextIntoTwoLines(text, maxCharsPerLine = 20) {
-    // 텍스트 길이가 짧으면 그대로 반환
-    if (text.length <= maxCharsPerLine) {
+    // 1줄 최대 길이 (한글 기준 적절한 길이)
+    const singleLineMaxLength = maxCharsPerLine * 1.5; // 30자
+    
+    // 텍스트 길이가 1줄 최대 길이 이하면 그대로 반환 (1줄 우선)
+    if (text.length <= singleLineMaxLength) {
+      console.log(`   ✅ 1줄 표시 (${text.length}자 ≤ ${singleLineMaxLength}자): "${text}"`);
       return [text];
     }
+    
+    console.log(`   📏 텍스트가 길어서 2줄로 분리 (${text.length}자 > ${singleLineMaxLength}자)`);
     
     // 공백으로 단어 분리
     const words = text.split(' ');
     if (words.length === 1) {
       // 단어가 하나면 중간에서 자르기
       const mid = Math.ceil(text.length / 2);
+      console.log(`   ✂️ 단일 단어 중간 분리: "${text.substring(0, mid)}" / "${text.substring(mid)}"`);
       return [text.substring(0, mid), text.substring(mid)];
     }
     
-    // 중간 지점 찾기
+    // 중간 지점 찾기 (균등 분배)
     const totalLength = text.length;
     const targetLength = totalLength / 2;
     
@@ -256,8 +263,10 @@ class VideoRenderer {
       const midPoint = Math.ceil(allWords.length / 2);
       firstLine = allWords.slice(0, midPoint).join(' ');
       secondLine = allWords.slice(midPoint).join(' ');
+      console.log(`   ⚖️ 균형 재조정: 첫줄 ${firstLine.length}자, 둘째줄 ${secondLine.length}자`);
     }
     
+    console.log(`   ✅ 2줄 분리 완료:\n      1줄: "${firstLine}"\n      2줄: "${secondLine}"`);
     return secondLine ? [firstLine, secondLine] : [firstLine];
   }
 
@@ -297,8 +306,8 @@ class VideoRenderer {
     const fontPath = this.getFontPath(fontFamily);
     console.log(`   폰트 경로: ${fontPath}`);
 
-    // 텍스트를 2줄로 분리
-    const lines = this.splitTextIntoTwoLines(text, 20);
+    // 자막: 1줄 우선, 너무 길면 2줄로 분리 (37.5자까지 1줄)
+    const lines = this.splitTextIntoTwoLines(text, 25);
     console.log(`   분리된 줄: ${lines.length}줄`, lines);
 
     // 각 줄을 이스케이프
@@ -373,8 +382,8 @@ class VideoRenderer {
     const fontPath = this.getFontPath(fontFamily);
     console.log(`   폰트 경로: ${fontPath}`);
 
-    // 텍스트를 2줄로 분리
-    const lines = this.splitTextIntoTwoLines(text, 20);
+    // 제목: 1줄 우선 (20자까지 1줄, 최대 30자까지 허용)
+    const lines = this.splitTextIntoTwoLines(text, 15);
     console.log(`   분리된 줄: ${lines.length}줄`, lines);
 
     // 각 줄을 이스케이프

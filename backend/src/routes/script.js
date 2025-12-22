@@ -108,8 +108,15 @@ router.post('/generate', async (req, res) => {
       duration: Math.min(Math.max(Math.ceil(sentence.length / 15), 3), 6)
     }));
     
+    // 제목 생성: 원본 제목을 최대 20자로 축약 (1줄 표시 최적화)
+    let shortTitle = title || '유튜브 쇼츠';
+    if (shortTitle.length > 20) {
+      shortTitle = shortTitle.substring(0, 20) + '...';
+      console.log(`📝 제목 축약: "${title}" → "${shortTitle}"`);
+    }
+    
     const responseText = JSON.stringify({
-      title: title || '유튜브 쇼츠',
+      title: shortTitle,
       description: selectedSentences[0] || '',
       keywords: [],
       scenes: scenes
