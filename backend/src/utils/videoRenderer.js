@@ -61,8 +61,10 @@ class VideoRenderer {
         // 상대 경로를 절대 경로로 변환
         let sourcePath = url;
         if (url.startsWith('/outputs/')) {
-          // /outputs/ 경로는 /tmp/outputs/로 변환
-          sourcePath = path.join('/tmp', url);
+          // /outputs/ 경로는 환경 변수의 OUTPUT_DIR로 변환
+          const OUTPUT_BASE = process.env.OUTPUT_DIR || '/tmp/outputs';
+          sourcePath = path.join(OUTPUT_BASE, url.replace('/outputs/', ''));
+          console.log(`🔗 경로 변환: ${url} → ${sourcePath}`);
         } else if (!path.isAbsolute(url)) {
           sourcePath = path.resolve(url);
         }
