@@ -49,7 +49,7 @@ export default function ScriptPage() {
         title: crawledData.title,
         images: crawledData.images,
         geminiApiKey: settings.geminiApiKey,
-        sceneCount: 8,
+        sceneCount: 12,  // 30초 이상 영상을 위해 12개 장면으로 증가
         prompt: customPrompt // 커스텀 프롬프트 전달
       });
 
