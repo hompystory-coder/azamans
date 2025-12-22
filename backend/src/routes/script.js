@@ -80,27 +80,96 @@ router.post('/generate', async (req, res) => {
     
     // 템플릿 기반 스크립트 생성 (Gemini API 대체)
     console.log(`📝 템플릿 기반 스크립트 생성 시작...`);
+    console.log(`   목표: 15-20자의 자연스러운 문장 생성`);
     
-    // 콘텐츠를 문장으로 분할
-    const sentences = content
+    // 콘텐츠를 문장으로 분할 (더 작은 단위로 세분화)
+    const rawSentences = content
       .split(/[.!?]\s+/)
       .map(s => s.trim())
-      .filter(s => s.length >= 8 && s.length <= 80)
-      .slice(0, sceneCount * 3); // 더 많이 가져오기
+      .filter(s => s.length >= 5 && s.length <= 100);
     
-    // 자막 1줄 최적화: 20-25자 이내의 짧은 문장 우선 선택
-    const selectedSentences = sentences.filter(s => s.length <= 25).slice(0, sceneCount);
+    console.log(`   📊 원본 문장 ${rawSentences.length}개 추출`);
     
-    // 부족하면 25자로 자르기
+    // 1단계: 15-20자 범위의 완벽한 문장 찾기
+    const perfectSentences = rawSentences.filter(s => s.length >= 15 && s.length <= 20);
+    console.log(`   ✅ 완벽한 문장 (15-20자): ${perfectSentences.length}개`);
+    
+    // 2단계: 10-25자 범위의 사용 가능한 문장 찾기
+    const goodSentences = rawSentences.filter(s => s.length >= 10 && s.length <= 25);
+    console.log(`   ✅ 사용 가능 문장 (10-25자): ${goodSentences.length}개`);
+    
+    // 3단계: 긴 문장을 15-20자로 자연스럽게 분리
+    const splitSentences = [];
+    for (const sentence of rawSentences) {
+      if (sentence.length > 25) {
+        // 긴 문장을 쉼표나 공백 기준으로 분리
+        const parts = sentence.split(/[,，]\s*/);
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (trimmed.length >= 10 && trimmed.length <= 25) {
+            splitSentences.push(trimmed);
+          } else if (trimmed.length > 25) {
+            // 여전히 길면 20자로 자르기
+            splitSentences.push(trimmed.substring(0, 20));
+          }
+        }
+      }
+    }
+    console.log(`   ✂️ 분리된 문장: ${splitSentences.length}개`);
+    
+    // 4단계: 최적 문장 선택 (우선순위: 완벽 > 좋음 > 분리됨)
+    let selectedSentences = [];
+    
+    // 완벽한 문장 우선 선택
+    selectedSentences.push(...perfectSentences.slice(0, sceneCount));
+    
+    // 부족하면 좋은 문장 추가
     if (selectedSentences.length < sceneCount) {
-      const additionalSentences = sentences
-        .filter(s => s.length > 25)
-        .map(s => s.substring(0, 22) + '...')  // 22자 + "..." = 25자
-        .slice(0, sceneCount - selectedSentences.length);
-      selectedSentences.push(...additionalSentences);
+      const needed = sceneCount - selectedSentences.length;
+      const additional = goodSentences
+        .filter(s => !selectedSentences.includes(s))
+        .slice(0, needed);
+      selectedSentences.push(...additional);
     }
     
-    console.log(`✅ 선택된 나레이션 (${selectedSentences.length}개):`, selectedSentences.map((s, i) => `${i+1}. ${s} (${s.length}자)`));
+    // 여전히 부족하면 분리된 문장 추가
+    if (selectedSentences.length < sceneCount) {
+      const needed = sceneCount - selectedSentences.length;
+      const additional = splitSentences
+        .filter(s => !selectedSentences.includes(s))
+        .slice(0, needed);
+      selectedSentences.push(...additional);
+    }
+    
+    // 최종적으로도 부족하면 짧은 문장 사용
+    if (selectedSentences.length < sceneCount) {
+      const needed = sceneCount - selectedSentences.length;
+      const additional = rawSentences
+        .filter(s => s.length >= 8 && !selectedSentences.includes(s))
+        .slice(0, needed);
+      selectedSentences.push(...additional);
+    }
+    
+    // 최종 선택된 문장들의 길이 조정 (15-20자 권장)
+    selectedSentences = selectedSentences.map(sentence => {
+      if (sentence.length > 20) {
+        // 20자 초과 시 자연스러운 위치에서 자르기
+        const cutPos = sentence.lastIndexOf(' ', 20);
+        if (cutPos > 15) {
+          return sentence.substring(0, cutPos);
+        }
+        return sentence.substring(0, 20);
+      }
+      return sentence;
+    });
+    
+    console.log(`\n✅ 최종 선택된 나레이션 (${selectedSentences.length}개):`);
+    selectedSentences.forEach((s, i) => {
+      const length = s.length;
+      const status = length >= 15 && length <= 20 ? '✅' : 
+                     length >= 10 && length <= 25 ? '⚠️' : '❌';
+      console.log(`   ${status} ${i+1}. "${s}" (${length}자)`);
+    });
     
     // JSON 응답 구조 생성
     const scenes = selectedSentences.map((sentence, index) => ({
