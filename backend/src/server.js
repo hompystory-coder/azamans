@@ -19,7 +19,6 @@ import renderRouter from './routes/render.js';
 import imageProxyRouter from './routes/imageProxy.js';
 import advancedRouter from './routes/advanced.js';
 import characterVideoRouter from './routes/character-video.js';
-import characterVideoRouter from './routes/character-video.js';
 
 // Utils
 import { ensureDirectories } from './utils/storage.js';

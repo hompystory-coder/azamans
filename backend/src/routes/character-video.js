@@ -3,7 +3,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { MinimaxVideoService, generateSceneVideo } from '../services/minimaxVideo.js';
-import { getCharacterById } from '../../../frontend/src/lib/characters.js';
+import { getCharacterById } from '../lib/characters.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
