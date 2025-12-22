@@ -67,7 +67,8 @@ export const api = {
   // 비디오 생성
   video: {
     generate: (data) => client.post('/api/video/generate', data),
-    status: (videoId) => client.get(`/api/video/status/${videoId}`)
+    status: (videoId) => client.get(`/api/video/status/${videoId}`),
+    list: () => client.get('/api/video/list')
   },
 
   // 최종 렌더링

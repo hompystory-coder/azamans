@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Youtube, Copy, CheckCircle, Download, Share2, Sparkles, PlayCircle, Calendar, HardDrive } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+import client from '../api/client';
 
 export default function PreviewPage() {
   const { finalVideo, crawledData, script } = useStore();
@@ -34,7 +32,7 @@ export default function PreviewPage() {
   const loadVideoList = async () => {
     try {
       setLoadingVideos(true);
-      const response = await axios.get(`${API_BASE_URL}/api/video/list`);
+      const response = await client.get('/api/video/list');
       
       if (response.data.success) {
         setVideoList(response.data.data.videos);
@@ -42,6 +40,7 @@ export default function PreviewPage() {
       }
     } catch (error) {
       console.error('❌ 비디오 목록 로드 실패:', error);
+      setVideoList([]); // 에러 시 빈 배열로 설정
     } finally {
       setLoadingVideos(false);
     }
