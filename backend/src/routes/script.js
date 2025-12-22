@@ -174,11 +174,33 @@ router.post('/generate', async (req, res) => {
       console.log(`   ${status} ${i+1}. "${s}" (${length}자)`);
     });
     
+    // 이미지 순환 매핑 로직 (이미지가 부족할 때 재사용)
+    const imageCount = images?.length || 0;
+    console.log(`📷 이미지 수: ${imageCount}개, 장면 수: ${selectedSentences.length}개`);
+    
+    // 이미지 매핑 전략
+    let imageMapping = [];
+    if (imageCount > 0) {
+      if (imageCount >= selectedSentences.length) {
+        // 이미지가 충분한 경우: 순서대로 매핑
+        imageMapping = images.slice(0, selectedSentences.length);
+        console.log(`✅ 이미지 충분: 1:1 매핑`);
+      } else {
+        // 이미지가 부족한 경우: 순환 재사용 (1,2,3,4,5,6,1,2,3,4,5,6...)
+        for (let i = 0; i < selectedSentences.length; i++) {
+          imageMapping.push(images[i % imageCount]);
+        }
+        console.log(`🔄 이미지 순환: ${imageCount}개 이미지를 ${selectedSentences.length}개 장면에 순환 배치`);
+        console.log(`   패턴: ${imageMapping.map((_, idx) => (idx % imageCount) + 1).join(',')}`);
+      }
+    }
+    
     // JSON 응답 구조 생성
     const scenes = selectedSentences.map((sentence, index) => ({
       sceneNumber: index + 1,
       narration: sentence,
       imageDescription: `장면 ${index + 1}`,
+      imageUrl: imageMapping[index] || null,  // 순환 매핑된 이미지 URL
       // 문장 길이에 따른 duration 계산 (10-15자 기준 2.5-3.5초)
       duration: Math.min(Math.max(Math.ceil(sentence.length / 4), 2.5), 4)
     }));
