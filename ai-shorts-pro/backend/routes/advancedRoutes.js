@@ -215,27 +215,66 @@ router.post('/generate-script', async (req, res) => {
 }
 `;
 
-    const openaiResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userContent }
-      ],
-      temperature: 0.7
-    }, {
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
+    // 템플릿 기반 스크립트 생성 (AI API 대체)
+    // TODO: 사용 가능한 AI API (Claude/GPT/Gemini) 키가 있을 때 교체
     let scriptData;
     try {
-      const responseText = openaiResponse.data.choices[0].message.content;
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      scriptData = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
-    } catch (parseError) {
-      throw new Error('스크립트 파싱 실패');
+      console.log('📝 템플릿 기반 스크립트 생성 시작...');
+      
+      const title = content.title || '제목 없음';
+      const contentText = content.content || content.text || '';
+      const images = content.images || [];
+      
+      // 콘텐츠를 문장으로 분할
+      const sentences = contentText
+        .split(/[.!?]\s+/)
+        .filter(s => s.trim().length > 10)
+        .slice(0, 8); // 최대 8개 장면
+      
+      // 장면 생성
+      const scenes = [];
+      
+      // 인트로 장면 (제목)
+      if (title && title.length > 3) {
+        scenes.push({
+          text: title.length > 50 ? title.substring(0, 47) + '...' : title,
+          duration: 3,
+          imageIndex: images.length > 0 ? 0 : -1
+        });
+      }
+      
+      // 본문 장면
+      sentences.forEach((sentence, index) => {
+        const cleanSentence = sentence.trim();
+        if (cleanSentence.length > 5) {
+          // 문장이 너무 길면 자르기
+          const text = cleanSentence.length > 120 
+            ? cleanSentence.substring(0, 117) + '...'
+            : cleanSentence;
+          
+          scenes.push({
+            text: text,
+            duration: Math.min(Math.max(Math.ceil(text.length / 20), 3), 8),
+            imageIndex: images.length > index + 1 ? index + 1 : -1
+          });
+        }
+      });
+      
+      // 아웃트로 장면
+      if (mode === 'character') {
+        scenes.push({
+          text: '구독과 좋아요 부탁드립니다!',
+          duration: 3,
+          imageIndex: images.length > 3 ? images.length - 1 : -1
+        });
+      }
+      
+      scriptData = { scenes: scenes.slice(0, 10) }; // 최대 10개 장면
+      
+      console.log(`✅ 템플릿 스크립트 생성 완료: ${scriptData.scenes.length}개 장면`);
+    } catch (error) {
+      console.error('템플릿 스크립트 생성 오류:', error);
+      throw new Error('스크립트 생성 실패: ' + error.message);
     }
 
     // 이미지 매칭
