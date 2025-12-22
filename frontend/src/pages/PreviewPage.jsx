@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Youtube, Copy, CheckCircle, Download, Share2, Sparkles } from 'lucide-react';
+import { Youtube, Copy, CheckCircle, Download, Share2, Sparkles, PlayCircle, Calendar, HardDrive } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
 export default function PreviewPage() {
   const { finalVideo, crawledData, script } = useStore();
@@ -9,6 +12,8 @@ export default function PreviewPage() {
   const [description, setDescription] = useState('');
   const [keywords, setKeywords] = useState('');
   const [copied, setCopied] = useState({ title: false, description: false, keywords: false });
+  const [videoList, setVideoList] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
 
   useEffect(() => {
     // Auto-generate YouTube upload info
@@ -21,7 +26,26 @@ export default function PreviewPage() {
       setDescription(autoDescription);
       setKeywords(autoKeywords);
     }
+
+    // Load video list
+    loadVideoList();
   }, [crawledData, script]);
+
+  const loadVideoList = async () => {
+    try {
+      setLoadingVideos(true);
+      const response = await axios.get(`${API_BASE_URL}/api/video/list`);
+      
+      if (response.data.success) {
+        setVideoList(response.data.data.videos);
+        console.log(`📹 ${response.data.data.total}개의 비디오 로드됨`);
+      }
+    } catch (error) {
+      console.error('❌ 비디오 목록 로드 실패:', error);
+    } finally {
+      setLoadingVideos(false);
+    }
+  };
 
   const generateTitle = () => {
     if (!crawledData?.title) return '';
@@ -74,6 +98,34 @@ export default function PreviewPage() {
     }, 2000);
   };
 
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return '방금 전';
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    if (diffDays < 7) return `${diffDays}일 전`;
+    
+    return date.toLocaleDateString('ko-KR', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -89,6 +141,91 @@ export default function PreviewPage() {
         <p className="text-red-100">
           생성된 Shorts를 YouTube에 업로드할 준비가 완료되었습니다
         </p>
+      </motion.div>
+
+      {/* 생성된 쇼츠 리스트 */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="bg-white rounded-xl shadow-lg p-6"
+      >
+        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <HardDrive className="w-5 h-5 text-blue-500" />
+          지금까지 생성된 쇼츠 ({videoList.length}개)
+        </h3>
+        
+        {loadingVideos ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+          </div>
+        ) : videoList.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <PlayCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <p>아직 생성된 쇼츠가 없습니다</p>
+            <p className="text-sm mt-2">비디오 페이지에서 쇼츠를 생성해보세요!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {videoList.map((video, index) => (
+              <motion.div
+                key={video.videoId}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:border-red-300 hover:shadow-md transition-all"
+              >
+                {/* 비디오 썸네일 */}
+                <div className="aspect-[9/16] bg-black relative group">
+                  <video
+                    className="w-full h-full object-cover"
+                    src={video.url}
+                    muted
+                    playsInline
+                    onMouseEnter={(e) => e.target.play()}
+                    onMouseLeave={(e) => {
+                      e.target.pause();
+                      e.target.currentTime = 0;
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                    <PlayCircle className="w-16 h-16 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+                
+                {/* 비디오 정보 */}
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>{formatDate(video.createdAt)}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3">
+                    크기: {formatFileSize(video.size)}
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={video.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 px-3 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors text-center flex items-center justify-center gap-1"
+                    >
+                      <PlayCircle className="w-4 h-4" />
+                      재생
+                    </a>
+                    <a
+                      href={video.url}
+                      download={video.filename}
+                      className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors text-center flex items-center justify-center gap-1"
+                    >
+                      <Download className="w-4 h-4" />
+                      다운로드
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Final Video Preview */}

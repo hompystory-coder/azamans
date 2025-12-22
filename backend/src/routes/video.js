@@ -484,6 +484,75 @@ setInterval(() => {
 }, 60 * 60 * 1000);
 
 /**
+ * GET /api/video/list
+ * 생성된 비디오 파일 목록 조회 (파일 시스템 기반)
+ */
+router.get('/list', async (req, res) => {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    const videosDir = path.join(process.env.OUTPUT_DIR || '/mnt/music-storage/shorts-videos/outputs', 'videos');
+    
+    console.log(`📂 비디오 목록 조회: ${videosDir}`);
+    
+    // 디렉토리 존재 확인
+    try {
+      await fs.access(videosDir);
+    } catch (error) {
+      return res.json({
+        success: true,
+        data: {
+          total: 0,
+          videos: []
+        }
+      });
+    }
+    
+    // 비디오 파일 목록 읽기
+    const files = await fs.readdir(videosDir);
+    const videoFiles = files.filter(file => file.endsWith('.mp4'));
+    
+    // 각 파일의 메타데이터 읽기
+    const videos = await Promise.all(
+      videoFiles.map(async (file) => {
+        const filePath = path.join(videosDir, file);
+        const stats = await fs.stat(filePath);
+        
+        return {
+          videoId: file.replace('.mp4', ''),
+          filename: file,
+          url: `/outputs/videos/${file}`,
+          size: stats.size,
+          createdAt: stats.mtime,
+          thumbnail: `/outputs/videos/${file}` // 비디오를 썸네일로 사용
+        };
+      })
+    );
+    
+    // 최신순 정렬
+    videos.sort((a, b) => b.createdAt - a.createdAt);
+    
+    console.log(`✅ 비디오 ${videos.length}개 조회 완료`);
+    
+    res.json({
+      success: true,
+      data: {
+        total: videos.length,
+        videos
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ 비디오 목록 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * POST /api/video/generate-with-ai
  * AI 이미지투비디오로 쇼츠 생성
  * - image-to-video AI 사용
