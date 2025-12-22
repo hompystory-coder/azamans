@@ -518,6 +518,11 @@
                             <span class="slider-value" id="voice-pitch-value">0</span>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <button class="btn btn-secondary" onclick="resetToPreset()" style="width: 100%;">
+                            🔄 추천 설정으로 초기화
+                        </button>
+                    </div>
                 </div>
 
                 <div class="section">
@@ -765,6 +770,40 @@
             'asmr-relaxing': '안녕하세요... 편안한 ASMR 힐링 음성이에요... 차분하고 평온하게 들려드릴게요...'
         };
 
+        // 음성별 추천 속도/톤 프리셋 (사용자가 많이 사용하는 설정)
+        const voicePresets = {
+            // 여성 음성 - 일반 (약간 높은 톤, 표준 속도)
+            'female-friendly': { speed: 1.0, pitch: 2, desc: '자연스러운 여성' },
+            'female-energetic': { speed: 1.15, pitch: 3, desc: '발랄하고 빠른' },
+            'female-professional': { speed: 0.95, pitch: 1, desc: '차분하고 전문적인' },
+            'female-soft': { speed: 0.9, pitch: 2, desc: '부드럽고 따뜻한' },
+            'female-mature': { speed: 0.92, pitch: 0, desc: '성숙하고 안정적인' },
+            'female-young': { speed: 1.2, pitch: 5, desc: '귀엽고 경쾌한' },
+            
+            // 여성 음성 - 특수
+            'female-news': { speed: 0.95, pitch: 1, desc: '명확한 뉴스 앵커' },
+            'female-drama': { speed: 1.05, pitch: 3, desc: '감성적이고 드라마틱' },
+            'female-whisper': { speed: 0.85, pitch: 2, desc: '조용한 속삭임' },
+            
+            // 남성 음성 - 일반 (약간 낮은 톤, 안정적인 속도)
+            'male-professional': { speed: 0.95, pitch: -2, desc: '신뢰감 있는 남성' },
+            'male-calm': { speed: 0.88, pitch: -3, desc: '차분한 안정감' },
+            'male-energetic': { speed: 1.12, pitch: -1, desc: '활기찬 에너지' },
+            'male-deep': { speed: 0.9, pitch: -5, desc: '깊고 묵직한 중저음' },
+            'male-young': { speed: 1.08, pitch: 0, desc: '젊고 활발한' },
+            'male-narration': { speed: 0.93, pitch: -2, desc: '명확한 내레이션' },
+            
+            // 남성 음성 - 특수
+            'male-powerful': { speed: 1.0, pitch: -3, desc: '강렬하고 힘있는' },
+            'male-documentary': { speed: 0.9, pitch: -3, desc: '지적인 다큐멘터리' },
+            
+            // 특수 음성
+            'child-friendly': { speed: 1.18, pitch: 7, desc: '밝은 아동용' },
+            'elderly-wise': { speed: 0.82, pitch: -4, desc: '느리고 지혜로운' },
+            'robot-ai': { speed: 1.0, pitch: 0, desc: '기계적인 로봇' },
+            'asmr-relaxing': { speed: 0.8, pitch: 1, desc: '편안한 ASMR' }
+        };
+
         // 초기화
         window.onload = function() {
             loadCharacters();
@@ -972,17 +1011,29 @@
             const sampleDiv = document.getElementById('voice-sample');
             const sampleText = voiceSamples[voiceType] || voiceSamples['female-friendly'];
             
+            // 추천 프리셋 가져오기
+            const preset = voicePresets[voiceType] || voicePresets['female-friendly'];
+            
+            // 슬라이더 자동 설정 (추천값으로)
+            document.getElementById('voice-speed').value = preset.speed;
+            document.getElementById('voice-pitch').value = preset.pitch;
+            
+            // 슬라이더 값 표시 업데이트
+            updateSliderValue('voice-speed');
+            updateSliderValue('voice-pitch');
+            
             // 현재 설정값 가져오기
-            const voiceSpeed = document.getElementById('voice-speed') ? parseFloat(document.getElementById('voice-speed').value) : 1.0;
-            const voicePitch = document.getElementById('voice-pitch') ? parseInt(document.getElementById('voice-pitch').value) : 0;
+            const voiceSpeed = preset.speed;
+            const voicePitch = preset.pitch;
             
             sampleDiv.innerHTML = `
                 <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
                     <div style="flex: 1;">
                         <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">샘플 텍스트:</div>
                         <div style="font-size: 0.95rem; color: #333;">"${sampleText}"</div>
-                        <div style="font-size: 0.85rem; color: #999; margin-top: 8px;">
-                            ⚙️ 현재 설정: 속도 ${voiceSpeed.toFixed(1)}x, 톤 ${voicePitch > 0 ? '+' : ''}${voicePitch}
+                        <div style="font-size: 0.85rem; margin-top: 8px;">
+                            <span style="color: #4CAF50; font-weight: bold;">✨ ${preset.desc}</span>
+                            <span style="color: #999;"> | 속도 ${voiceSpeed.toFixed(1)}x, 톤 ${voicePitch > 0 ? '+' : ''}${voicePitch}</span>
                         </div>
                     </div>
                     <button class="btn btn-secondary" onclick="playVoiceSample()" style="padding: 10px 20px; white-space: nowrap;" id="play-sample-btn">
@@ -1079,8 +1130,65 @@
             
             // 음성 속도나 톤이 변경되면 미리듣기 정보 업데이트
             if (id === 'voice-speed' || id === 'voice-pitch') {
-                loadVoiceSamples();
+                updateVoiceSampleInfo();
             }
+        }
+
+        // 음성 샘플 정보만 업데이트 (슬라이더는 유지)
+        function updateVoiceSampleInfo() {
+            const voiceType = document.getElementById('voice-type').value;
+            const preset = voicePresets[voiceType] || voicePresets['female-friendly'];
+            const sampleText = voiceSamples[voiceType] || voiceSamples['female-friendly'];
+            
+            const voiceSpeed = parseFloat(document.getElementById('voice-speed').value);
+            const voicePitch = parseInt(document.getElementById('voice-pitch').value);
+            
+            // 프리셋과 다른지 확인
+            const isCustom = (voiceSpeed !== preset.speed || voicePitch !== preset.pitch);
+            const statusText = isCustom 
+                ? `<span style="color: #FF9800; font-weight: bold;">🎨 사용자 설정</span>` 
+                : `<span style="color: #4CAF50; font-weight: bold;">✨ ${preset.desc}</span>`;
+            
+            const sampleDiv = document.getElementById('voice-sample');
+            sampleDiv.innerHTML = `
+                <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">샘플 텍스트:</div>
+                        <div style="font-size: 0.95rem; color: #333;">"${sampleText}"</div>
+                        <div style="font-size: 0.85rem; margin-top: 8px;">
+                            ${statusText}
+                            <span style="color: #999;"> | 속도 ${voiceSpeed.toFixed(1)}x, 톤 ${voicePitch > 0 ? '+' : ''}${voicePitch}</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="playVoiceSample()" style="padding: 10px 20px; white-space: nowrap;" id="play-sample-btn">
+                        ▶️ 미리듣기
+                    </button>
+                </div>
+                <audio id="voice-sample-audio" style="display: none;"></audio>
+            `;
+        }
+
+        // 프리셋으로 리셋
+        function resetToPreset() {
+            const voiceType = document.getElementById('voice-type').value;
+            const preset = voicePresets[voiceType] || voicePresets['female-friendly'];
+            
+            // 슬라이더를 추천값으로 리셋
+            document.getElementById('voice-speed').value = preset.speed;
+            document.getElementById('voice-pitch').value = preset.pitch;
+            
+            // 슬라이더 값 표시 업데이트
+            updateSliderValue('voice-speed');
+            updateSliderValue('voice-pitch');
+            
+            // 미리듣기 정보 업데이트
+            updateVoiceSampleInfo();
+            
+            // 자동 저장
+            autoSaveSettings();
+            
+            // 피드백 메시지
+            alert(`✨ "${preset.desc}" 설정으로 초기화되었습니다!\n속도: ${preset.speed.toFixed(1)}x, 톤: ${preset.pitch > 0 ? '+' : ''}${preset.pitch}`);
         }
 
         // 모드 선택
