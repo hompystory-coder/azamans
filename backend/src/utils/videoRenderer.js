@@ -314,16 +314,22 @@ class VideoRenderer {
         ? `h-${yOffset}` // 1줄이면 그대로
         : `h-${yOffset + lineSpacing * (lines.length - 1 - index)}`; // 2줄이면 첫줄 위, 둘째줄 아래
 
-      return `drawtext=` +
+      // 테두리가 0이면 bordercolor 제외
+      let drawtextCmd = `drawtext=` +
         `text='${escapedLine}':` +
         `fontfile=${fontPath}:` +
         `fontsize=${fontSize}:` +
         `fontcolor=${finalFontColor}:` +
         `x=(w-text_w)/2:` +
         `y=${yPos}:` +
-        `text_align=C:` +
-        `borderw=${finalBorderWidth}:` +
-        `bordercolor=${finalBorderColor}`;
+        `text_align=C`;
+      
+      // 테두리가 있을 때만 borderw와 bordercolor 추가
+      if (finalBorderWidth > 0) {
+        drawtextCmd += `:borderw=${finalBorderWidth}:bordercolor=${finalBorderColor}`;
+      }
+      
+      return drawtextCmd;
     });
     
     const finalFilter = filters.join(',');
@@ -388,16 +394,22 @@ class VideoRenderer {
         ? yPosition // 1줄이면 그대로
         : yPosition + (lineSpacing * index); // 2줄이면 첫줄 위, 둘째줄 아래
 
-      return `drawtext=` +
+      // 테두리가 0이면 bordercolor 제외
+      let drawtextCmd = `drawtext=` +
         `text='${escapedLine}':` +
         `fontfile=${fontPath}:` +
         `fontsize=${fontSize}:` +
         `fontcolor=${finalFontColor}:` +
         `x=(w-text_w)/2:` +
         `y=${yPos}:` +
-        `text_align=C:` +
-        `borderw=${finalBorderWidth}:` +
-        `bordercolor=${finalBorderColor}`;
+        `text_align=C`;
+      
+      // 테두리가 있을 때만 borderw와 bordercolor 추가
+      if (finalBorderWidth > 0) {
+        drawtextCmd += `:borderw=${finalBorderWidth}:bordercolor=${finalBorderColor}`;
+      }
+      
+      return drawtextCmd;
     });
     
     const finalFilter = filters.join(',');
