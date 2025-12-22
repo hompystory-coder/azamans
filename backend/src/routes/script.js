@@ -85,17 +85,17 @@ router.post('/generate', async (req, res) => {
     const sentences = content
       .split(/[.!?]\s+/)
       .map(s => s.trim())
-      .filter(s => s.length >= 15 && s.length <= 150)
+      .filter(s => s.length >= 10 && s.length <= 100)
       .slice(0, sceneCount * 2); // 여유있게 가져오기
     
-    // 적절한 길이의 문장 선택 (15-50자)
-    const selectedSentences = sentences.filter(s => s.length <= 50).slice(0, sceneCount);
+    // 1줄 표시를 위해 더 짧은 문장 선택 (10-35자, 음성 동기화 최적화)
+    const selectedSentences = sentences.filter(s => s.length <= 35).slice(0, sceneCount);
     
     // 부족하면 긴 문장 잘라서 사용
     if (selectedSentences.length < sceneCount) {
       const additionalSentences = sentences
-        .filter(s => s.length > 50)
-        .map(s => s.substring(0, 47) + '...')
+        .filter(s => s.length > 35)
+        .map(s => s.substring(0, 32) + '...')
         .slice(0, sceneCount - selectedSentences.length);
       selectedSentences.push(...additionalSentences);
     }
@@ -108,10 +108,10 @@ router.post('/generate', async (req, res) => {
       duration: Math.min(Math.max(Math.ceil(sentence.length / 15), 3), 6)
     }));
     
-    // 제목 생성: 원본 제목을 최대 20자로 축약 (1줄 표시 최적화)
+    // 제목 생성: 원본 제목을 최대 15자로 축약 (1줄 표시 최적화, 음성 동기화)
     let shortTitle = title || '유튜브 쇼츠';
-    if (shortTitle.length > 20) {
-      shortTitle = shortTitle.substring(0, 20) + '...';
+    if (shortTitle.length > 15) {
+      shortTitle = shortTitle.substring(0, 15) + '...';
       console.log(`📝 제목 축약: "${title}" → "${shortTitle}"`);
     }
     

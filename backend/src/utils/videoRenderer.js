@@ -216,58 +216,9 @@ class VideoRenderer {
    * 단어 기준으로 균등 분리
    */
   splitTextIntoTwoLines(text, maxCharsPerLine = 20) {
-    // 1줄 최대 길이 (한글 기준 적절한 길이)
-    const singleLineMaxLength = maxCharsPerLine * 1.5; // 30자
-    
-    // 텍스트 길이가 1줄 최대 길이 이하면 그대로 반환 (1줄 우선)
-    if (text.length <= singleLineMaxLength) {
-      console.log(`   ✅ 1줄 표시 (${text.length}자 ≤ ${singleLineMaxLength}자): "${text}"`);
-      return [text];
-    }
-    
-    console.log(`   📏 텍스트가 길어서 2줄로 분리 (${text.length}자 > ${singleLineMaxLength}자)`);
-    
-    // 공백으로 단어 분리
-    const words = text.split(' ');
-    if (words.length === 1) {
-      // 단어가 하나면 중간에서 자르기
-      const mid = Math.ceil(text.length / 2);
-      console.log(`   ✂️ 단일 단어 중간 분리: "${text.substring(0, mid)}" / "${text.substring(mid)}"`);
-      return [text.substring(0, mid), text.substring(mid)];
-    }
-    
-    // 중간 지점 찾기 (균등 분배)
-    const totalLength = text.length;
-    const targetLength = totalLength / 2;
-    
-    let firstLine = '';
-    let secondLine = '';
-    let currentLength = 0;
-    
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      const wordWithSpace = (i > 0 ? ' ' : '') + word;
-      
-      if (currentLength + wordWithSpace.length <= targetLength || firstLine === '') {
-        firstLine += wordWithSpace;
-        currentLength += wordWithSpace.length;
-      } else {
-        secondLine += (secondLine ? ' ' : '') + word;
-      }
-    }
-    
-    // 두 줄이 너무 불균형하면 조정
-    if (secondLine && Math.abs(firstLine.length - secondLine.length) > maxCharsPerLine / 2) {
-      // 다시 균등 분배
-      const allWords = text.split(' ');
-      const midPoint = Math.ceil(allWords.length / 2);
-      firstLine = allWords.slice(0, midPoint).join(' ');
-      secondLine = allWords.slice(midPoint).join(' ');
-      console.log(`   ⚖️ 균형 재조정: 첫줄 ${firstLine.length}자, 둘째줄 ${secondLine.length}자`);
-    }
-    
-    console.log(`   ✅ 2줄 분리 완료:\n      1줄: "${firstLine}"\n      2줄: "${secondLine}"`);
-    return secondLine ? [firstLine, secondLine] : [firstLine];
+    // 무조건 1줄로 표시 (음성 동기화 문제 해결)
+    console.log(`   ✅ 1줄 표시 강제: "${text}" (${text.length}자)`);
+    return [text];
   }
 
   /**
