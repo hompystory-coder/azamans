@@ -321,8 +321,7 @@ class VideoRenderer {
         `fontsize=${fontSize}:` +
         `fontcolor=${finalFontColor}:` +
         `x=(w-text_w)/2:` +
-        `y=${yPos}:` +
-        `text_align=C`;
+        `y=${yPos}`;
       
       // 테두리가 있을 때만 borderw와 bordercolor 추가
       if (finalBorderWidth > 0) {
@@ -401,8 +400,7 @@ class VideoRenderer {
         `fontsize=${fontSize}:` +
         `fontcolor=${finalFontColor}:` +
         `x=(w-text_w)/2:` +
-        `y=${yPos}:` +
-        `text_align=C`;
+        `y=${yPos}`;
       
       // 테두리가 있을 때만 borderw와 bordercolor 추가
       if (finalBorderWidth > 0) {
