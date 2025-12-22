@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Loader, CheckCircle, Wand2, AlertCircle } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import useStore from '../store/useStore';
 import api from '../api/client';
 
 export default function RenderPage() {

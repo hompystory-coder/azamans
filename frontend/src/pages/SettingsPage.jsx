@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Save, ArrowRight, Key, Settings } from 'lucide-react'
-import { useStore } from '../store/useStore'
+import useStore from '../store/useStore'
 
 export default function SettingsPage() {
   const navigate = useNavigate()

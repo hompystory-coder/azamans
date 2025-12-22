@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mic, Play, Pause, Loader, Volume2, CheckCircle, User, Users } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import useStore from '../store/useStore';
 import api from '../api/client';
 
 export default function VoicePage() {

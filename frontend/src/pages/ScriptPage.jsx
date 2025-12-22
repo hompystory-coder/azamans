@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Sparkles, Loader, Edit3, Save, Eye, EyeOff } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import useStore from '../store/useStore';
 import api from '../api/client';
 
 // 기본 프롬프트 (TTS 친화적)

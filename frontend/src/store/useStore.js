@@ -13,6 +13,16 @@ const useStore = create(
       },
       setSettings: (settings) => set({ settings }),
 
+      // Mode Selection
+      contentMode: 'character', // 'character' | 'hybrid' | 'realistic'
+      setContentMode: (mode) => set({ contentMode: mode }),
+      automationMode: 'auto', // 'auto' | 'manual'
+      setAutomationMode: (mode) => set({ automationMode: mode }),
+
+      // Selected Character
+      selectedCharacter: null,
+      setSelectedCharacter: (character) => set({ selectedCharacter: character }),
+
       // Crawled Data
       crawledData: null,
       setCrawledData: (data) => set({ crawledData: data }),
@@ -36,6 +46,9 @@ const useStore = create(
       // Reset all data
       reset: () =>
         set({
+          contentMode: 'character',
+          automationMode: 'auto',
+          selectedCharacter: null,
           crawledData: null,
           script: null,
           voiceData: null,
@@ -47,6 +60,9 @@ const useStore = create(
       name: 'shorts-creator-storage',
       partialize: (state) => ({
         settings: state.settings,
+        contentMode: state.contentMode,
+        automationMode: state.automationMode,
+        selectedCharacter: state.selectedCharacter,
         crawledData: state.crawledData,
         script: state.script,
         voiceData: state.voiceData,
@@ -57,4 +73,4 @@ const useStore = create(
   )
 );
 
-export { useStore };
+export default useStore;

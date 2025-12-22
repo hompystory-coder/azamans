@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import ModeSelectionPage from './pages/ModeSelectionPage';
+import CharacterSelectionPage from './pages/CharacterSelectionPage';
 import SettingsPage from './pages/SettingsPage';
 import CrawlerPage from './pages/CrawlerPage';
 import ScriptPage from './pages/ScriptPage';
@@ -14,6 +16,8 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<CrawlerPage />} />
+          <Route path="/mode" element={<ModeSelectionPage />} />
+          <Route path="/character" element={<CharacterSelectionPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/script" element={<ScriptPage />} />
           <Route path="/voice" element={<VoicePage />} />

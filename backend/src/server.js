@@ -18,6 +18,8 @@ import videoRouter from './routes/video.js';
 import renderRouter from './routes/render.js';
 import imageProxyRouter from './routes/imageProxy.js';
 import advancedRouter from './routes/advanced.js';
+import characterVideoRouter from './routes/character-video.js';
+import characterVideoRouter from './routes/character-video.js';
 
 // Utils
 import { ensureDirectories } from './utils/storage.js';
@@ -63,6 +65,7 @@ app.use('/api/video', videoRouter);
 app.use('/api/render', renderRouter);
 app.use('/api/image-proxy', imageProxyRouter);
 app.use('/api/advanced', advancedRouter);
+app.use('/api/character-video', characterVideoRouter);
 
 // 404 Handler
 app.use((req, res) => {
@@ -104,6 +107,9 @@ async function startServer() {
       console.log('   POST /api/voice/generate');
       console.log('   POST /api/voice/preview');
       console.log('   POST /api/video/generate');
+      console.log('   POST /api/character-video/generate');
+      console.log('   POST /api/character-video/test');
+      console.log('   GET  /api/character-video/status/:taskId');
       console.log('   POST /api/render/final');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     });

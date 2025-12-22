@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Youtube, Copy, CheckCircle, Download, Share2, Sparkles, PlayCircle, Calendar, HardDrive } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import useStore from '../store/useStore';
 import client from '../api/client';
 
 export default function PreviewPage() {

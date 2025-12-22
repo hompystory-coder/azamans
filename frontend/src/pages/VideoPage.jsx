@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Loader, CheckCircle, Film, AlertCircle, Upload, X, Music, Image as ImageIcon, Type, Settings as SettingsIcon, ArrowRight } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import useStore from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 
