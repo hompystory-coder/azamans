@@ -37,6 +37,12 @@ export default function VideoPage() {
     position: 'bottom-right' // 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'
   });
   
+  // 저장 상태 표시
+  const [saveStatus, setSaveStatus] = useState({
+    bgImage: false,
+    bgMusic: false
+  });
+  
   // 자막 설정
   const [subtitleSettings, setSubtitleSettings] = useState({
     fontSize: 48,
@@ -303,44 +309,60 @@ export default function VideoPage() {
   }, [effectSettings.imageEffect, effectSettings.effectIntensity]);
   
   useEffect(() => {
-    try {
-      // 설정값 저장
-      const settingsToSave = {
-        enabled: bgMusic.enabled,
-        volume: bgMusic.volume
-      };
-      localStorage.setItem('videoSettings_bgMusic', JSON.stringify(settingsToSave));
-      
-      // 파일도 IndexedDB에 저장
-      if (bgMusic.file) {
-        saveFileToIndexedDB('bgMusicFile', bgMusic.file);
+    const timer = setTimeout(() => {
+      try {
+        // 설정값 저장
+        const settingsToSave = {
+          enabled: bgMusic.enabled,
+          volume: bgMusic.volume
+        };
+        localStorage.setItem('videoSettings_bgMusic', JSON.stringify(settingsToSave));
+        
+        // 파일도 IndexedDB에 저장
+        if (bgMusic.file) {
+          saveFileToIndexedDB('bgMusicFile', bgMusic.file);
+        }
+        
+        // 저장 완료 표시
+        setSaveStatus(prev => ({ ...prev, bgMusic: true }));
+        setTimeout(() => setSaveStatus(prev => ({ ...prev, bgMusic: false })), 2000);
+        
+        console.log('💾 배경 음악 설정 자동 저장됨');
+      } catch (error) {
+        console.error('배경 음악 설정 저장 실패:', error);
       }
-      
-      console.log('💾 배경 음악 설정 자동 저장됨');
-    } catch (error) {
-      console.error('배경 음악 설정 저장 실패:', error);
-    }
+    }, 500); // 500ms 디바운스
+    
+    return () => clearTimeout(timer);
   }, [bgMusic.enabled, bgMusic.volume, bgMusic.file]);
   
   useEffect(() => {
-    try {
-      // 설정값 저장
-      const settingsToSave = {
-        enabled: bgImage.enabled,
-        opacity: bgImage.opacity,
-        position: bgImage.position
-      };
-      localStorage.setItem('videoSettings_bgImage', JSON.stringify(settingsToSave));
-      
-      // 파일도 IndexedDB에 저장
-      if (bgImage.file) {
-        saveFileToIndexedDB('bgImageFile', bgImage.file);
+    const timer = setTimeout(() => {
+      try {
+        // 설정값 저장
+        const settingsToSave = {
+          enabled: bgImage.enabled,
+          opacity: bgImage.opacity,
+          position: bgImage.position
+        };
+        localStorage.setItem('videoSettings_bgImage', JSON.stringify(settingsToSave));
+        
+        // 파일도 IndexedDB에 저장
+        if (bgImage.file) {
+          saveFileToIndexedDB('bgImageFile', bgImage.file);
+        }
+        
+        // 저장 완료 표시
+        setSaveStatus(prev => ({ ...prev, bgImage: true }));
+        setTimeout(() => setSaveStatus(prev => ({ ...prev, bgImage: false })), 2000);
+        
+        console.log('💾 배경 이미지 설정 자동 저장됨');
+      } catch (error) {
+        console.error('배경 이미지 설정 저장 실패:', error);
       }
-      
-      console.log('💾 배경 이미지 설정 자동 저장됨');
-    } catch (error) {
-      console.error('배경 이미지 설정 저장 실패:', error);
-    }
+    }, 500); // 500ms 디바운스
+    
+    return () => clearTimeout(timer);
   }, [bgImage.enabled, bgImage.opacity, bgImage.position, bgImage.file]);
   
   useEffect(() => {
@@ -729,7 +751,14 @@ export default function VideoPage() {
           <div className="flex items-center gap-3">
             <Music className="w-6 h-6 text-orange-500" />
             <h3 className="font-semibold text-gray-900">배경 음악</h3>
-            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">자동 저장됨</span>
+            {saveStatus.bgMusic ? (
+              <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                저장됨
+              </span>
+            ) : (
+              <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-full">자동 저장</span>
+            )}
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -810,7 +839,14 @@ export default function VideoPage() {
           <div className="flex items-center gap-3">
             <ImageIcon className="w-6 h-6 text-orange-500" />
             <h3 className="font-semibold text-gray-900">배경 이미지 / 워터마크</h3>
-            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">자동 저장됨</span>
+            {saveStatus.bgImage ? (
+              <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                저장됨
+              </span>
+            ) : (
+              <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-full">자동 저장</span>
+            )}
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
