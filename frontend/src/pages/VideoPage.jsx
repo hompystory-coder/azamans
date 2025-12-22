@@ -40,7 +40,9 @@ export default function VideoPage() {
   // 저장 상태 표시
   const [saveStatus, setSaveStatus] = useState({
     bgImage: false,
-    bgMusic: false
+    bgMusic: false,
+    subtitle: false,
+    title: false
   });
   
   // 자막 설정
@@ -366,12 +368,21 @@ export default function VideoPage() {
   }, [bgImage.enabled, bgImage.opacity, bgImage.position, bgImage.file]);
   
   useEffect(() => {
-    try {
-      localStorage.setItem('videoSettings_subtitle', JSON.stringify(subtitleSettings));
-      console.log('💾 자막 설정 자동 저장됨');
-    } catch (error) {
-      console.error('자막 설정 저장 실패:', error);
-    }
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('videoSettings_subtitle', JSON.stringify(subtitleSettings));
+        
+        // 저장 완료 표시
+        setSaveStatus(prev => ({ ...prev, subtitle: true }));
+        setTimeout(() => setSaveStatus(prev => ({ ...prev, subtitle: false })), 2000);
+        
+        console.log('💾 자막 설정 자동 저장됨');
+      } catch (error) {
+        console.error('자막 설정 저장 실패:', error);
+      }
+    }, 500); // 500ms 디바운스
+    
+    return () => clearTimeout(timer);
   }, [
     subtitleSettings.fontSize,
     subtitleSettings.fontFamily,
@@ -385,12 +396,21 @@ export default function VideoPage() {
   ]);
   
   useEffect(() => {
-    try {
-      localStorage.setItem('videoSettings_title', JSON.stringify(titleSettings));
-      console.log('💾 제목 설정 자동 저장됨');
-    } catch (error) {
-      console.error('제목 설정 저장 실패:', error);
-    }
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('videoSettings_title', JSON.stringify(titleSettings));
+        
+        // 저장 완료 표시
+        setSaveStatus(prev => ({ ...prev, title: true }));
+        setTimeout(() => setSaveStatus(prev => ({ ...prev, title: false })), 2000);
+        
+        console.log('💾 제목 설정 자동 저장됨');
+      } catch (error) {
+        console.error('제목 설정 저장 실패:', error);
+      }
+    }, 500); // 500ms 디바운스
+    
+    return () => clearTimeout(timer);
   }, [
     titleSettings.enabled,
     titleSettings.fontSize,
@@ -1119,7 +1139,14 @@ export default function VideoPage() {
         <div className="flex items-center gap-3 mb-4">
           <Type className="w-6 h-6 text-orange-500" />
           <h3 className="font-semibold text-gray-900">자막 설정</h3>
-          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">자동 저장됨</span>
+          {saveStatus.subtitle ? (
+            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              저장됨
+            </span>
+          ) : (
+            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-full">자동 저장</span>
+          )}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1266,7 +1293,14 @@ export default function VideoPage() {
           <div className="flex items-center gap-3">
             <SettingsIcon className="w-6 h-6 text-orange-500" />
             <h3 className="font-semibold text-gray-900">제목 설정</h3>
-            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">자동 저장됨</span>
+            {saveStatus.title ? (
+              <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                저장됨
+              </span>
+            ) : (
+              <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-full">자동 저장</span>
+            )}
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
