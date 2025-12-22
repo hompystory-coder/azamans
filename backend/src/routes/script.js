@@ -80,7 +80,7 @@ router.post('/generate', async (req, res) => {
     
     // 템플릿 기반 스크립트 생성 (Gemini API 대체)
     console.log(`📝 템플릿 기반 스크립트 생성 시작...`);
-    console.log(`   목표: 15-20자의 자연스러운 문장 생성`);
+    console.log(`   목표: 10~15자의 짧고 자연스러운 문장 생성 (자막 최적화)`);
     
     // 콘텐츠를 문장으로 분할 (더 작은 단위로 세분화)
     const rawSentences = content
@@ -90,27 +90,28 @@ router.post('/generate', async (req, res) => {
     
     console.log(`   📊 원본 문장 ${rawSentences.length}개 추출`);
     
-    // 1단계: 15-20자 범위의 완벽한 문장 찾기
-    const perfectSentences = rawSentences.filter(s => s.length >= 15 && s.length <= 20);
-    console.log(`   ✅ 완벽한 문장 (15-20자): ${perfectSentences.length}개`);
+    // 1단계: 10-15자 범위의 완벽한 문장 찾기 (가장 이상적)
+    const perfectSentences = rawSentences.filter(s => s.length >= 10 && s.length <= 15);
+    console.log(`   ⭐ 완벽한 문장 (10-15자): ${perfectSentences.length}개`);
     
-    // 2단계: 10-25자 범위의 사용 가능한 문장 찾기
-    const goodSentences = rawSentences.filter(s => s.length >= 10 && s.length <= 25);
-    console.log(`   ✅ 사용 가능 문장 (10-25자): ${goodSentences.length}개`);
+    // 2단계: 8-18자 범위의 사용 가능한 문장 찾기
+    const goodSentences = rawSentences.filter(s => s.length >= 8 && s.length <= 18);
+    console.log(`   ✅ 사용 가능 문장 (8-18자): ${goodSentences.length}개`);
     
-    // 3단계: 긴 문장을 15-20자로 자연스럽게 분리
+    // 3단계: 긴 문장을 10-15자로 자연스럽게 분리
     const splitSentences = [];
     for (const sentence of rawSentences) {
-      if (sentence.length > 25) {
+      if (sentence.length > 18) {
         // 긴 문장을 쉼표나 공백 기준으로 분리
         const parts = sentence.split(/[,，]\s*/);
         for (const part of parts) {
           const trimmed = part.trim();
-          if (trimmed.length >= 10 && trimmed.length <= 25) {
+          if (trimmed.length >= 8 && trimmed.length <= 18) {
             splitSentences.push(trimmed);
-          } else if (trimmed.length > 25) {
-            // 여전히 길면 20자로 자르기
-            splitSentences.push(trimmed.substring(0, 20));
+          } else if (trimmed.length > 18) {
+            // 여전히 길면 15자로 자르기 (자막 최적화)
+            const shortPart = trimmed.substring(0, 15);
+            splitSentences.push(shortPart);
           }
         }
       }
@@ -120,10 +121,10 @@ router.post('/generate', async (req, res) => {
     // 4단계: 최적 문장 선택 (우선순위: 완벽 > 좋음 > 분리됨)
     let selectedSentences = [];
     
-    // 완벽한 문장 우선 선택
+    // 완벽한 문장 우선 선택 (10-15자)
     selectedSentences.push(...perfectSentences.slice(0, sceneCount));
     
-    // 부족하면 좋은 문장 추가
+    // 부족하면 좋은 문장 추가 (8-18자)
     if (selectedSentences.length < sceneCount) {
       const needed = sceneCount - selectedSentences.length;
       const additional = goodSentences
@@ -145,20 +146,21 @@ router.post('/generate', async (req, res) => {
     if (selectedSentences.length < sceneCount) {
       const needed = sceneCount - selectedSentences.length;
       const additional = rawSentences
-        .filter(s => s.length >= 8 && !selectedSentences.includes(s))
+        .filter(s => s.length >= 6 && !selectedSentences.includes(s))
         .slice(0, needed);
       selectedSentences.push(...additional);
     }
     
-    // 최종 선택된 문장들의 길이 조정 (15-20자 권장)
+    // 최종 선택된 문장들의 길이 조정 (10-15자 목표, 최대 18자)
     selectedSentences = selectedSentences.map(sentence => {
-      if (sentence.length > 20) {
-        // 20자 초과 시 자연스러운 위치에서 자르기
-        const cutPos = sentence.lastIndexOf(' ', 20);
-        if (cutPos > 15) {
+      if (sentence.length > 18) {
+        // 18자 초과 시 자연스러운 위치에서 자르기
+        const cutPos = sentence.lastIndexOf(' ', 15);
+        if (cutPos > 10) {
           return sentence.substring(0, cutPos);
         }
-        return sentence.substring(0, 20);
+        // 공백이 없으면 15자로 강제 자르기 (자막 최적화)
+        return sentence.substring(0, 15);
       }
       return sentence;
     });
@@ -166,8 +168,9 @@ router.post('/generate', async (req, res) => {
     console.log(`\n✅ 최종 선택된 나레이션 (${selectedSentences.length}개):`);
     selectedSentences.forEach((s, i) => {
       const length = s.length;
-      const status = length >= 15 && length <= 20 ? '✅' : 
-                     length >= 10 && length <= 25 ? '⚠️' : '❌';
+      const status = length >= 10 && length <= 15 ? '⭐' :  // 완벽
+                     length >= 8 && length <= 18 ? '✅' :   // 좋음
+                     '⚠️';                                    // 조정 필요
       console.log(`   ${status} ${i+1}. "${s}" (${length}자)`);
     });
     
@@ -176,13 +179,14 @@ router.post('/generate', async (req, res) => {
       sceneNumber: index + 1,
       narration: sentence,
       imageDescription: `장면 ${index + 1}`,
-      duration: Math.min(Math.max(Math.ceil(sentence.length / 15), 3), 6)
+      // 문장 길이에 따른 duration 계산 (10-15자 기준 2-4초)
+      duration: Math.min(Math.max(Math.ceil(sentence.length / 5), 2), 5)
     }));
     
-    // 제목 생성: 원본 제목을 최대 20자로 축약 (2줄 허용)
+    // 제목 생성: 원본 제목을 최대 12자로 축약 (자막과 조화)
     let shortTitle = title || '유튜브 쇼츠';
-    if (shortTitle.length > 20) {
-      shortTitle = shortTitle.substring(0, 20) + '...';
+    if (shortTitle.length > 12) {
+      shortTitle = shortTitle.substring(0, 12) + '...';
       console.log(`📝 제목 축약: "${title}" → "${shortTitle}"`);
     }
     
