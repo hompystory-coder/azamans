@@ -1,9 +1,11 @@
 // YouTube Shorts Creator Pro - Backend Server
 // 최신 ES Modules 사용
 
+// Load environment variables FIRST
+import './config/env.js';
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -23,9 +25,6 @@ import { ensureDirectories } from './utils/storage.js';
 // ES Module __dirname 대체
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Load environment variables
-dotenv.config();
 
 // Initialize Express
 const app = express();

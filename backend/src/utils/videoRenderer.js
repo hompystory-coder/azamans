@@ -15,6 +15,11 @@ const BASE_OUTPUT_DIR = process.env.OUTPUT_DIR || '/tmp/outputs';
 const OUTPUT_DIR = path.join(BASE_OUTPUT_DIR, 'videos');
 const TEMP_DIR = path.join(BASE_OUTPUT_DIR, 'temp');
 
+console.log('🎬 VideoRenderer initialized');
+console.log(`📂 BASE_OUTPUT_DIR: ${BASE_OUTPUT_DIR}`);
+console.log(`📂 OUTPUT_DIR: ${OUTPUT_DIR}`);
+console.log(`📂 TEMP_DIR: ${TEMP_DIR}`);
+
 /**
  * 비디오 렌더러 클래스
  * - 로컬 FFmpeg 사용으로 API 비용 제로
