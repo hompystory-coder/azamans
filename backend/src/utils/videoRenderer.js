@@ -11,8 +11,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 출력 디렉토리 설정
-const OUTPUT_DIR = process.env.OUTPUT_DIR || '/tmp/outputs/videos';
-const TEMP_DIR = path.join(OUTPUT_DIR, 'temp');
+const BASE_OUTPUT_DIR = process.env.OUTPUT_DIR || '/tmp/outputs';
+const OUTPUT_DIR = path.join(BASE_OUTPUT_DIR, 'videos');
+const TEMP_DIR = path.join(BASE_OUTPUT_DIR, 'temp');
 
 /**
  * 비디오 렌더러 클래스
