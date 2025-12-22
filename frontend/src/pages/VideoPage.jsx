@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Video, Loader, CheckCircle, Film, AlertCircle, Upload, X, Music, Image as ImageIcon, Type, Settings as SettingsIcon } from 'lucide-react';
+import { Video, Loader, CheckCircle, Film, AlertCircle, Upload, X, Music, Image as ImageIcon, Type, Settings as SettingsIcon, ArrowRight } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 
 export default function VideoPage() {
   const { script, voiceData, setVideoData: setGlobalVideoData } = useStore();
+  const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
@@ -1590,6 +1592,13 @@ export default function VideoPage() {
               className="px-6 py-3 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
             >
               새로 만들기
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-colors flex items-center gap-2 shadow-lg"
+            >
+              <ArrowRight className="w-5 h-5" />
+              처음으로
             </button>
           </div>
         </motion.div>
