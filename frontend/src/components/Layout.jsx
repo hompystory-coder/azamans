@@ -1,20 +1,21 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Settings, Download, Edit3, Mic, Video, Eye, Sparkles } from 'lucide-react'
+import { Settings, Download, Edit3, Mic, Video, Eye } from 'lucide-react'
 
 const steps = [
   { path: '/settings', label: '설정', icon: Settings },
-  { path: '/crawler', label: '크롤링', icon: Download },
+  { path: '/', label: '크롤링', icon: Download },
   { path: '/script', label: '스크립트', icon: Edit3 },
   { path: '/voice', label: '음성', icon: Mic },
   { path: '/video', label: '비디오', icon: Video },
-  { path: '/render', label: '렌더링', icon: Sparkles },
   { path: '/preview', label: '미리보기', icon: Eye }
 ]
 
 export default function Layout({ children }) {
   const location = useLocation()
 
-  const currentStepIndex = steps.findIndex(step => step.path === location.pathname)
+  // '/' 경로를 크롤링 단계로 처리
+  const currentPath = location.pathname === '/' ? '/' : location.pathname
+  const currentStepIndex = steps.findIndex(step => step.path === currentPath)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">

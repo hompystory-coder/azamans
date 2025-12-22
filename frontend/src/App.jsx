@@ -6,7 +6,6 @@ import CrawlerPage from './pages/CrawlerPage';
 import ScriptPage from './pages/ScriptPage';
 import VoicePage from './pages/VoicePage';
 import VideoPage from './pages/VideoPage';
-import RenderPage from './pages/RenderPage';
 import PreviewPage from './pages/PreviewPage';
 
 export default function App() {
@@ -19,7 +18,6 @@ export default function App() {
           <Route path="/script" element={<ScriptPage />} />
           <Route path="/voice" element={<VoicePage />} />
           <Route path="/video" element={<VideoPage />} />
-          <Route path="/render" element={<RenderPage />} />
           <Route path="/preview" element={<PreviewPage />} />
         </Routes>
       </Layout>
