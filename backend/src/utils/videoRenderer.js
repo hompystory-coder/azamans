@@ -804,19 +804,25 @@ class VideoRenderer {
         if (bgMusicPath) {
           command.input(bgMusicPath);
           
+          // 배경 음악 볼륨 설정 (기본값: 0.3)
+          const bgMusicVolume = settings.bgMusic.volume !== undefined ? settings.bgMusic.volume : 0.3;
+          console.log(`   배경 음악 볼륨: ${Math.round(bgMusicVolume * 100)}%`);
+          
           if (hasAudio) {
             // 입력 비디오에 오디오가 있으면 믹싱
             command.complexFilter([
               '[0:a]volume=1.0[voice]',
-              '[1:a]volume=0.3[music]',
+              `[1:a]volume=${bgMusicVolume}[music]`,
               '[voice][music]amix=inputs=2:duration=first[aout]'
             ]);
             command.outputOptions(['-map', '0:v', '-map', '[aout]']);
           } else {
             // 입력 비디오에 오디오가 없으면 배경 음악만 사용
             console.log('   입력 비디오에 오디오 없음, 배경 음악만 사용');
+            // 음성 없으므로 배경 음악 볼륨 증가 (설정값의 1.5배, 최대 1.0)
+            const soloMusicVolume = Math.min(bgMusicVolume * 1.5, 1.0);
             command.complexFilter([
-              '[1:a]volume=0.5[aout]'  // 음성 없으므로 배경 음악 볼륨 증가
+              `[1:a]volume=${soloMusicVolume}[aout]`
             ]);
             command.outputOptions(['-map', '0:v', '-map', '[aout]']);
           }
