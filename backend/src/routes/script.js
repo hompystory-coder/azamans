@@ -78,33 +78,44 @@ router.post('/generate', async (req, res) => {
     
     const systemPrompt = prompt || defaultPrompt;
     
-    // Gemini API 호출
-    const geminiResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
-      {
-        contents: [
-          {
-            parts: [
-              {
-                text: `${systemPrompt}\n\n제목: ${title}\n\n본문:\n${content.substring(0, 5000)}`
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048
-        }
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    // 템플릿 기반 스크립트 생성 (Gemini API 대체)
+    console.log(`📝 템플릿 기반 스크립트 생성 시작...`);
     
-    const responseText = geminiResponse.data.candidates[0].content.parts[0].text;
-    console.log(`✅ Gemini API 응답 받음`);
+    // 콘텐츠를 문장으로 분할
+    const sentences = content
+      .split(/[.!?]\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length >= 15 && s.length <= 150)
+      .slice(0, sceneCount * 2); // 여유있게 가져오기
+    
+    // 적절한 길이의 문장 선택 (15-50자)
+    const selectedSentences = sentences.filter(s => s.length <= 50).slice(0, sceneCount);
+    
+    // 부족하면 긴 문장 잘라서 사용
+    if (selectedSentences.length < sceneCount) {
+      const additionalSentences = sentences
+        .filter(s => s.length > 50)
+        .map(s => s.substring(0, 47) + '...')
+        .slice(0, sceneCount - selectedSentences.length);
+      selectedSentences.push(...additionalSentences);
+    }
+    
+    // JSON 응답 구조 생성
+    const scenes = selectedSentences.map((sentence, index) => ({
+      sceneNumber: index + 1,
+      narration: sentence,
+      imageDescription: `장면 ${index + 1}`,
+      duration: Math.min(Math.max(Math.ceil(sentence.length / 15), 3), 6)
+    }));
+    
+    const responseText = JSON.stringify({
+      title: title || '유튜브 쇼츠',
+      description: selectedSentences[0] || '',
+      keywords: [],
+      scenes: scenes
+    });
+    
+    console.log(`✅ 템플릿 기반 스크립트 생성 완료: ${scenes.length}개 장면`);
     
     // JSON 추출 (```json ... ``` 형식 처리) 또는 순수 텍스트 처리
     let scriptData;
