@@ -40,6 +40,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ========== 서비스 임포트 ==========
+from services.pipeline_service import PipelineService
+from services.crawler_service import SimpleCrawler
+import asyncio
+import uuid
+
 # ========== 전역 변수 ==========
 OUTPUT_DIR = BASE_DIR / "output"
 MODELS_DIR = BASE_DIR / "models"
@@ -57,6 +63,9 @@ logger.info(f"🔧 Device: {DEVICE}")
 if DEVICE == "cuda":
     logger.info(f"🎮 GPU: {torch.cuda.get_device_name(0)}")
     logger.info(f"💾 VRAM: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+
+# 파이프라인 서비스 초기화
+pipeline = PipelineService(MODELS_DIR, OUTPUT_DIR, DEVICE)
 
 # ========== Pydantic 모델 ==========
 class ShortsGenerationRequest(BaseModel):
@@ -184,40 +193,86 @@ async def generate_shorts(
     request: ShortsGenerationRequest,
     background_tasks: BackgroundTasks
 ):
-    """쇼츠 생성 시작"""
+    """쇼츠 생성 시작 (완전 자동화)"""
     try:
         # Job ID 생성
         import time
-        import uuid
         job_id = f"shorts_{int(time.time())}_{uuid.uuid4().hex[:6]}"
         
         logger.info(f"🎬 New shorts generation job: {job_id}")
         logger.info(f"   Character: {request.character_id}")
-        logger.info(f"   Mode: {request.video_mode}")
+        logger.info(f"   URL: {request.url}")
+        
+        # 요청 데이터 준비
+        request_data = {
+            "character_id": request.character_id,
+            "num_scenes": 5,
+            "duration": request.duration,
+            "aspect_ratio": request.aspect_ratio
+        }
+        
+        # URL이 있으면 크롤링
+        if request.url:
+            request_data["url"] = request.url
+        elif request.text_content:
+            # 텍스트 직접 제공
+            request_data["product_info"] = {
+                "title": "제품",
+                "description": request.text_content,
+                "features": [],
+                "price": ""
+            }
+        else:
+            # 기본 정보
+            request_data["product_info"] = {
+                "title": "프리미엄 제품",
+                "description": "최고의 품질",
+                "features": ["고품질", "합리적인 가격"],
+                "price": "99,000원"
+            }
         
         # 백그라운드 작업으로 쇼츠 생성
-        # background_tasks.add_task(process_shorts_generation, job_id, request)
+        background_tasks.add_task(
+            _generate_shorts_background,
+            job_id,
+            request_data
+        )
         
         return {
             "job_id": job_id,
             "status": "pending",
-            "message": "쇼츠 생성이 시작되었습니다.",
-            "estimated_time": "3-5분"
+            "message": "쇼츠 생성이 시작되었습니다. 5-10분 소요됩니다.",
+            "estimated_time": "5-10분"
         }
         
     except Exception as e:
         logger.error(f"❌ Error starting shorts generation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+async def _generate_shorts_background(job_id: str, request_data: dict):
+    """백그라운드에서 쇼츠 생성"""
+    try:
+        result = await pipeline.generate_shorts(job_id, request_data)
+        logger.info(f"✅ Background generation completed: {job_id}")
+    except Exception as e:
+        logger.error(f"❌ Background generation failed: {str(e)}")
+
 @app.get("/api/shorts/status/{job_id}", response_model=JobStatusResponse)
 async def get_job_status(job_id: str):
     """작업 상태 조회"""
-    # TODO: 실제 작업 상태 조회 구현
+    job_status = pipeline.get_job_status(job_id)
+    
+    if not job_status:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
     return {
         "job_id": job_id,
-        "status": "processing",
-        "progress": 45,
-        "message": "비디오 생성 중..."
+        "status": job_status["status"],
+        "progress": job_status["progress"],
+        "message": job_status["message"],
+        "output_path": job_status.get("output_path"),
+        "error": job_status.get("error")
     }
 
 @app.get("/api/shorts/download/{job_id}")
