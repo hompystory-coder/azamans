@@ -1,0 +1,30 @@
+{
+  "name": "zero-install-ai-studio",
+  "version": "1.0.0",
+  "description": "천재적인 AI 쇼츠 생성 시스템 - 설치 없이 브라우저에서 바로!",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.16",
+    "canvas": "^3.2.0",
+    "next": "^14.0.4",
+    "onnxruntime-web": "^1.23.2",
+    "postcss": "^8.4.32",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3"
+  },
+  "author": "Genius AI Team",
+  "license": "MIT"
+}
