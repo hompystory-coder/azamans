@@ -98,6 +98,10 @@ export default function Home() {
                 <span>🎨 이미지 스튜디오</span>
               </Link>
               
+              <Link href="/editor" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                <span>✂️ 고급 편집</span>
+              </Link>
+              
               <Link href="/gallery" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                 <span>🖼️ 갤러리</span>
               </Link>
