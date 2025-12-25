@@ -89,9 +89,13 @@ export default function Home() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/studio" className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-full hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                <span className="relative z-10">🚀 지금 바로 시작하기</span>
+              <Link href="/auto-shorts" className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-full hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                <span className="relative z-10">🎬 자동 쇼츠 생성</span>
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </Link>
+              
+              <Link href="/studio" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                <span>🎨 이미지 스튜디오</span>
               </Link>
               
               <Link href="#how-it-works" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
