@@ -1,233 +1,233 @@
 @echo off
-chcp 65001 >nul
 color 0A
-title AI 쇼츠 생성기 - 자동 설치 프로그램
+title AI Shorts Generator - Easy Installer
 
 echo.
-echo ╔══════════════════════════════════════════════════════════════╗
-echo ║                                                              ║
-echo ║        AI 쇼츠 생성기 - 자동 설치 프로그램                  ║
-echo ║                                                              ║
-echo ║        초보자도 쉽게 설치할 수 있습니다!                    ║
-echo ║                                                              ║
-echo ╚══════════════════════════════════════════════════════════════╝
+echo ============================================================
 echo.
-echo 이 프로그램은 자동으로:
-echo   ✅ 필수 프로그램 확인
-echo   ✅ Python 라이브러리 설치
-echo   ✅ AI 모델 다운로드 (15.3GB)
-echo   ✅ 모든 설정 완료
+echo          AI Shorts Generator - Easy Installer
 echo.
-echo 예상 소요 시간: 약 40-70분 (최초 1회만)
+echo          Easy Installation for Everyone!
+echo.
+echo ============================================================
+echo.
+echo This program will automatically:
+echo   [OK] Check required programs
+echo   [OK] Install Python libraries
+echo   [OK] Download AI models (15.3GB)
+echo   [OK] Complete all setup
+echo.
+echo Estimated time: 40-70 minutes (First time only)
 echo.
 pause
 
 :: ============================================
-:: 1단계: 시스템 체크
+:: Step 1: System Check
 :: ============================================
 cls
 echo.
-echo ╔══════════════════════════════════════════════════════════════╗
-echo ║  1단계: 시스템 체크 중...                                    ║
-echo ╚══════════════════════════════════════════════════════════════╝
+echo ============================================================
+echo  Step 1: System Check...
+echo ============================================================
 echo.
 
-:: Python 체크
-echo [1/4] Python 확인 중...
+:: Check Python
+echo [1/4] Checking Python...
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ Python이 설치되지 않았습니다!
+    echo [X] Python is not installed!
     echo.
-    echo 📥 Python 다운로드 페이지를 엽니다...
+    echo [!] Opening Python download page...
     start https://www.python.org/downloads/windows/
     echo.
-    echo ⚠️  중요:
-    echo    1. "Python 3.10.11" 다운로드
-    echo    2. 설치 시 "Add Python to PATH" 체크!
-    echo    3. 설치 후 이 프로그램을 다시 실행하세요
+    echo IMPORTANT:
+    echo    1. Download "Python 3.10.11"
+    echo    2. Check "Add Python to PATH" during installation!
+    echo    3. Run this program again after installation
     echo.
     pause
     exit /b 1
 )
-echo ✅ Python 설치됨
+echo [OK] Python installed
 for /f "tokens=*" %%i in ('python --version') do set PYTHON_VERSION=%%i
-echo    버전: %PYTHON_VERSION%
+echo     Version: %PYTHON_VERSION%
 timeout /t 2 /nobreak >nul
 
-:: Git 체크
-echo [2/4] Git 확인 중...
+:: Check Git
+echo [2/4] Checking Git...
 git --version >nul 2>&1
 if errorlevel 1 (
-    echo ⚠️  Git이 설치되지 않았습니다 (선택사항)
+    echo [!] Git is not installed (Optional)
 ) else (
-    echo ✅ Git 설치됨
+    echo [OK] Git installed
     for /f "tokens=*" %%i in ('git --version') do set GIT_VERSION=%%i
-    echo    버전: %GIT_VERSION%
+    echo     Version: %GIT_VERSION%
 )
 timeout /t 2 /nobreak >nul
 
-:: Ollama 체크
-echo [3/4] Ollama 확인 중...
+:: Check Ollama
+echo [3/4] Checking Ollama...
 ollama --version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ Ollama가 설치되지 않았습니다!
+    echo [X] Ollama is not installed!
     echo.
-    echo 📥 Ollama 다운로드 페이지를 엽니다...
+    echo [!] Opening Ollama download page...
     start https://ollama.ai/download/windows
     echo.
-    echo ⚠️  설치 후 이 프로그램을 다시 실행하세요
+    echo Please install Ollama and run this program again
     echo.
     pause
     exit /b 1
 )
-echo ✅ Ollama 설치됨
+echo [OK] Ollama installed
 timeout /t 2 /nobreak >nul
 
-:: FFmpeg 체크
-echo [4/4] FFmpeg 확인 중...
+:: Check FFmpeg
+echo [4/4] Checking FFmpeg...
 ffmpeg -version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ FFmpeg가 설치되지 않았습니다!
+    echo [X] FFmpeg is not installed!
     echo.
-    echo 📥 FFmpeg 다운로드 페이지를 엽니다...
+    echo [!] Opening FFmpeg download page...
     start https://www.gyan.dev/ffmpeg/builds/
     echo.
-    echo ⚠️  설치 방법:
-    echo    1. "ffmpeg-release-essentials.zip" 다운로드
-    echo    2. C:\ffmpeg 에 압축 해제
-    echo    3. 시스템 환경 변수 PATH에 "C:\ffmpeg\bin" 추가
-    echo    4. 컴퓨터 재시작
-    echo    5. 이 프로그램을 다시 실행하세요
+    echo Installation steps:
+    echo    1. Download "ffmpeg-release-essentials.zip"
+    echo    2. Extract to C:\ffmpeg
+    echo    3. Add "C:\ffmpeg\bin" to system PATH
+    echo    4. Restart computer
+    echo    5. Run this program again
     echo.
     pause
     exit /b 1
 )
-echo ✅ FFmpeg 설치됨
+echo [OK] FFmpeg installed
 timeout /t 2 /nobreak >nul
 
 echo.
-echo ✅ 모든 필수 프로그램이 설치되어 있습니다!
+echo [OK] All required programs are installed!
 timeout /t 3 /nobreak >nul
 
 :: ============================================
-:: 2단계: Python 라이브러리 설치
+:: Step 2: Install Python Libraries
 :: ============================================
 cls
 echo.
-echo ╔══════════════════════════════════════════════════════════════╗
-echo ║  2단계: Python 라이브러리 설치 중... (약 5분)               ║
-echo ╚══════════════════════════════════════════════════════════════╝
+echo ============================================================
+echo  Step 2: Installing Python Libraries... (5 minutes)
+echo ============================================================
 echo.
 
-echo 📦 pip 업그레이드 중...
+echo [*] Upgrading pip...
 python -m pip install --upgrade pip --quiet
 if errorlevel 1 (
-    echo ❌ pip 업그레이드 실패
+    echo [X] Failed to upgrade pip
     pause
     exit /b 1
 )
-echo ✅ pip 업그레이드 완료
+echo [OK] pip upgraded
 echo.
 
-echo 📦 필수 라이브러리 설치 중... (약 50개, 5분 소요)
-echo    ⏳ 잠시만 기다려주세요...
+echo [*] Installing required libraries... (About 50 packages, 5 min)
+echo     Please wait...
 echo.
 pip install -r requirements.txt
 if errorlevel 1 (
-    echo ❌ 라이브러리 설치 실패
+    echo [X] Failed to install libraries
     echo.
-    echo 해결 방법:
-    echo   1. 인터넷 연결 확인
-    echo   2. 이 프로그램을 다시 실행하세요
+    echo Solutions:
+    echo   1. Check internet connection
+    echo   2. Run this program again
     pause
     exit /b 1
 )
 
 echo.
-echo ✅ Python 라이브러리 설치 완료!
+echo [OK] Python libraries installed successfully!
 timeout /t 3 /nobreak >nul
 
 :: ============================================
-:: 3단계: AI 모델 다운로드
+:: Step 3: Download AI Models
 :: ============================================
 cls
 echo.
-echo ╔══════════════════════════════════════════════════════════════╗
-echo ║  3단계: AI 모델 다운로드 중... (15.3GB, 30-60분)            ║
-echo ╚══════════════════════════════════════════════════════════════╝
+echo ============================================================
+echo  Step 3: Downloading AI Models... (15.3GB, 30-60 min)
+echo ============================================================
 echo.
-echo ⚠️  주의사항:
-echo   - 총 15.3GB 다운로드됩니다
-echo   - 30-60분 소요됩니다 (인터넷 속도에 따라)
-echo   - 다운로드 중 컴퓨터를 끄지 마세요!
-echo   - 최초 1회만 필요합니다
+echo NOTICE:
+echo   - Total download: 15.3GB
+echo   - Time required: 30-60 minutes (depends on internet speed)
+echo   - Do not turn off computer during download!
+echo   - Required only once
 echo.
 pause
 
 echo.
-echo ═══════════════════════════════════════════════════════════════
-echo 1/4: Stable Diffusion XL 다운로드 중... (6.9 GB)
-echo ═══════════════════════════════════════════════════════════════
+echo ============================================================
+echo 1/4: Downloading Stable Diffusion XL... (6.9 GB)
+echo ============================================================
 echo.
 python scripts/install_models.py
 if errorlevel 1 (
-    echo ⚠️  일부 모델 다운로드 실패 (계속 진행합니다)
+    echo [!] Some models download failed (Continuing...)
 )
 
 echo.
-echo ═══════════════════════════════════════════════════════════════
-echo 4/4: LLaMA 3.1 다운로드 중... (4.7 GB)
-echo ═══════════════════════════════════════════════════════════════
+echo ============================================================
+echo 4/4: Downloading LLaMA 3.1... (4.7 GB)
+echo ============================================================
 echo.
 ollama pull llama3.1:8b
 if errorlevel 1 (
-    echo ❌ LLaMA 3.1 다운로드 실패
+    echo [X] LLaMA 3.1 download failed
     echo.
-    echo 해결 방법:
-    echo   1. Ollama 서비스 실행 확인
-    echo   2. 인터넷 연결 확인
-    echo   3. 이 프로그램을 다시 실행하세요
+    echo Solutions:
+    echo   1. Check Ollama service is running
+    echo   2. Check internet connection
+    echo   3. Run this program again
     pause
     exit /b 1
 )
 
 :: ============================================
-:: 4단계: 설치 완료
+:: Step 4: Installation Complete
 :: ============================================
 cls
 echo.
-echo ╔══════════════════════════════════════════════════════════════╗
-echo ║                                                              ║
-echo ║                 🎉 설치 완료! 🎉                            ║
-echo ║                                                              ║
-echo ╚══════════════════════════════════════════════════════════════╝
+echo ============================================================
 echo.
-echo ✅ 모든 설치가 완료되었습니다!
+echo              Installation Complete!
 echo.
-echo 📊 설치 내역:
-echo   ✅ Python 라이브러리: 약 50개
-echo   ✅ AI 모델 (15.3GB):
-echo      - Stable Diffusion XL (6.9 GB)
-echo      - AnimateDiff (1.7 GB)
-echo      - Coqui TTS (2.0 GB)
-echo      - LLaMA 3.1 (4.7 GB)
+echo ============================================================
 echo.
-echo ═══════════════════════════════════════════════════════════════
-echo 🚀 이제 프로그램을 실행할 수 있습니다!
-echo ═══════════════════════════════════════════════════════════════
+echo [OK] All installation completed successfully!
 echo.
-echo 실행 방법:
-echo   1. "START_HERE.bat" 더블클릭
-echo   2. 또는 "start_gui_windows.bat" 더블클릭
+echo Installation Summary:
+echo   [OK] Python libraries: About 50 packages
+echo   [OK] AI models (15.3GB):
+echo        - Stable Diffusion XL (6.9 GB)
+echo        - AnimateDiff (1.7 GB)
+echo        - Coqui TTS (2.0 GB)
+echo        - LLaMA 3.1 (4.7 GB)
 echo.
-echo 💡 도움말:
-echo   - 사용 가이드: README.md
-echo   - 문제 해결: STEP_BY_STEP_GUIDE.md
+echo ============================================================
+echo  You can now run the program!
+echo ============================================================
+echo.
+echo How to run:
+echo   1. Double-click "START_HERE.bat"
+echo   2. Or double-click "start_gui_windows.bat"
+echo.
+echo Help:
+echo   - User Guide: README.md
+echo   - Troubleshooting: STEP_BY_STEP_GUIDE.md
 echo.
 pause
 
-:: 자동으로 GUI 실행
-echo 🚀 GUI를 자동으로 실행합니다...
+:: Auto-launch GUI
+echo.
+echo [*] Launching GUI automatically...
 timeout /t 3 /nobreak >nul
 start start_gui_windows.bat
 
