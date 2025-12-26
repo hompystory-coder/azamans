@@ -278,18 +278,60 @@ export default function ShortsMakerPage() {
         message: '가야금 배경음악 매칭!' 
       });
 
-      // Stage 6: 비디오 합성
-      updateStage(6, { status: 'processing', message: '최종 비디오 렌더링 중...' });
-      await sleep(1500);
+      // Stage 6: 비디오 합성 (실제 비디오 생성!)
+      updateStage(6, { status: 'processing', message: '🎬 실제 비디오 렌더링 중...' });
       
-      // 첫 장면을 대표 이미지로
-      setFinalVideo(generatedScenes[0].imageUrl);
-      
-      updateStage(6, { 
-        status: 'completed', 
-        progress: 100, 
-        message: `${totalDuration}초 쇼츠 완성!` 
-      });
+      try {
+        // 비디오 생성 API 호출
+        const videoResponse = await fetch('http://localhost:5003/generate-video', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: title,
+            scenes: generatedScenes.map(scene => ({
+              description: scene.description,
+              duration: scene.duration,
+              style: 'traditional',
+              // 이미지 URL을 Base64로 인코딩하여 전송할 수도 있지만
+              // 지금은 서버에서 다시 생성하도록 함
+            })),
+            fps: 30
+          })
+        });
+
+        if (videoResponse.ok) {
+          const videoData = await videoResponse.json();
+          
+          if (videoData.success) {
+            // 비디오 URL 설정
+            const videoUrl = `http://localhost:5003${videoData.video_url}`;
+            setFinalVideo(videoUrl);
+            
+            updateStage(6, { 
+              status: 'completed', 
+              progress: 100, 
+              message: `✅ ${totalDuration}초 비디오 완성! (${(videoData.file_size / 1024 / 1024).toFixed(2)}MB)` 
+            });
+          } else {
+            throw new Error('Video generation failed');
+          }
+        } else {
+          throw new Error('Video API error');
+        }
+      } catch (videoError) {
+        console.error('Video generation error:', videoError);
+        
+        // 폴백: 첫 장면을 대표 이미지로
+        setFinalVideo(generatedScenes[0].imageUrl);
+        
+        updateStage(6, { 
+          status: 'completed', 
+          progress: 100, 
+          message: `⚠️ 이미지 버전 생성 완료 (비디오 생성 중 오류)` 
+        });
+      }
 
     } catch (error) {
       console.error('Generation error:', error);
@@ -500,15 +542,51 @@ export default function ShortsMakerPage() {
           </div>
         )}
 
-        {/* 완료 메시지 */}
+        {/* 완성된 비디오 */}
         {finalVideo && (
-          <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-xl p-8 border border-green-500/30 text-center">
-            <h2 className="text-4xl font-bold mb-4 gradient-text">
+          <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-xl p-8 border border-green-500/30">
+            <h2 className="text-4xl font-bold mb-6 text-center gradient-text">
               🎉 쇼츠 생성 완료!
             </h2>
-            <p className="text-xl text-white/80 mb-6">
+            <p className="text-xl text-white/80 mb-8 text-center">
               총 {scenes.length}개 장면, {storyInfo.totalDuration}초 분량의 스토리가 완성되었습니다!
             </p>
+            
+            {/* 비디오 플레이어 */}
+            <div className="mb-8">
+              <div className="max-w-md mx-auto">
+                <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl bg-black">
+                  {finalVideo.includes('.mp4') ? (
+                    <video
+                      src={finalVideo}
+                      controls
+                      className="w-full h-full"
+                      poster={scenes[0]?.imageUrl}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      src={finalVideo}
+                      alt="Final result"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                
+                {/* 다운로드 버튼 */}
+                {finalVideo.includes('.mp4') && (
+                  <a
+                    href={finalVideo}
+                    download={`${title}_shorts.mp4`}
+                    className="mt-4 w-full block px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 rounded-lg font-bold text-center transition-all shadow-lg hover:shadow-xl"
+                  >
+                    📥 비디오 다운로드
+                  </a>
+                )}
+              </div>
+            </div>
+            
             <div className="flex gap-4 justify-center">
               <button
                 onClick={() => {
