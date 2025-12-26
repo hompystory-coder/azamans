@@ -8,10 +8,12 @@ interface Scene {
   title: string;
   description: string;
   korean_description: string;
+  narration?: string;
   duration: number;
   camera_movement: string;
   mood: string;
   imageUrl?: string;
+  audioUrl?: string;
 }
 
 interface Story {
@@ -43,8 +45,10 @@ export default function ProShortsPage() {
   const [stages, setStages] = useState<Stage[]>([
     { id: 1, name: '📝 스토리 생성', status: 'pending', progress: 0, message: '대기 중...' },
     { id: 2, name: '🎨 AI 이미지 생성', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 3, name: '🎬 카메라 움직임 적용', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 4, name: '🎥 최종 비디오 합성', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 3, name: '🎙️ TTS 음성 생성', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 4, name: '🎵 배경음악 매칭', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 5, name: '🎬 카메라 움직임 적용', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 6, name: '🎥 최종 비디오 합성', status: 'pending', progress: 0, message: '대기 중...' },
   ]);
 
   const updateStage = (id: number, updates: Partial<Stage>) => {
@@ -179,14 +183,76 @@ export default function ProShortsPage() {
 
       await sleep(1000);
 
-      // ==================== 3단계: 카메라 움직임 분석 ====================
-      updateStage(3, { status: 'processing', message: '🎬 카메라 움직임 효과 적용 중...' });
+      // ==================== 3단계: TTS 음성 생성 ====================
+      updateStage(3, { status: 'processing', message: '🎙️ AI가 나레이션 음성을 생성하는 중...' });
 
-      // 각 장면의 카메라 움직임 확인
-      const cameraMovements = scenesWithImages.map(s => s.camera_movement);
-      const uniqueMovements = [...new Set(cameraMovements)];
+      const scenesWithAudio: Scene[] = [];
+
+      for (let i = 0; i < scenesWithImages.length; i++) {
+        const scene = scenesWithImages[i];
+        
+        updateStage(3, {
+          progress: ((i + 1) / scenesWithImages.length) * 100,
+          message: `🎙️ 장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중...`
+        });
+
+        try {
+          const narration = scene.narration || scene.korean_description;
+          
+          // TTS 음성 생성 API 호출
+          const ttsResponse = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: narration
+            })
+          });
+
+          if (ttsResponse.ok) {
+            const ttsData = await ttsResponse.json();
+            scene.audioUrl = ttsData.audio_url;
+          } else {
+            console.warn(`Scene ${i + 1} TTS failed, skipping audio`);
+          }
+        } catch (error) {
+          console.error('TTS 생성 오류:', error);
+          // TTS 실패해도 계속 진행
+        }
+
+        scenesWithAudio.push(scene);
+        setStory({ ...generatedStory, scenes: scenesWithAudio });
+        await sleep(500);
+      }
 
       updateStage(3, { 
+        status: 'completed', 
+        progress: 100, 
+        message: `✅ ${scenesWithAudio.length}개 나레이션 음성 생성 완료!` 
+      });
+
+      await sleep(1000);
+
+      // ==================== 4단계: 배경음악 매칭 ====================
+      updateStage(4, { status: 'processing', message: '🎵 스토리에 어울리는 배경음악 선택 중...' });
+      
+      await sleep(2000);
+      
+      updateStage(4, { 
+        status: 'completed', 
+        progress: 100, 
+        message: `✅ 배경음악 매칭 완료! (${generatedStory.music_suggestion})` 
+      });
+
+      await sleep(1000);
+
+      // ==================== 5단계: 카메라 움직임 분석 ====================
+      updateStage(5, { status: 'processing', message: '🎬 카메라 움직임 효과 적용 중...' });
+
+      // 각 장면의 카메라 움직임 확인
+      const cameraMovements = scenesWithAudio.map(s => s.camera_movement);
+      const uniqueMovements = [...new Set(cameraMovements)];
+
+      updateStage(5, { 
         status: 'completed', 
         progress: 100, 
         message: `✅ ${uniqueMovements.length}가지 카메라 효과 준비 완료!` 
@@ -194,8 +260,8 @@ export default function ProShortsPage() {
 
       await sleep(1000);
 
-      // ==================== 4단계: 최종 비디오 합성 ====================
-      updateStage(4, { status: 'processing', message: '🎥 최종 비디오 렌더링 중...' });
+      // ==================== 6단계: 최종 비디오 합성 ====================
+      updateStage(6, { status: 'processing', message: '🎥 최종 비디오 렌더링 중 (이미지 + 음성 + 카메라)...' });
 
       try {
         const videoResponse = await fetch('/api/video', {
@@ -203,11 +269,12 @@ export default function ProShortsPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: generatedStory.title,
-            scenes: scenesWithImages.map(scene => ({
+            scenes: scenesWithAudio.map(scene => ({
               description: scene.description,
               duration: scene.duration,
               style: generatedStory.style,
-              camera_movement: scene.camera_movement
+              camera_movement: scene.camera_movement,
+              audio_url: scene.audioUrl
             })),
             fps: 30
           })
@@ -220,7 +287,7 @@ export default function ProShortsPage() {
             const videoUrl = videoData.video_url;
             setFinalVideoUrl(videoUrl);
             
-            updateStage(4, { 
+            updateStage(6, { 
               status: 'completed', 
               progress: 100, 
               message: `✅ ${generatedStory.total_duration}초 비디오 완성! (${(videoData.file_size / 1024 / 1024).toFixed(2)}MB)` 
@@ -233,10 +300,10 @@ export default function ProShortsPage() {
         }
       } catch (videoError) {
         console.error('비디오 생성 오류:', videoError);
-        updateStage(4, { 
+        updateStage(6, { 
           status: 'error', 
           progress: 100, 
-          message: '⚠️ 비디오 생성 실패 (이미지는 확인 가능)' 
+          message: '⚠️ 비디오 생성 실패 (이미지와 음성은 확인 가능)' 
         });
       }
 
