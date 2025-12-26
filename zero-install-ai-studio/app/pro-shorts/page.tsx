@@ -25,6 +25,11 @@ interface Story {
   mood: string;
   scenes: Scene[];
   music_suggestion: string;
+  backgroundMusic?: {
+    name: string;
+    url: string;
+    description: string;
+  };
 }
 
 interface Stage {
@@ -283,6 +288,11 @@ export default function ProShortsPage() {
         console.warn('[Music] Matching failed:', error);
       }
       
+      // 스토리에 배경음악 정보 추가
+      if (backgroundMusic) {
+        setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
+      }
+
       updateStage(4, { 
         status: 'completed', 
         progress: 100, 
@@ -534,6 +544,26 @@ export default function ProShortsPage() {
                 <div className="font-bold text-lg">{story.total_scenes}개</div>
               </div>
             </div>
+
+            {/* 배경음악 정보 */}
+            {story.backgroundMusic && (
+              <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-6 mb-6 border border-purple-500/30">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl">🎵</div>
+                  <div className="flex-1">
+                    <div className="text-sm text-white/60 mb-1">배경음악</div>
+                    <div className="font-bold text-xl mb-1">{story.backgroundMusic.name}</div>
+                    <div className="text-sm text-white/70">{story.backgroundMusic.description}</div>
+                  </div>
+                  <audio 
+                    src={story.backgroundMusic.url} 
+                    controls 
+                    className="h-10"
+                    preload="metadata"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* 장면 목록 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
