@@ -94,12 +94,16 @@ export default function Home() {
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </Link>
               
+              <Link href="/timeline" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                <span>🎞️ 타임라인</span>
+              </Link>
+              
               <Link href="/studio" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                <span>🎨 이미지 스튜디오</span>
+                <span>🎨 이미지</span>
               </Link>
               
               <Link href="/editor" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                <span>✂️ 고급 편집</span>
+                <span>✂️ 편집</span>
               </Link>
               
               <Link href="/music" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
@@ -108,10 +112,6 @@ export default function Home() {
               
               <Link href="/export" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                 <span>📤 내보내기</span>
-              </Link>
-              
-              <Link href="/gallery" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                <span>🖼️ 갤러리</span>
               </Link>
             </div>
 
