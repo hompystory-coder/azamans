@@ -625,8 +625,12 @@ export function getPresetById(id: string): PresetStyle | undefined {
   return CHARACTER_PRESETS.find(p => p.id === id)
 }
 
+// PRESETS를 export 추가
+export const PRESETS = CHARACTER_PRESETS;
+
 export default {
   CHARACTER_PRESETS,
+  PRESETS,
   PLATFORM_TEMPLATES,
   TRENDING_TEMPLATES,
   applyPreset,
