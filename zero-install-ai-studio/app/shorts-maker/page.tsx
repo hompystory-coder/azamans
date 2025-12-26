@@ -132,98 +132,135 @@ export default function ShortsMakerPage() {
         message: '전통 수채화 스타일 선택!' 
       });
 
-      // Stage 4: 장면 생성
-      updateStage(4, { status: 'processing', message: '장면 생성 시작...' });
+      // Stage 4: 장면 생성 (실제 AI API 사용!)
+      updateStage(4, { status: 'processing', message: '🤖 AI 이미지 생성 시작...' });
       
       const generatedScenes: Scene[] = [];
       
       for (let i = 0; i < sceneData.length; i++) {
         updateStage(4, {
           progress: ((i + 1) / sceneData.length) * 100,
-          message: `장면 ${i + 1}/${sceneData.length} 생성 중...`
+          message: `🎨 AI가 장면 ${i + 1}/${sceneData.length} 생성 중...`
         });
 
-        // Canvas로 이미지 생성
-        const canvas = document.createElement('canvas');
-        canvas.width = 1080;
-        canvas.height = 1920;
-        const ctx = canvas.getContext('2d')!;
+        try {
+          // 실제 AI 백엔드 API 호출!
+          const response = await fetch('http://localhost:5002/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: sceneData[i].description,
+              width: 1080,
+              height: 1920,
+              style: 'traditional'
+            })
+          });
 
-        // 배경 그라데이션 (전통 색상)
-        const gradient = ctx.createLinearGradient(0, 0, 0, 1920);
-        const colorSets = [
-          ['#8B7355', '#D4AF37'], // 갈색-금색
-          ['#2C5F2D', '#97BC62'], // 녹색
-          ['#191970', '#4169E1'], // 남색-파란색
-          ['#8B4513', '#DEB887'], // 갈색
-          ['#483D8B', '#9370DB'], // 보라색
-          ['#DC143C', '#FF69B4'], // 빨강-분홍
-          ['#2F4F4F', '#708090'], // 어두운 회색
-        ];
-        
-        const [color1, color2] = colorSets[i % colorSets.length];
-        gradient.addColorStop(0, color1);
-        gradient.addColorStop(1, color2);
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 1080, 1920);
-
-        // 장식 무늬 (전통 문양)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 3;
-        for (let j = 0; j < 5; j++) {
-          ctx.beginPath();
-          ctx.arc(540, 200 + j * 150, 100, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        // 제목
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 80px serif';
-        ctx.textAlign = 'center';
-        ctx.shadowColor = 'black';
-        ctx.shadowBlur = 10;
-        ctx.fillText(title, 540, 200);
-
-        // 장면 번호
-        ctx.font = 'bold 120px serif';
-        ctx.fillText(`${i + 1}`, 540, 800);
-
-        // 장면 설명
-        ctx.font = '40px serif';
-        ctx.shadowBlur = 5;
-        const words = sceneData[i].description.split(' ');
-        let line = '';
-        let y = 1000;
-        
-        for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
-          const metrics = ctx.measureText(testLine);
-          if (metrics.width > 900 && n > 0) {
-            ctx.fillText(line, 540, y);
-            line = words[n] + ' ';
-            y += 50;
-          } else {
-            line = testLine;
+          if (!response.ok) {
+            throw new Error('AI 생성 실패');
           }
+
+          const data = await response.json();
+          
+          // 생성된 이미지 URL 가져오기
+          const imageUrl = `http://localhost:5002${data.image_url}`;
+          
+          generatedScenes.push({
+            id: i + 1,
+            description: sceneData[i].description,
+            imageUrl,
+            duration: sceneData[i].duration
+          });
+
+          setScenes([...generatedScenes]);
+          await sleep(300);
+        } catch (error) {
+          console.error('AI 생성 오류:', error);
+          
+          // 폴백: Canvas로 기본 이미지 생성
+          const canvas = document.createElement('canvas');
+          canvas.width = 1080;
+          canvas.height = 1920;
+          const ctx = canvas.getContext('2d')!;
+
+          // 배경 그라데이션 (전통 색상)
+          const gradient = ctx.createLinearGradient(0, 0, 0, 1920);
+          const colorSets = [
+            ['#8B7355', '#D4AF37'], // 갈색-금색
+            ['#2C5F2D', '#97BC62'], // 녹색
+            ['#191970', '#4169E1'], // 남색-파란색
+            ['#8B4513', '#DEB887'], // 갈색
+            ['#483D8B', '#9370DB'], // 보라색
+            ['#DC143C', '#FF69B4'], // 빨강-분홍
+            ['#2F4F4F', '#708090'], // 어두운 회색
+          ];
+          
+          const [color1, color2] = colorSets[i % colorSets.length];
+          gradient.addColorStop(0, color1);
+          gradient.addColorStop(1, color2);
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, 1080, 1920);
+
+          // 장식 무늬 (전통 문양)
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.lineWidth = 3;
+          for (let j = 0; j < 5; j++) {
+            ctx.beginPath();
+            ctx.arc(540, 200 + j * 150, 100, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // 제목
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 80px serif';
+          ctx.textAlign = 'center';
+          ctx.shadowColor = 'black';
+          ctx.shadowBlur = 10;
+          ctx.fillText(title, 540, 200);
+
+          // 장면 번호
+          ctx.font = 'bold 120px serif';
+          ctx.fillText(`${i + 1}`, 540, 800);
+
+          // 장면 설명
+          ctx.font = '40px serif';
+          ctx.shadowBlur = 5;
+          const words = sceneData[i].description.split(' ');
+          let line = '';
+          let y = 1000;
+          
+          for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > 900 && n > 0) {
+              ctx.fillText(line, 540, y);
+              line = words[n] + ' ';
+              y += 50;
+            } else {
+              line = testLine;
+            }
+          }
+          ctx.fillText(line, 540, y);
+
+          // 하단 타이밍 정보
+          ctx.font = 'bold 35px sans-serif';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.fillText(`${sceneData[i].duration}초`, 540, 1800);
+
+          const imageUrl = canvas.toDataURL('image/png');
+          
+          generatedScenes.push({
+            id: i + 1,
+            description: sceneData[i].description,
+            imageUrl,
+            duration: sceneData[i].duration
+          });
+
+          setScenes([...generatedScenes]);
+          await sleep(600);
         }
-        ctx.fillText(line, 540, y);
-
-        // 하단 타이밍 정보
-        ctx.font = 'bold 35px sans-serif';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.fillText(`${sceneData[i].duration}초`, 540, 1800);
-
-        const imageUrl = canvas.toDataURL('image/png');
-        
-        generatedScenes.push({
-          id: i + 1,
-          description: sceneData[i].description,
-          imageUrl,
-          duration: sceneData[i].duration
-        });
-
-        setScenes([...generatedScenes]);
-        await sleep(600);
       }
 
       updateStage(4, { 
