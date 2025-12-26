@@ -5,6 +5,58 @@ import Link from 'next/link'
 
 export default function DownloadsPage() {
   const [downloadStatus, setDownloadStatus] = useState<{ [key: string]: boolean }>({})
+  
+  const diagrams = [
+    {
+      id: 'diagram1',
+      title: '도면 1: 전체 시스템 아키텍처',
+      filename: 'patent_diagram_1.png',
+      description: '시스템 전체 구조 및 데이터 흐름',
+      size: '254 KB'
+    },
+    {
+      id: 'diagram2',
+      title: '도면 2: AI 프롬프트 확장기',
+      filename: 'patent_diagram_2.png',
+      description: 'AI Prompt Enhancer 상세 구조',
+      size: '270 KB'
+    },
+    {
+      id: 'diagram3',
+      title: '도면 3: 스마트 스타일 선택기',
+      filename: 'patent_diagram_3.png',
+      description: 'Smart Style Selector 알고리즘',
+      size: '269 KB'
+    },
+    {
+      id: 'diagram4',
+      title: '도면 4: WebGPU 아키텍처',
+      filename: 'patent_diagram_4.png',
+      description: 'Zero-Install WebGPU 구조',
+      size: '242 KB'
+    },
+    {
+      id: 'diagram5',
+      title: '도면 5: 원클릭 워크플로우',
+      filename: 'patent_diagram_5.png',
+      description: '1-Click Generation 단계',
+      size: '248 KB'
+    },
+    {
+      id: 'diagram6',
+      title: '도면 6: 데이터 흐름도',
+      filename: 'patent_diagram_6.png',
+      description: '데이터 처리 파이프라인',
+      size: '289 KB'
+    },
+    {
+      id: 'diagram7',
+      title: '도면 7: 사용자 인터페이스',
+      filename: 'patent_diagram_7.png',
+      description: 'UI/UX 상호작용 흐름',
+      size: '248 KB'
+    }
+  ]
 
   const documents = [
     {
@@ -169,7 +221,57 @@ export default function DownloadsPage() {
           </button>
         </div>
 
+        {/* Patent Diagrams Section */}
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-center mb-6">
+            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              🎨 특허 도면 (7개)
+            </span>
+          </h2>
+          <p className="text-center text-gray-600 mb-8">
+            시스템 구조를 시각화한 전문 도면 (고해상도 PNG)
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-4">
+            {diagrams.map((diagram) => (
+              <div key={diagram.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all">
+                <div className="relative h-48 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+                  <img 
+                    src={`/downloads/${diagram.filename}`} 
+                    alt={diagram.title}
+                    className="w-full h-full object-contain p-2"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-sm mb-2">{diagram.title}</h3>
+                  <p className="text-xs text-gray-600 mb-2">{diagram.description}</p>
+                  <p className="text-xs text-gray-500 mb-3">📦 {diagram.size}</p>
+                  <button
+                    onClick={() => handleDownload(diagram.filename, diagram.id)}
+                    disabled={downloadStatus[diagram.id]}
+                    className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${
+                      downloadStatus[diagram.id]
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg'
+                    }`}
+                  >
+                    {downloadStatus[diagram.id] ? '✅ 다운로드 완료' : '⬇️ 다운로드'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Documents Grid */}
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-center mb-6">
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              📄 특허 출원 문서
+            </span>
+          </h2>
+        </div>
+        
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {documents.map((doc) => (
             <div
