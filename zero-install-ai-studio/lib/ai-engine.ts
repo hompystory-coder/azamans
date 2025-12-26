@@ -3,7 +3,8 @@
  * 천재적 시스템의 핵심: 브라우저에서 진짜 AI 실행
  */
 
-import * as ort from 'onnxruntime-web'
+// ONNX Runtime은 현재 사용하지 않음 (WebGPU로 대체)
+// import * as ort from 'onnxruntime-web'
 
 // GPU 감지 및 설정
 export class GPUManager {
