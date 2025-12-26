@@ -13,12 +13,19 @@ interface GalleryItem {
   createdAt: Date
   duration?: number
   size?: number
+  favorite?: boolean
+  tags?: string[]
+  views?: number
+  likes?: number
 }
 
 export default function GalleryPage() {
   const [items, setItems] = useState<GalleryItem[]>([])
-  const [filter, setFilter] = useState<'all' | 'image' | 'video'>('all')
+  const [filter, setFilter] = useState<'all' | 'image' | 'video' | 'favorite'>('all')
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest')
+  const [showShareModal, setShowShareModal] = useState(false)
 
   useEffect(() => {
     loadGallery()
@@ -56,6 +63,55 @@ export default function GalleryPage() {
     setSelectedItem(null)
   }
 
+  const toggleFavorite = (id: string) => {
+    const updated = items.map(item => 
+      item.id === id ? { ...item, favorite: !item.favorite } : item
+    )
+    setItems(updated)
+    localStorage.setItem('ai-studio-gallery', JSON.stringify(updated))
+  }
+
+  const likeItem = (id: string) => {
+    const updated = items.map(item => 
+      item.id === id ? { ...item, likes: (item.likes || 0) + 1 } : item
+    )
+    setItems(updated)
+    localStorage.setItem('ai-studio-gallery', JSON.stringify(updated))
+  }
+
+  const shareItem = (item: GalleryItem) => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'AI Studio - ' + item.prompt,
+        text: `AI로 생성한 ${item.type === 'video' ? '비디오' : '이미지'}: ${item.prompt}`,
+        url: item.url
+      }).catch(() => {})
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(item.url)
+      alert('링크가 클립보드에 복사되었습니다!')
+    }
+  }
+
+  const downloadItem = async (item: GalleryItem) => {
+    try {
+      const response = await fetch(item.url)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ai-studio-${item.type}-${item.id}.${item.type === 'video' ? 'mp4' : 'png'}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download failed:', error)
+      // Fallback
+      window.open(item.url, '_blank')
+    }
+  }
+
   const clearAll = () => {
     if (confirm('모든 항목을 삭제하시겠습니까?')) {
       setItems([])
@@ -63,9 +119,33 @@ export default function GalleryPage() {
     }
   }
 
-  const filteredItems = items.filter(item => 
-    filter === 'all' || item.type === filter
-  )
+  const filteredItems = items
+    .filter(item => {
+      // Filter by type
+      if (filter === 'favorite') return item.favorite
+      if (filter !== 'all' && item.type !== filter) return false
+      
+      // Filter by search query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        return item.prompt.toLowerCase().includes(query) ||
+               item.tags?.some(tag => tag.toLowerCase().includes(query))
+      }
+      
+      return true
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return b.createdAt.getTime() - a.createdAt.getTime()
+        case 'oldest':
+          return a.createdAt.getTime() - b.createdAt.getTime()
+        case 'popular':
+          return (b.likes || 0) - (a.likes || 0)
+        default:
+          return 0
+      }
+    })
 
   const totalSize = items.reduce((sum, item) => sum + (item.size || 0), 0)
   const formatSize = (bytes: number) => {
@@ -119,9 +199,33 @@ export default function GalleryPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex justify-between items-center">
+        {/* Search and Sort */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="🔍 검색: 프롬프트, 태그..."
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
           <div className="flex gap-2">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="newest">최신순</option>
+              <option value="oldest">오래된순</option>
+              <option value="popular">인기순</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
@@ -130,7 +234,7 @@ export default function GalleryPage() {
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
               }`}
             >
-              전체
+              📂 전체
             </button>
             <button
               onClick={() => setFilter('image')}
@@ -140,7 +244,7 @@ export default function GalleryPage() {
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
               }`}
             >
-              이미지
+              🎨 이미지
             </button>
             <button
               onClick={() => setFilter('video')}
@@ -150,7 +254,17 @@ export default function GalleryPage() {
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
               }`}
             >
-              비디오
+              🎬 비디오
+            </button>
+            <button
+              onClick={() => setFilter('favorite')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                filter === 'favorite'
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
+            >
+              ⭐ 즐겨찾기
             </button>
           </div>
           
@@ -204,9 +318,38 @@ export default function GalleryPage() {
                     {item.type === 'image' ? '🎨 IMAGE' : '🎬 VIDEO'}
                   </div>
                   
+                  {/* Favorite Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleFavorite(item.id)
+                    }}
+                    className="absolute top-2 left-2 p-2 bg-black/70 rounded-full text-2xl hover:scale-110 transition-transform"
+                  >
+                    {item.favorite ? '⭐' : '☆'}
+                  </button>
+                  
                   {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        likeItem(item.id)
+                      }}
+                      className="text-white text-2xl hover:scale-125 transition-transform"
+                    >
+                      ❤️
+                    </button>
                     <div className="text-white text-4xl">👁️</div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        shareItem(item)
+                      }}
+                      className="text-white text-2xl hover:scale-125 transition-transform"
+                    >
+                      📤
+                    </button>
                   </div>
                 </div>
 
@@ -215,8 +358,13 @@ export default function GalleryPage() {
                   <div className="text-white text-sm font-semibold mb-1 truncate">
                     {item.prompt}
                   </div>
-                  <div className="text-gray-400 text-xs">
-                    {item.createdAt.toLocaleDateString()}
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-400">{item.createdAt.toLocaleDateString()}</span>
+                    <div className="flex gap-2">
+                      {item.likes && item.likes > 0 && (
+                        <span className="text-red-400">❤️ {item.likes}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -283,14 +431,40 @@ export default function GalleryPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3">
-                <a
-                  href={selectedItem.url}
-                  download
-                  className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg text-center transition-colors"
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <button
+                  onClick={() => downloadItem(selectedItem)}
+                  className="py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  📥 다운로드
-                </a>
+                  <span>📥</span>
+                  <span>다운로드</span>
+                </button>
+                <button
+                  onClick={() => shareItem(selectedItem)}
+                  className="py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>📤</span>
+                  <span>공유</span>
+                </button>
+                <button
+                  onClick={() => {
+                    toggleFavorite(selectedItem.id)
+                    setSelectedItem({...selectedItem, favorite: !selectedItem.favorite})
+                  }}
+                  className="py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>{selectedItem.favorite ? '⭐' : '☆'}</span>
+                  <span>{selectedItem.favorite ? '즐겨찾기 해제' : '즐겨찾기'}</span>
+                </button>
+                <button
+                  onClick={() => likeItem(selectedItem.id)}
+                  className="py-3 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>❤️</span>
+                  <span>좋아요 ({selectedItem.likes || 0})</span>
+                </button>
+              </div>
+              <div className="flex gap-3">
                 <button
                   onClick={() => deleteItem(selectedItem.id)}
                   className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
