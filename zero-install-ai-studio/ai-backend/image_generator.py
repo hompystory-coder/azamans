@@ -52,12 +52,96 @@ def initialize_model():
         logger.error(f"Failed to initialize model: {e}")
         return False
 
+def enhance_prompt_for_story(prompt, scene_context=""):
+    """
+    스토리 장면에 맞게 프롬프트를 개선
+    """
+    # 기본 고품질 키워드 추가
+    enhanced = f"{prompt}, cinematic lighting, highly detailed, 4K quality, professional photography"
+    
+    # 한국 전통 설화 스타일 추가
+    if "선녀" in prompt or "나무꾼" in prompt or "전통" in prompt:
+        enhanced += ", traditional Korean style, watercolor painting, elegant composition"
+    
+    # 자연 배경 강화
+    if any(word in prompt for word in ["산", "숲", "하늘", "나무", "mountain", "forest", "sky", "tree"]):
+        enhanced += ", natural landscape, atmospheric perspective, beautiful scenery"
+    
+    # 인물 강화
+    if any(word in prompt for word in ["사람", "남자", "여자", "man", "woman", "person", "fairy", "선녀"]):
+        enhanced += ", portrait, expressive face, detailed clothing, dynamic pose"
+    
+    return enhanced
+
+def generate_ai_image_pollinations(prompt, width=1080, height=1920, style="traditional"):
+    """
+    Pollinations.ai를 사용한 실제 AI 이미지 생성 (완전 무료!)
+    여러 AI 모델 시도 및 재시도 로직 포함
+    """
+    # 프롬프트 개선
+    enhanced_prompt = enhance_prompt_for_story(prompt)
+    
+    # 여러 AI 모델 시도
+    models = [
+        "flux",           # 최신 고품질 모델
+        "turbo",          # 빠른 생성
+        "flux-realism",   # 사실적인 이미지
+    ]
+    
+    for model in models:
+        try:
+            logger.info(f"🎨 Generating AI image with Pollinations.ai ({model}): {prompt}")
+            
+            # Pollinations.ai API 호출 (완전 무료, API 키 불필요)
+            url = (
+                f"https://image.pollinations.ai/prompt/{requests.utils.quote(enhanced_prompt)}"
+                f"?width={width}&height={height}&model={model}&nologo=true&enhance=true&seed={hash(prompt) % 10000}"
+            )
+            
+            response = requests.get(url, timeout=90)  # 타임아웃 증가
+            
+            if response.status_code == 200 and len(response.content) > 1000:
+                # 이미지 데이터 로드
+                img = Image.open(io.BytesIO(response.content))
+                
+                # 크기 조정 (필요시)
+                if img.size != (width, height):
+                    img = img.resize((width, height), Image.LANCZOS)
+                
+                logger.info(f"✅ AI image generated successfully with {model}: {img.size}")
+                return img
+            else:
+                logger.warning(f"⚠️ {model} failed (status: {response.status_code}), trying next model...")
+                continue
+                
+        except Exception as e:
+            logger.warning(f"⚠️ {model} error: {e}, trying next model...")
+            continue
+    
+    # 모든 모델 실패 시
+    logger.error("❌ All Pollinations AI models failed")
+    return None
+
 def create_beautiful_image(prompt, width=1080, height=1920, style="traditional"):
     """
     고품질 이미지 생성 (실제 AI 사용 또는 고급 그래픽)
     """
     try:
-        # 이미지 생성
+        # 먼저 실제 AI 이미지 생성 시도! (최대 3회 재시도)
+        for attempt in range(3):
+            logger.info(f"🔄 AI 이미지 생성 시도 {attempt + 1}/3...")
+            ai_image = generate_ai_image_pollinations(prompt, width, height, style)
+            if ai_image:
+                logger.info(f"✅ AI 이미지 생성 성공! (시도 {attempt + 1})")
+                return ai_image
+            
+            if attempt < 2:
+                import time
+                time.sleep(2)  # 재시도 전 대기
+        
+        logger.warning("⚠️ AI generation failed after 3 attempts, falling back to graphics generator...")
+        
+        # 폴백: 그래픽 생성
         img = Image.new('RGB', (width, height), color='white')
         draw = ImageDraw.Draw(img)
         
@@ -223,47 +307,46 @@ def generate_image():
 @app.route('/generate-story', methods=['POST'])
 def generate_story():
     """
-    스토리 전체 생성 (여러 장면)
+    스토리 전체 생성 (여러 장면) - 실제 AI 이미지 생성
     """
     try:
         data = request.json
         title = data.get('title', '선녀와 나무꾼')
         scenes = data.get('scenes', [])
         
-        logger.info(f"Generating {len(scenes)} scenes for: {title}")
+        logger.info(f"📖 Starting story generation: '{title}' with {len(scenes)} scenes")
         
         results = []
         
         for i, scene in enumerate(scenes):
-            prompt = scene.get('description', '')
+            prompt = scene.get('description', scene.get('prompt', ''))
             style = scene.get('style', 'traditional')
             
-            # 이미지 생성
-            if pipe is not None:
-                image = pipe(
-                    prompt,
-                    num_inference_steps=15,
-                    width=512,
-                    height=512
-                ).images[0]
-                image = image.resize((1080, 1920), Image.LANCZOS)
-            else:
-                image = create_beautiful_image(prompt, 1080, 1920, style)
+            logger.info(f"🎬 Generating scene {i+1}/{len(scenes)}: {prompt[:50]}...")
+            
+            # 실제 AI 이미지 생성 (Pollinations.ai 우선)
+            image = create_beautiful_image(prompt, 1080, 1920, style)
             
             # 저장
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"{title}_scene_{i+1}_{timestamp}.png"
+            # 파일명을 안전하게 변환
+            safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).strip()
+            filename = f"{safe_title}_scene_{i+1:02d}_{timestamp}.png"
             filepath = os.path.join(OUTPUT_DIR, filename)
-            image.save(filepath, 'PNG', quality=95)
+            image.save(filepath, 'PNG', quality=95, optimize=True)
             
             results.append({
                 'scene_id': i + 1,
                 'image_url': f"/generated/{filename}",
                 'filename': filename,
-                'description': prompt
+                'description': prompt,
+                'width': 1080,
+                'height': 1920
             })
             
-            logger.info(f"Scene {i+1}/{len(scenes)} completed")
+            logger.info(f"✅ Scene {i+1}/{len(scenes)} completed: {filename}")
+        
+        logger.info(f"🎉 Story generation completed! Total scenes: {len(results)}")
         
         return jsonify({
             'success': True,
@@ -273,7 +356,7 @@ def generate_story():
         })
     
     except Exception as e:
-        logger.error(f"Error generating story: {e}")
+        logger.error(f"❌ Error generating story: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
