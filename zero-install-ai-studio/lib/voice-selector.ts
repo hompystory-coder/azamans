@@ -294,6 +294,11 @@ export class VoiceSelector {
     text: string,
     settings: VoiceSettings
   ): Promise<Blob> {
+    // 브라우저 환경 체크
+    if (typeof window === 'undefined') {
+      throw new Error('Speech synthesis is only available in browser environment');
+    }
+    
     return new Promise((resolve, reject) => {
       // Web Speech API 사용
       const utterance = new SpeechSynthesisUtterance(text);
@@ -360,6 +365,11 @@ export class VoiceSelector {
    * 미리듣기
    */
   async preview(text: string, settings: VoiceSettings): Promise<void> {
+    // 브라우저 환경 체크
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     // 기존 재생 정지
     window.speechSynthesis.cancel();
     
@@ -376,7 +386,9 @@ export class VoiceSelector {
    * 재생 정지
    */
   stop(): void {
-    window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined') {
+      window.speechSynthesis.cancel();
+    }
   }
   
   /**

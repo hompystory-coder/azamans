@@ -35,6 +35,11 @@ export class SubtitleEngine {
   }
   
   private initializeSpeechRecognition(): void {
+    // 브라우저 환경에서만 실행
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       console.warn('Speech Recognition API not supported');
       return;
