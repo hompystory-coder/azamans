@@ -29,6 +29,7 @@ export interface PresetStyle {
   thumbnail?: string
 }
 
+// 🎨 확장된 프리셋 시스템 (20+ 스타일)
 export const CHARACTER_PRESETS: PresetStyle[] = [
   {
     id: 'anime-girl',
@@ -268,6 +269,247 @@ export const CHARACTER_PRESETS: PresetStyle[] = [
       voiceStyle: 'powerful',
       rate: 1.0,
       pitch: 1.05
+    }
+  },
+  // 🆕 새로운 프리셋 10개 추가!
+  {
+    id: 'neon-art',
+    name: '네온 아트',
+    description: '화려한 네온 사인 스타일',
+    category: 'theme',
+    icon: '✨',
+    promptModifier: 'neon art style, glowing neon lights, vibrant colors, electric glow, dark background',
+    negativePrompt: 'natural, matte, dull, daylight',
+    imageStyle: {
+      colorScheme: ['#FF1493', '#00FFFF', '#FFFF00', '#00FF00'],
+      mood: 'electric',
+      visualStyle: 'neon'
+    },
+    videoSettings: {
+      transitionType: 'fade',
+      duration: 2.5,
+      fps: 60
+    },
+    audioSettings: {
+      voiceStyle: 'energetic',
+      rate: 1.1,
+      pitch: 1.1
+    }
+  },
+  {
+    id: 'watercolor',
+    name: '수채화',
+    description: '부드러운 수채화 스타일',
+    category: 'mood',
+    icon: '🎨',
+    promptModifier: 'watercolor painting style, soft brushstrokes, flowing colors, artistic',
+    negativePrompt: 'photorealistic, sharp, digital',
+    imageStyle: {
+      colorScheme: ['#E6F3FF', '#FFE6F0', '#FFF8E6'],
+      mood: 'dreamy',
+      visualStyle: 'watercolor'
+    },
+    videoSettings: {
+      transitionType: 'dissolve',
+      duration: 4,
+      fps: 24
+    },
+    audioSettings: {
+      voiceStyle: 'soft',
+      rate: 0.9,
+      pitch: 1.05
+    }
+  },
+  {
+    id: 'pixel-art',
+    name: '픽셀 아트',
+    description: '8비트 레트로 게임 스타일',
+    category: 'theme',
+    icon: '🎮',
+    promptModifier: 'pixel art style, 8-bit, retro game, pixelated, sprite art',
+    negativePrompt: 'high resolution, smooth, realistic, 3d',
+    imageStyle: {
+      colorScheme: ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'],
+      mood: 'nostalgic',
+      visualStyle: 'pixel-art'
+    },
+    videoSettings: {
+      transitionType: 'slide',
+      duration: 2,
+      fps: 30
+    },
+    audioSettings: {
+      voiceStyle: 'retro',
+      rate: 1.0,
+      pitch: 1.0
+    }
+  },
+  {
+    id: 'studio-ghibli',
+    name: '지브리 스튜디오',
+    description: '지브리 애니메이션 스타일',
+    category: 'character',
+    icon: '🌳',
+    promptModifier: 'Studio Ghibli style, beautiful scenery, peaceful, hand-drawn animation, miyazaki',
+    negativePrompt: 'dark, horror, realistic, 3d',
+    imageStyle: {
+      colorScheme: ['#90EE90', '#87CEEB', '#FFE4B5'],
+      mood: 'peaceful',
+      visualStyle: 'ghibli'
+    },
+    videoSettings: {
+      transitionType: 'fade',
+      duration: 4,
+      fps: 24
+    },
+    audioSettings: {
+      voiceStyle: 'gentle',
+      rate: 0.9,
+      pitch: 1.05
+    }
+  },
+  {
+    id: 'cinematic',
+    name: '시네마틱',
+    description: '영화같은 고품질 영상',
+    category: 'mood',
+    icon: '🎬',
+    promptModifier: 'cinematic style, film grain, dramatic lighting, anamorphic lens, color grading',
+    negativePrompt: 'cartoon, anime, amateur, low quality',
+    imageStyle: {
+      colorScheme: ['#1C1C1C', '#DAA520', '#4682B4'],
+      mood: 'dramatic',
+      visualStyle: 'cinematic'
+    },
+    videoSettings: {
+      transitionType: 'fade',
+      duration: 3.5,
+      fps: 24
+    },
+    audioSettings: {
+      voiceStyle: 'dramatic',
+      rate: 0.95,
+      pitch: 0.95
+    }
+  },
+  {
+    id: 'vaporwave',
+    name: '베이퍼웨이브',
+    description: '80-90년대 레트로 퓨처',
+    category: 'theme',
+    icon: '🌴',
+    promptModifier: 'vaporwave aesthetic, retro futuristic, pastel colors, palm trees, sunset, glitch art',
+    negativePrompt: 'modern, realistic, dark, gritty',
+    imageStyle: {
+      colorScheme: ['#FF6AD5', '#C774E8', '#AD8CFF', '#8795E8'],
+      mood: 'nostalgic',
+      visualStyle: 'vaporwave'
+    },
+    videoSettings: {
+      transitionType: 'slide',
+      duration: 3,
+      fps: 30
+    },
+    audioSettings: {
+      voiceStyle: 'smooth',
+      rate: 0.9,
+      pitch: 0.9
+    }
+  },
+  {
+    id: 'comic-book',
+    name: '코믹북',
+    description: '만화책 스타일',
+    category: 'character',
+    icon: '💥',
+    promptModifier: 'comic book style, bold outlines, halftone dots, speech bubbles, pop art',
+    negativePrompt: 'realistic, photo, 3d, smooth',
+    imageStyle: {
+      colorScheme: ['#FF0000', '#FFFF00', '#0000FF', '#000000'],
+      mood: 'energetic',
+      visualStyle: 'comic'
+    },
+    videoSettings: {
+      transitionType: 'slide',
+      duration: 2.5,
+      fps: 30
+    },
+    audioSettings: {
+      voiceStyle: 'dramatic',
+      rate: 1.1,
+      pitch: 1.0
+    }
+  },
+  {
+    id: 'steampunk',
+    name: '스팀펑크',
+    description: '빅토리아 시대 + 증기 기술',
+    category: 'theme',
+    icon: '⚙️',
+    promptModifier: 'steampunk style, victorian era, brass machinery, gears, steam powered, industrial',
+    negativePrompt: 'modern, digital, clean, futuristic',
+    imageStyle: {
+      colorScheme: ['#8B4513', '#D4AF37', '#2F4F4F'],
+      mood: 'industrial',
+      visualStyle: 'steampunk'
+    },
+    videoSettings: {
+      transitionType: 'fade',
+      duration: 3,
+      fps: 30
+    },
+    audioSettings: {
+      voiceStyle: 'formal',
+      rate: 0.95,
+      pitch: 0.9
+    }
+  },
+  {
+    id: 'pastel-cute',
+    name: '파스텔 큐트',
+    description: '부드럽고 귀여운 파스텔톤',
+    category: 'mood',
+    icon: '🌸',
+    promptModifier: 'pastel colors, cute, soft, kawaii, dreamy, fluffy, gentle',
+    negativePrompt: 'dark, bold, realistic, gritty',
+    imageStyle: {
+      colorScheme: ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA'],
+      mood: 'cute',
+      visualStyle: 'pastel'
+    },
+    videoSettings: {
+      transitionType: 'fade',
+      duration: 3,
+      fps: 30
+    },
+    audioSettings: {
+      voiceStyle: 'cute',
+      rate: 1.05,
+      pitch: 1.15
+    }
+  },
+  {
+    id: 'dark-fantasy',
+    name: '다크 판타지',
+    description: '어둡고 신비로운 판타지',
+    category: 'theme',
+    icon: '🦇',
+    promptModifier: 'dark fantasy style, gothic, mystical, shadows, moonlight, mysterious',
+    negativePrompt: 'bright, cheerful, colorful, modern',
+    imageStyle: {
+      colorScheme: ['#1A1A1A', '#4B0082', '#8B0000'],
+      mood: 'dark',
+      visualStyle: 'dark-fantasy'
+    },
+    videoSettings: {
+      transitionType: 'fade',
+      duration: 3.5,
+      fps: 24
+    },
+    audioSettings: {
+      voiceStyle: 'mysterious',
+      rate: 0.9,
+      pitch: 0.85
     }
   }
 ]
