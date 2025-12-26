@@ -51,9 +51,9 @@ export default function ProShortsPage() {
     { id: 1, name: '📝 스토리 생성', status: 'pending', progress: 0, message: '대기 중...' },
     { id: 2, name: '🎨 AI 이미지 생성', status: 'pending', progress: 0, message: '대기 중...' },
     { id: 3, name: '🎙️ TTS 음성 생성', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 4, name: '🎵 배경음악 매칭', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 5, name: '🎬 카메라 움직임 적용', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 6, name: '🎥 최종 비디오 합성', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 4, name: '🎬 카메라 움직임 적용', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 5, name: '🎥 장면별 비디오 합성', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 6, name: '🎵 배경음악 추가', status: 'pending', progress: 0, message: '대기 중...' },
   ]);
 
   const updateStage = (id: number, updates: Partial<Stage>) => {
@@ -251,9 +251,97 @@ export default function ProShortsPage() {
 
       await sleep(500);
 
-      // ==================== 4단계: 배경음악 매칭 (선택적) ====================
-      console.log('[Stage 4] Starting background music matching...');
-      updateStage(4, { status: 'processing', progress: 0, message: '🎵 스토리에 어울리는 배경음악 선택 중...' });
+      // ==================== 4단계: 카메라 움직임 적용 ====================
+      console.log('[Stage 4] Starting camera movement application...');
+      updateStage(4, { status: 'processing', progress: 0, message: '🎬 각 장면에 카메라 움직임 효과 준비 중...' });
+      
+      // 각 장면의 카메라 움직임 확인
+      const cameraMovements = scenesWithAudio.map(s => s.camera_movement);
+      const uniqueMovements = [...new Set(cameraMovements)];
+      console.log(`[Camera] Found ${uniqueMovements.length} unique camera movements:`, uniqueMovements);
+
+      updateStage(4, { 
+        status: 'completed', 
+        progress: 100, 
+        message: `✅ ${uniqueMovements.length}가지 카메라 효과 준비 완료!` 
+      });
+
+      await sleep(500);
+
+      // ==================== 5단계: 장면별 비디오 합성 ====================
+      console.log('[Stage 5] Starting scene-by-scene video composition...');
+      updateStage(5, { status: 'processing', progress: 0, message: '🎥 이미지 + 음성 + 카메라 효과 → 비디오로 합성 중...' });
+
+      let mergedVideoUrl = null;
+
+      try {
+        const videoPayload = {
+          title: generatedStory.title,
+          scenes: scenesWithAudio.map(scene => ({
+            description: scene.description,
+            duration: scene.duration,
+            style: generatedStory.style,
+            camera_movement: scene.camera_movement,
+            audio_url: scene.audioUrl,
+            image_url: scene.imageUrl
+          })),
+          fps: 30
+        };
+        
+        console.log('[Video] Request payload:', {
+          title: videoPayload.title,
+          scenes_count: videoPayload.scenes.length,
+          fps: videoPayload.fps
+        });
+
+        updateStage(5, { progress: 20, message: '🎥 비디오 API 호출 중...' });
+
+        const videoResponse = await fetch('/api/video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(videoPayload)
+        });
+
+        console.log(`[Video] API response status: ${videoResponse.status}`);
+
+        updateStage(5, { progress: 70, message: '🎥 비디오 합성 처리 중...' });
+
+        if (videoResponse.ok) {
+          const videoData = await videoResponse.json();
+          console.log('[Video] API response data:', videoData);
+          
+          if (videoData.success) {
+            mergedVideoUrl = videoData.video_url;
+            console.log(`[Video] Success! Video URL: ${mergedVideoUrl}`);
+            
+            updateStage(5, { 
+              status: 'completed', 
+              progress: 100, 
+              message: `✅ ${generatedStory.total_duration}초 비디오 합성 완료!` 
+            });
+          } else {
+            console.error('[Video] API returned success=false:', videoData);
+            throw new Error(videoData.error || '비디오 생성 실패');
+          }
+        } else {
+          const errorText = await videoResponse.text();
+          console.error(`[Video] API returned ${videoResponse.status}:`, errorText);
+          throw new Error(`비디오 API 오류: ${videoResponse.status}`);
+        }
+      } catch (videoError) {
+        console.error('[Video] Generation failed with error:', videoError);
+        updateStage(5, { 
+          status: 'error', 
+          progress: 100, 
+          message: `⚠️ 비디오 생성 실패: ${(videoError as Error).message}` 
+        });
+      }
+
+      await sleep(500);
+
+      // ==================== 6단계: 배경음악 추가 ====================
+      console.log('[Stage 6] Starting background music addition...');
+      updateStage(6, { status: 'processing', progress: 0, message: '🎵 스토리에 어울리는 배경음악 선택 중...' });
       
       let backgroundMusic = null;
       
@@ -277,120 +365,66 @@ export default function ProShortsPage() {
         ]) as Response;
 
         console.log(`[Music] API response status: ${musicResponse.status}`);
-        updateStage(4, { progress: 50, message: '🎵 음악 데이터 처리 중...' });
+        updateStage(6, { progress: 30, message: '🎵 음악 데이터 처리 중...' });
 
         if (musicResponse.ok) {
           const musicData = await musicResponse.json();
           console.log('[Music] API response data:', musicData);
           backgroundMusic = musicData.music;
           console.log(`[Music] Matched successfully: ${backgroundMusic?.name}`);
+          
+          // 스토리에 배경음악 정보 추가 (UI 표시용)
+          if (backgroundMusic) {
+            setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
+          }
         } else {
           console.warn(`[Music] API returned non-OK status: ${musicResponse.status}`);
         }
-      } catch (error) {
-        console.error('[Music] Matching failed with error:', error);
-      }
-      
-      // 스토리에 배경음악 정보 추가
-      if (backgroundMusic) {
-        setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
-      }
 
-      updateStage(4, { 
-        status: 'completed', 
-        progress: 100, 
-        message: backgroundMusic 
-          ? `✅ 배경음악 매칭 완료! (${backgroundMusic.name})` 
-          : `⚠️ 배경음악 건너뜀`
-      });
-
-      await sleep(500);
-
-      // ==================== 5단계: 카메라 움직임 분석 ====================
-      console.log('[Stage 5] Starting camera movement analysis...');
-      updateStage(5, { status: 'processing', progress: 0, message: '🎬 카메라 움직임 효과 적용 중...' });
-
-      // 각 장면의 카메라 움직임 확인
-      const cameraMovements = scenesWithAudio.map(s => s.camera_movement);
-      const uniqueMovements = [...new Set(cameraMovements)];
-      console.log(`[Camera] Found ${uniqueMovements.length} unique camera movements:`, uniqueMovements);
-
-      updateStage(5, { 
-        status: 'completed', 
-        progress: 100, 
-        message: `✅ ${uniqueMovements.length}가지 카메라 효과 준비 완료!` 
-      });
-
-      await sleep(1000);
-
-      // ==================== 6단계: 최종 비디오 합성 ====================
-      console.log('[Stage 6] Starting video composition...');
-      updateStage(6, { status: 'processing', progress: 0, message: '🎥 최종 비디오 렌더링 중 (이미지 + 음성 + 카메라)...' });
-
-      try {
-        const videoPayload = {
-          title: generatedStory.title,
-          scenes: scenesWithAudio.map(scene => ({
-            description: scene.description,
-            duration: scene.duration,
-            style: generatedStory.style,
-            camera_movement: scene.camera_movement,
-            audio_url: scene.audioUrl,
-            image_url: scene.imageUrl
-          })),
-          background_music_url: backgroundMusic?.url,
-          fps: 30
-        };
-        
-        console.log('[Video] Request payload:', {
-          title: videoPayload.title,
-          scenes_count: videoPayload.scenes.length,
-          has_background_music: !!videoPayload.background_music_url,
-          fps: videoPayload.fps
-        });
-
-        updateStage(6, { progress: 10, message: '🎥 비디오 API 호출 중...' });
-
-        const videoResponse = await fetch('/api/video', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(videoPayload)
-        });
-
-        console.log(`[Video] API response status: ${videoResponse.status}`);
-
-        updateStage(6, { progress: 50, message: '🎥 비디오 데이터 처리 중...' });
-
-        if (videoResponse.ok) {
-          const videoData = await videoResponse.json();
-          console.log('[Video] API response data:', videoData);
+        // 배경음악을 비디오에 추가 (실제 구현 시)
+        // TODO: 백엔드에서 배경음악 믹싱 기능 구현 필요
+        if (mergedVideoUrl && backgroundMusic) {
+          console.log('[Music] Adding background music to video...');
+          updateStage(6, { progress: 70, message: '🎵 배경음악을 비디오에 믹싱 중...' });
           
-          if (videoData.success) {
-            const videoUrl = videoData.video_url;
-            setFinalVideoUrl(videoUrl);
-            console.log(`[Video] Success! Video URL: ${videoUrl}`);
-            
-            updateStage(6, { 
-              status: 'completed', 
-              progress: 100, 
-              message: `✅ ${generatedStory.total_duration}초 비디오 완성! (${(videoData.file_size / 1024 / 1024).toFixed(2)}MB)` 
-            });
-          } else {
-            console.error('[Video] API returned success=false:', videoData);
-            throw new Error(videoData.error || '비디오 생성 실패');
-          }
+          // 현재는 배경음악 없이 비디오만 완성
+          setFinalVideoUrl(mergedVideoUrl);
+          
+          updateStage(6, { 
+            status: 'completed', 
+            progress: 100, 
+            message: `✅ 배경음악 선택 완료! (${backgroundMusic.name}) - 믹싱 예정` 
+          });
+        } else if (mergedVideoUrl) {
+          // 배경음악 없이 비디오만 완성
+          setFinalVideoUrl(mergedVideoUrl);
+          
+          updateStage(6, { 
+            status: 'completed', 
+            progress: 100, 
+            message: `⚠️ 배경음악 없이 비디오 완성` 
+          });
         } else {
-          const errorText = await videoResponse.text();
-          console.error(`[Video] API returned ${videoResponse.status}:`, errorText);
-          throw new Error(`비디오 API 오류: ${videoResponse.status}`);
+          throw new Error('비디오가 생성되지 않았습니다');
         }
-      } catch (videoError) {
-        console.error('[Video] Generation failed with error:', videoError);
-        updateStage(6, { 
-          status: 'error', 
-          progress: 100, 
-          message: `⚠️ 비디오 생성 실패: ${(videoError as Error).message}` 
-        });
+      } catch (musicError) {
+        console.error('[Music] Matching failed with error:', musicError);
+        
+        // 배경음악 실패해도 비디오는 있으면 표시
+        if (mergedVideoUrl) {
+          setFinalVideoUrl(mergedVideoUrl);
+          updateStage(6, { 
+            status: 'completed', 
+            progress: 100, 
+            message: `⚠️ 배경음악 추가 실패 (비디오는 생성됨)` 
+          });
+        } else {
+          updateStage(6, { 
+            status: 'error', 
+            progress: 100, 
+            message: `❌ 배경음악 및 비디오 생성 실패` 
+          });
+        }
       }
 
     } catch (error) {
@@ -442,7 +476,7 @@ export default function ProShortsPage() {
             프롬프트 하나로 완전 자동 AI 쇼츠 생성
           </p>
           <p className="text-lg text-purple-400">
-            스토리 생성 → AI 이미지 → 카메라 움직임 → 비디오 합성
+            스토리 생성 → AI 이미지 → TTS 음성 → 카메라 효과 → 비디오 합성 → 배경음악
           </p>
         </div>
 
