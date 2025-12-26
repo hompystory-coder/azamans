@@ -284,23 +284,54 @@ export default function ProShortsPage() {
 
       await sleep(500);
 
-      // 4-6단계는 간단히 표시
+      // 4단계: 카메라 효과 분석
       addToTimeline({
-        id: 'stage-4',
+        id: 'stage-4-start',
         type: 'stage',
-        title: '🎬 카메라 움직임 적용',
+        title: '🎬 카메라 효과 분석 시작',
         status: 'completed',
-        data: { message: '카메라 효과 준비 완료!' }
+        data: { message: `${scenesWithAudio.length}개 장면에 카메라 효과를 적용합니다...` }
+      });
+
+      await sleep(300);
+
+      // 각 장면별 카메라 효과 표시
+      for (let i = 0; i < scenesWithAudio.length; i++) {
+        const scene = scenesWithAudio[i];
+        
+        addToTimeline({
+          id: `scene-${i}-camera`,
+          type: 'scene',
+          title: `🎬 Scene ${i + 1}: 카메라 효과`,
+          status: 'completed',
+          data: { 
+            message: `카메라: ${scene.camera_movement}`,
+            scene: scene
+          }
+        });
+
+        await sleep(100);
+      }
+
+      await sleep(300);
+
+      addToTimeline({
+        id: 'stage-4-complete',
+        type: 'stage',
+        title: '✅ 카메라 효과 준비 완료',
+        status: 'completed',
+        data: { message: `${scenesWithAudio.length}개 장면 카메라 효과 완료!` }
       });
 
       await sleep(500);
 
+      // 5단계: 비디오 합성
       addToTimeline({
-        id: 'stage-5',
+        id: 'stage-5-start',
         type: 'stage',
-        title: '🎥 장면별 비디오 합성',
+        title: '🎥 비디오 합성 시작',
         status: 'processing',
-        data: { message: '이미지 + 음성 + 카메라 → 비디오 합성 중...' }
+        data: { message: '장면들을 하나의 비디오로 합성하는 중...' }
       });
 
       // 비디오 생성 API 호출
@@ -328,7 +359,7 @@ export default function ProShortsPage() {
           if (videoData.success) {
             setFinalVideoUrl(videoData.video_url);
             
-            updateTimelineItem('stage-5', {
+            updateTimelineItem('stage-5-start', {
               status: 'completed',
               data: { 
                 message: `${generatedStory.total_duration}초 비디오 합성 완료!`,
@@ -338,41 +369,75 @@ export default function ProShortsPage() {
 
             await sleep(500);
 
-            // 배경음악 단계
+            // 6단계: 배경음악 매칭 시작
             addToTimeline({
-              id: 'stage-6',
+              id: 'stage-6-start',
               type: 'stage',
-              title: '🎵 배경음악 추가',
+              title: '🎵 배경음악 매칭 시작',
               status: 'processing',
-              data: { message: '배경음악 선택 중...' }
+              data: { message: '스토리 분위기에 맞는 배경음악을 찾는 중...' }
             });
+
+            await sleep(300);
 
             // 배경음악 매칭
-            const musicResponse = await fetch('/api/music', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                mood: generatedStory.mood,
-                genre: generatedStory.genre,
-                title: generatedStory.title
-              })
-            });
+            try {
+              const musicResponse = await Promise.race([
+                fetch('/api/music', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    mood: generatedStory.mood,
+                    genre: generatedStory.genre,
+                    title: generatedStory.title
+                  })
+                }),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error('Music timeout')), 8000)
+                )
+              ]) as Response;
 
-            if (musicResponse.ok) {
-              const musicData = await musicResponse.json();
-              const backgroundMusic = musicData.music;
-              
-              if (backgroundMusic) {
-                setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
+              if (musicResponse.ok) {
+                const musicData = await musicResponse.json();
+                const backgroundMusic = musicData.music;
                 
-                updateTimelineItem('stage-6', {
-                  status: 'completed',
-                  data: { 
-                    message: `배경음악 선택 완료! (${backgroundMusic.name})`,
-                    music: backgroundMusic
-                  }
-                });
+                if (backgroundMusic) {
+                  setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
+                  
+                  updateTimelineItem('stage-6-start', {
+                    status: 'completed',
+                    data: { 
+                      message: `배경음악 매칭 완료!`,
+                      music: backgroundMusic
+                    }
+                  });
+
+                  await sleep(300);
+
+                  // 배경음악 상세 정보 표시
+                  addToTimeline({
+                    id: 'stage-6-music',
+                    type: 'stage',
+                    title: '🎵 배경음악 정보',
+                    status: 'completed',
+                    data: { 
+                      message: `${backgroundMusic.name} - ${backgroundMusic.description}`,
+                      music: backgroundMusic
+                    }
+                  });
+                } else {
+                  updateTimelineItem('stage-6-start', {
+                    status: 'error',
+                    data: { message: '배경음악 매칭 실패' }
+                  });
+                }
               }
+            } catch (error) {
+              console.warn('Music matching failed:', error);
+              updateTimelineItem('stage-6-start', {
+                status: 'error',
+                data: { message: '⚠️ 배경음악 매칭 타임아웃 (배경음악 없이 계속)' }
+              });
             }
 
             await sleep(500);
@@ -392,9 +457,9 @@ export default function ProShortsPage() {
         }
       } catch (error) {
         console.error('비디오 생성 오류:', error);
-        updateTimelineItem('stage-5', {
+        updateTimelineItem('stage-5-start', {
           status: 'error',
-          data: { message: '비디오 생성 실패' }
+          data: { message: '❌ 비디오 생성 실패' }
         });
       }
 
