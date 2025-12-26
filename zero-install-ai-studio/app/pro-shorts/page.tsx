@@ -41,7 +41,7 @@ interface TimelineItem {
   data?: any;
 }
 
-export default function ProShortsTimelinePage() {
+export default function ProShortsPage() {
   const [prompt, setPrompt] = useState('');
   const [duration, setDuration] = useState(30);
   const [generating, setGenerating] = useState(false);
