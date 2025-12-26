@@ -184,7 +184,7 @@ export default function ProShortsPage() {
       await sleep(1000);
 
       // ==================== 3단계: TTS 음성 생성 (선택적) ====================
-      updateStage(3, { status: 'processing', message: '🎙️ AI가 나레이션 음성을 생성하는 중...' });
+      updateStage(3, { status: 'processing', progress: 0, message: '🎙️ AI가 나레이션 음성을 생성하는 중... (0/0)' });
 
       const scenesWithAudio: Scene[] = [...scenesWithImages];
       let ttsSuccessCount = 0;
@@ -194,15 +194,18 @@ export default function ProShortsPage() {
         for (let i = 0; i < scenesWithImages.length; i++) {
           const scene = scenesWithAudio[i];
           
+          const currentProgress = Math.round(((i) / scenesWithImages.length) * 100);
           updateStage(3, {
-            progress: ((i + 1) / scenesWithImages.length) * 100,
-            message: `🎙️ 장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중...`
+            status: 'processing',
+            progress: currentProgress,
+            message: `🎙️ 장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중... (${ttsSuccessCount}개 완료)`
           });
 
           try {
             const narration = scene.narration || scene.korean_description;
+            console.log(`[TTS] Scene ${i + 1}: Generating audio for "${narration.substring(0, 30)}..."`);
             
-            // TTS 음성 생성 API 호출 (타임아웃 10초)
+            // TTS 음성 생성 API 호출 (타임아웃 15초)
             const ttsResponse = await Promise.race([
               fetch('/api/tts', {
                 method: 'POST',
@@ -210,7 +213,7 @@ export default function ProShortsPage() {
                 body: JSON.stringify({ text: narration })
               }),
               new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('TTS timeout')), 10000)
+                setTimeout(() => reject(new Error('TTS timeout')), 15000)
               )
             ]) as Response;
 
@@ -218,13 +221,16 @@ export default function ProShortsPage() {
               const ttsData = await ttsResponse.json();
               scene.audioUrl = ttsData.audio_url;
               ttsSuccessCount++;
+              console.log(`[TTS] Scene ${i + 1}: Success! Audio URL: ${ttsData.audio_url}`);
+            } else {
+              console.warn(`[TTS] Scene ${i + 1}: API returned ${ttsResponse.status}`);
             }
           } catch (error) {
-            console.warn(`Scene ${i + 1} TTS failed:`, error);
+            console.warn(`[TTS] Scene ${i + 1}: Failed -`, error);
           }
 
           setStory({ ...generatedStory, scenes: scenesWithAudio });
-          await sleep(300);
+          await sleep(500);
         }
       } catch (error) {
         console.error('TTS 전체 프로세스 오류:', error);
@@ -241,12 +247,14 @@ export default function ProShortsPage() {
       await sleep(500);
 
       // ==================== 4단계: 배경음악 매칭 (선택적) ====================
-      updateStage(4, { status: 'processing', message: '🎵 스토리에 어울리는 배경음악 선택 중...' });
+      updateStage(4, { status: 'processing', progress: 0, message: '🎵 스토리에 어울리는 배경음악 선택 중...' });
       
       let backgroundMusic = null;
       
       try {
-        // 배경음악 매칭 시도 (타임아웃 5초)
+        console.log(`[Music] Matching music for: ${generatedStory.title} (mood: ${generatedStory.mood}, genre: ${generatedStory.genre})`);
+        
+        // 배경음악 매칭 시도 (타임아웃 8초)
         const musicResponse = await Promise.race([
           fetch('/api/music', {
             method: 'POST',
@@ -258,16 +266,21 @@ export default function ProShortsPage() {
             })
           }),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Music matching timeout')), 5000)
+            setTimeout(() => reject(new Error('Music matching timeout')), 8000)
           )
         ]) as Response;
+
+        updateStage(4, { progress: 50, message: '🎵 음악 데이터 처리 중...' });
 
         if (musicResponse.ok) {
           const musicData = await musicResponse.json();
           backgroundMusic = musicData.music;
+          console.log(`[Music] Matched: ${backgroundMusic?.name || 'Unknown'}`);
+        } else {
+          console.warn(`[Music] API returned ${musicResponse.status}`);
         }
       } catch (error) {
-        console.warn('배경음악 매칭 실패:', error);
+        console.warn('[Music] Matching failed:', error);
       }
       
       updateStage(4, { 
@@ -544,9 +557,17 @@ export default function ProShortsPage() {
                   <div className="p-4">
                     <h3 className="font-bold text-lg mb-2">{scene.title}</h3>
                     <p className="text-sm text-white/70 mb-2">{scene.korean_description}</p>
+                    {scene.audioUrl && (
+                      <div className="mb-2">
+                        <audio src={scene.audioUrl} controls className="w-full h-8" />
+                      </div>
+                    )}
                     <div className="flex gap-2 text-xs">
                       <span className="bg-purple-500/20 px-2 py-1 rounded">{scene.camera_movement}</span>
                       <span className="bg-blue-500/20 px-2 py-1 rounded">{scene.mood}</span>
+                      {scene.audioUrl && (
+                        <span className="bg-green-500/20 px-2 py-1 rounded">🎙️ 음성</span>
+                      )}
                     </div>
                   </div>
                 </div>
