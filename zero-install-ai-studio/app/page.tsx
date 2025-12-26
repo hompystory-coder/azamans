@@ -118,6 +118,10 @@ export default function Home() {
               <Link href="/export" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                 <span>📤 내보내기</span>
               </Link>
+              
+              <Link href="/downloads" className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <span>📄 특허 문서 다운로드</span>
+              </Link>
             </div>
 
             {/* Stats */}
