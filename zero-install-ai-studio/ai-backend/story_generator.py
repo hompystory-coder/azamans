@@ -49,70 +49,77 @@ def generate_story_script(user_input: str, duration_seconds: int = 30) -> dict:
         raise
 
 def generate_seonnyeo_story(scenes_count: int, scene_duration: float) -> dict:
-    """선녀와 나무꾼 스토리"""
+    """선녀와 나무꾼 스토리 - 구어체 궁금증 유발형"""
     base_scenes = [
         {
             "scene_number": 1,
-            "title": "산속의 나무꾼",
-            "description": "A poor woodcutter working in deep mountain forest, cutting trees, sunset light filtering through tall trees, traditional Korean painting style, beautiful nature",
-            "korean_description": "깊은 산속에서 나무를 하는 가난한 나무꾼, 석양 빛이 나뭇가지 사이로 비치는 아름다운 숲",
+            "title": "이상한 소리",
+            "description": "A poor woodcutter in deep mountain forest suddenly hears mysterious laughter, curious expression, sunset light filtering through trees, traditional Korean painting style",
+            "korean_description": "평범하게 나무를 하던 나무꾼이 갑자기 어디선가 들려오는 이상한 웃음소리를 듣게 돼요.",
+            "narration": "평범하게 나무를 하던 나무꾼이 갑자기 어디선가 들려오는 이상한 웃음소리를 듣게 돼요.",
             "duration": scene_duration,
             "camera_movement": "slow_zoom_in",
-            "mood": "peaceful"
+            "mood": "curious"
         },
         {
             "scene_number": 2,
-            "title": "연못의 선녀들",
-            "description": "Beautiful fairy maidens bathing in crystal clear pond, magical sparkles, ethereal atmosphere, mystical Korean folklore scene",
-            "korean_description": "맑은 연못에서 목욕하는 아름다운 선녀들, 신비로운 빛과 반짝이는 마법의 분위기",
+            "title": "믿을 수 없는 광경",
+            "description": "Beautiful fairy maidens bathing in crystal clear pond, magical sparkles, shocked woodcutter peeking from bushes, ethereal atmosphere",
+            "korean_description": "소리 나는 쪽으로 살금살금 다가갔더니 세상에 진짜 선녀들이 목욕을 하고 있는 거예요.",
+            "narration": "소리 나는 쪽으로 살금살금 다가갔더니 세상에 진짜 선녀들이 목욕을 하고 있는 거예요.",
             "duration": scene_duration,
             "camera_movement": "pan_right",
-            "mood": "magical"
+            "mood": "shocking"
         },
         {
             "scene_number": 3,
-            "title": "숨겨진 날개옷",
-            "description": "Hidden fairy robe behind tree, glowing with magical light, shimmering fabric, enchanted object in forest",
-            "korean_description": "나무 뒤에 숨겨진 선녀의 날개옷, 반짝이는 마법의 빛을 내뿜는 신비로운 천",
+            "title": "사슴의 속삭임",
+            "description": "Wise deer whispering to woodcutter, pointing at hidden fairy robe glowing behind tree, magical light, mystical Korean folklore",
+            "korean_description": "그때 사슴 한 마리가 나타나서 날개옷을 숨기면 선녀를 아내로 맞을 수 있다고 귓속말을 해줘요.",
+            "narration": "그때 사슴 한 마리가 나타나서 날개옷을 숨기면 선녀를 아내로 맞을 수 있다고 귓속말을 해줘요.",
             "duration": scene_duration,
             "camera_movement": "zoom_in",
             "mood": "mysterious"
         },
         {
             "scene_number": 4,
-            "title": "운명적 만남",
-            "description": "First meeting between woodcutter and fairy, romantic atmosphere, emotional encounter, love at first sight, traditional Korean style",
-            "korean_description": "나무꾼과 선녀가 처음 만나는 순간, 로맨틱한 분위기, 감동적인 첫 만남",
+            "title": "운명의 만남",
+            "description": "Crying fairy desperately searching for her robe, woodcutter appearing with gentle smile, romantic first encounter, traditional Korean style",
+            "korean_description": "날개옷이 없어진 선녀는 울면서 나무꾼 앞에 나타났고 둘은 서로에게 첫눈에 반하게 돼요.",
+            "narration": "날개옷이 없어진 선녀는 울면서 나무꾼 앞에 나타났고 둘은 서로에게 첫눈에 반하게 돼요.",
             "duration": scene_duration,
             "camera_movement": "slow_zoom_in",
             "mood": "romantic"
         },
         {
             "scene_number": 5,
-            "title": "행복한 가정",
-            "description": "Happy family life, woodcutter with fairy wife and beautiful children, warm home, joyful moments, traditional Korean family",
-            "korean_description": "행복한 결혼 생활, 예쁜 아이들과 함께하는 따뜻한 가족, 즐거운 일상",
+            "title": "행복한 나날",
+            "description": "Happy family with three children playing, woodcutter and fairy wife laughing together, warm home, joyful moments, traditional Korean family",
+            "korean_description": "세월이 흘러 두 사람은 예쁜 아이 셋을 낳고 너무나 행복한 나날을 보내게 되죠.",
+            "narration": "세월이 흘러 두 사람은 예쁜 아이 셋을 낳고 너무나 행복한 나날을 보내게 되죠.",
             "duration": scene_duration,
             "camera_movement": "pan_left",
             "mood": "happy"
         },
         {
             "scene_number": 6,
-            "title": "이별의 순간",
-            "description": "Fairy finding her robe and flying to heaven, emotional farewell, tears, dramatic goodbye scene, heartbreaking moment",
-            "korean_description": "선녀가 날개옷을 찾아 하늘로 날아가는 장면, 눈물의 감동적인 이별",
+            "title": "치명적 실수",
+            "description": "Fairy discovering hidden robe in old chest, shocked expression, realization moment, dramatic lighting, emotional scene",
+            "korean_description": "그런데 어느 날 선녀가 오래된 상자에서 숨겨져 있던 날개옷을 발견하고 말아요.",
+            "narration": "그런데 어느 날 선녀가 오래된 상자에서 숨겨져 있던 날개옷을 발견하고 말아요.",
             "duration": scene_duration,
-            "camera_movement": "tilt_up",
-            "mood": "sad"
+            "camera_movement": "zoom_in",
+            "mood": "tense"
         },
         {
             "scene_number": 7,
-            "title": "그리움",
-            "description": "Woodcutter looking up at sky with tears, longing and sorrow, emotional final scene, sunset backdrop",
-            "korean_description": "나무꾼이 하늘을 바라보며 눈물 흘리는 마지막 장면, 깊은 그리움과 슬픔",
+            "title": "비극적 결말",
+            "description": "Fairy flying to heaven with children, crying woodcutter reaching out desperately, dramatic farewell, heartbreaking separation, sunset sky",
+            "korean_description": "선녀는 아이들을 안고 하늘로 날아가버렸고 나무꾼은 그저 하늘만 바라보며 울 수밖에 없었어요.",
+            "narration": "선녀는 아이들을 안고 하늘로 날아가버렸고 나무꾼은 그저 하늘만 바라보며 울 수밖에 없었어요.",
             "duration": scene_duration,
-            "camera_movement": "slow_zoom_out",
-            "mood": "melancholic"
+            "camera_movement": "tilt_up",
+            "mood": "tragic"
         },
     ]
     
@@ -131,70 +138,77 @@ def generate_seonnyeo_story(scenes_count: int, scene_duration: float) -> dict:
     }
 
 def generate_heungbu_story(scenes_count: int, scene_duration: float) -> dict:
-    """흥부와 놀부 스토리"""
+    """흥부와 놀부 스토리 - 구어체 궁금증 유발형"""
     base_scenes = [
         {
             "scene_number": 1,
-            "title": "가난한 흥부의 집",
-            "description": "Poor Heungbu's shabby house, humble dwelling, worn-out traditional Korean home, poverty but kindness",
-            "korean_description": "가난하지만 착한 흥부의 초라한 집",
+            "title": "불공평한 세상",
+            "description": "Two brothers living in opposite worlds, poor Heungbu's shabby house vs rich Nolbu's luxurious mansion side by side, dramatic contrast",
+            "korean_description": "똑같은 형제인데 한쪽은 부자 한쪽은 가난뱅이 이게 대체 무슨 일일까요.",
+            "narration": "똑같은 형제인데 한쪽은 부자 한쪽은 가난뱅이 이게 대체 무슨 일일까요.",
             "duration": scene_duration,
             "camera_movement": "pan_right",
-            "mood": "humble"
+            "mood": "contrasting"
         },
         {
             "scene_number": 2,
-            "title": "부자 놀부의 저택",
-            "description": "Rich Nolbu's luxurious mansion, wealthy traditional Korean house, greed and arrogance, elaborate decorations",
-            "korean_description": "부자이지만 욕심 많은 놀부의 화려한 집",
+            "title": "냉혹한 형님",
+            "description": "Evil Nolbu kicking starving Heungbu out of his mansion, cold-hearted rejection, cruel brother, dark atmosphere",
+            "korean_description": "가난한 흥부가 도움을 청하러 갔지만 형 놀부는 매몰차게 쫓아내버려요.",
+            "narration": "가난한 흥부가 도움을 청하러 갔지만 형 놀부는 매몰차게 쫓아내버려요.",
             "duration": scene_duration,
-            "camera_movement": "zoom_in",
-            "mood": "luxurious"
+            "camera_movement": "shake",
+            "mood": "harsh"
         },
         {
             "scene_number": 3,
-            "title": "제비를 구하다",
-            "description": "Kind Heungbu saving injured swallow, caring for bird, gentle actions, compassion and kindness",
-            "korean_description": "다친 제비를 구해주는 착한 흥부",
+            "title": "기적의 만남",
+            "description": "Kind Heungbu discovering injured baby swallow fallen from nest, gentle rescue, compassionate moment, traditional Korean style",
+            "korean_description": "그런데 흥부가 집으로 돌아오다가 둥지에서 떨어진 새끼 제비를 발견하게 돼요.",
+            "narration": "그런데 흥부가 집으로 돌아오다가 둥지에서 떨어진 새끼 제비를 발견하게 돼요.",
             "duration": scene_duration,
             "camera_movement": "slow_zoom_in",
-            "mood": "kind"
-        },
-        {
-            "scene_number": 4,
-            "title": "박씨를 심다",
-            "description": "Planting magical gourd seeds from swallow, hope and anticipation, traditional Korean garden",
-            "korean_description": "제비가 가져온 박씨를 심는 흥부",
-            "duration": scene_duration,
-            "camera_movement": "tilt_down",
             "mood": "hopeful"
         },
         {
-            "scene_number": 5,
-            "title": "보물의 박",
-            "description": "Golden treasures emerging from magical gourd, sparkling gold and jewels, miraculous reward, abundance",
-            "korean_description": "박에서 나오는 금은보화, 반짝이는 보물들",
+            "scene_number": 4,
+            "title": "정성스런 돌봄",
+            "description": "Heungbu carefully treating swallow's broken leg, bandaging with care, family helping together, warm scene",
+            "korean_description": "흥부는 자기도 굶주리고 있었지만 제비를 정성껏 치료해주고 날려보내죠.",
+            "narration": "흥부는 자기도 굶주리고 있었지만 제비를 정성껏 치료해주고 날려보내죠.",
             "duration": scene_duration,
-            "camera_movement": "zoom_out",
+            "camera_movement": "zoom_in",
+            "mood": "caring"
+        },
+        {
+            "scene_number": 5,
+            "title": "믿을 수 없는 선물",
+            "description": "Swallow returning with magical seed in beak, dropping glowing gourd seed, mysterious gift, grateful bird",
+            "korean_description": "그리고 이듬해 봄 그 제비가 다시 찾아와서 신기한 박씨 하나를 물고 왔어요.",
+            "narration": "그리고 이듬해 봄 그 제비가 다시 찾아와서 신기한 박씨 하나를 물고 왔어요.",
+            "duration": scene_duration,
+            "camera_movement": "tilt_down",
             "mood": "magical"
         },
         {
             "scene_number": 6,
-            "title": "놀부의 욕심",
-            "description": "Greedy Nolbu breaking swallow's leg intentionally, evil action, dark atmosphere, malicious intent",
-            "korean_description": "욕심내어 제비 다리를 부러뜨리는 놀부",
+            "title": "대박의 순간",
+            "description": "Enormous golden treasures bursting from magical gourd, sparkling gold coins and jewels everywhere, miraculous wealth, family shocked and happy",
+            "korean_description": "박을 타보니 세상에 엄청난 금은보화가 쏟아져 나와서 흥부네는 단번에 부자가 됐어요.",
+            "narration": "박을 타보니 세상에 엄청난 금은보화가 쏟아져 나와서 흥부네는 단번에 부자가 됐어요.",
             "duration": scene_duration,
-            "camera_movement": "shake",
-            "mood": "evil"
+            "camera_movement": "zoom_out",
+            "mood": "explosive"
         },
         {
             "scene_number": 7,
-            "title": "벌받는 놀부",
-            "description": "Goblins and troubles emerging from Nolbu's gourd, punishment for greed, karma, scary creatures",
-            "korean_description": "놀부의 박에서 나오는 도깨비들, 벌받는 장면",
+            "title": "욕심의 대가",
+            "description": "Greedy Nolbu intentionally breaking swallow's leg with evil grin, planting seed with greed, then terrifying goblins and monsters emerging from his gourd, destruction and chaos",
+            "korean_description": "이 소식을 들은 놀부가 일부러 제비 다리를 부러뜨렸다가 박에서 도깨비들만 나와서 집이 완전히 망해버렸어요.",
+            "narration": "이 소식을 들은 놀부가 일부러 제비 다리를 부러뜨렸다가 박에서 도깨비들만 나와서 집이 완전히 망해버렸어요.",
             "duration": scene_duration,
             "camera_movement": "shake",
-            "mood": "scary"
+            "mood": "catastrophic"
         },
     ]
     
@@ -455,18 +469,54 @@ def generate_kongjui_patjui_story(scenes_count: int, scene_duration: float) -> d
     }
 
 def generate_custom_story(user_input: str, scenes_count: int, scene_duration: float) -> dict:
-    """커스텀 스토리 생성"""
+    """커스텀 스토리 생성 - 구어체 궁금증 유발형"""
+    
+    # 스토리 구조 템플릿 (도입-전개-위기-절정-결말)
+    story_templates = [
+        "여러분 이건 진짜 믿기 힘든 이야기인데 한번 들어보세요.",
+        "처음에는 평범해 보였지만 알고 보니 완전히 다른 상황이었어요.",
+        "그런데 여기서 예상치 못한 일이 벌어지기 시작했어요.",
+        "이제부터가 진짜 중요한 순간인데 과연 어떻게 될까요.",
+        "결국 상황은 점점 심각해지고 긴장감이 최고조에 달했어요.",
+        "그리고 마지막에 완전히 반전이 일어나는데 정말 놀라울 거예요.",
+        "이 이야기의 진짜 의미는 여러분이 직접 느껴보시면 알 수 있을 거예요."
+    ]
+    
+    # 카메라 무빙과 분위기 조합
+    camera_moods = [
+        ("slow_zoom_in", "mysterious", "조용히 다가가는"),
+        ("pan_right", "revealing", "서서히 드러나는"),
+        ("zoom_in", "intense", "긴장감 넘치는"),
+        ("shake", "shocking", "충격적인"),
+        ("tilt_up", "dramatic", "극적인"),
+        ("zoom_out", "expansive", "광활한"),
+        ("slow_zoom_out", "reflective", "여운이 남는")
+    ]
+    
     scenes = []
     
     for i in range(scenes_count):
+        camera_movement, mood, korean_mood = camera_moods[i % len(camera_moods)]
+        narration = story_templates[i % len(story_templates)]
+        
+        # 영어 프롬프트 (AI 이미지 생성용)
+        description = (
+            f"{user_input}, scene {i + 1}, "
+            f"{korean_mood} atmosphere, cinematic lighting, "
+            f"highly detailed, dramatic composition, "
+            f"4K quality, professional photography, "
+            f"emotional storytelling moment"
+        )
+        
         scene = {
             "scene_number": i + 1,
-            "title": f"{user_input} - Scene {i + 1}",
-            "description": f"{user_input}, scene {i + 1}, cinematic shot, beautiful composition, high quality",
-            "korean_description": f"{user_input}의 장면 {i + 1}",
+            "title": f"장면 {i + 1}",
+            "description": description,
+            "korean_description": f"{user_input}의 {korean_mood} 순간",
+            "narration": narration,
             "duration": scene_duration,
-            "camera_movement": ["zoom_in", "zoom_out", "pan_left", "pan_right", "slow_zoom_in"][i % 5],
-            "mood": "dramatic"
+            "camera_movement": camera_movement,
+            "mood": mood
         }
         scenes.append(scene)
     
@@ -475,10 +525,10 @@ def generate_custom_story(user_input: str, scenes_count: int, scene_duration: fl
         "genre": "사용자 정의 스토리",
         "total_duration": sum(s['duration'] for s in scenes),
         "total_scenes": len(scenes),
-        "style": "cinematic",
-        "mood": "dramatic",
+        "style": "cinematic storytelling with suspense",
+        "mood": "engaging and curious",
         "scenes": scenes,
-        "music_suggestion": "Epic cinematic music"
+        "music_suggestion": "Epic cinematic music with emotional build-up"
     }
 
 @app.route('/health', methods=['GET'])
