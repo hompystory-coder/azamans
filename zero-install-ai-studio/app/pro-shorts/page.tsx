@@ -183,67 +183,102 @@ export default function ProShortsPage() {
 
       await sleep(1000);
 
-      // ==================== 3단계: TTS 음성 생성 ====================
+      // ==================== 3단계: TTS 음성 생성 (선택적) ====================
       updateStage(3, { status: 'processing', message: '🎙️ AI가 나레이션 음성을 생성하는 중...' });
 
-      const scenesWithAudio: Scene[] = [];
+      const scenesWithAudio: Scene[] = [...scenesWithImages];
+      let ttsSuccessCount = 0;
 
-      for (let i = 0; i < scenesWithImages.length; i++) {
-        const scene = scenesWithImages[i];
-        
-        updateStage(3, {
-          progress: ((i + 1) / scenesWithImages.length) * 100,
-          message: `🎙️ 장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중...`
-        });
-
-        try {
-          const narration = scene.narration || scene.korean_description;
+      // TTS는 실패해도 계속 진행 (이미지만으로도 비디오 생성 가능)
+      try {
+        for (let i = 0; i < scenesWithImages.length; i++) {
+          const scene = scenesWithAudio[i];
           
-          // TTS 음성 생성 API 호출
-          const ttsResponse = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: narration
-            })
+          updateStage(3, {
+            progress: ((i + 1) / scenesWithImages.length) * 100,
+            message: `🎙️ 장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중...`
           });
 
-          if (ttsResponse.ok) {
-            const ttsData = await ttsResponse.json();
-            scene.audioUrl = ttsData.audio_url;
-          } else {
-            console.warn(`Scene ${i + 1} TTS failed, skipping audio`);
-          }
-        } catch (error) {
-          console.error('TTS 생성 오류:', error);
-          // TTS 실패해도 계속 진행
-        }
+          try {
+            const narration = scene.narration || scene.korean_description;
+            
+            // TTS 음성 생성 API 호출 (타임아웃 10초)
+            const ttsResponse = await Promise.race([
+              fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: narration })
+              }),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('TTS timeout')), 10000)
+              )
+            ]) as Response;
 
-        scenesWithAudio.push(scene);
-        setStory({ ...generatedStory, scenes: scenesWithAudio });
-        await sleep(500);
+            if (ttsResponse.ok) {
+              const ttsData = await ttsResponse.json();
+              scene.audioUrl = ttsData.audio_url;
+              ttsSuccessCount++;
+            }
+          } catch (error) {
+            console.warn(`Scene ${i + 1} TTS failed:`, error);
+          }
+
+          setStory({ ...generatedStory, scenes: scenesWithAudio });
+          await sleep(300);
+        }
+      } catch (error) {
+        console.error('TTS 전체 프로세스 오류:', error);
       }
 
       updateStage(3, { 
         status: 'completed', 
         progress: 100, 
-        message: `✅ ${scenesWithAudio.length}개 나레이션 음성 생성 완료!` 
+        message: ttsSuccessCount > 0 
+          ? `✅ ${ttsSuccessCount}/${scenesWithAudio.length}개 음성 생성 완료!` 
+          : `⚠️ 음성 생성 건너뜀 (이미지만 사용)`
       });
 
-      await sleep(1000);
+      await sleep(500);
 
-      // ==================== 4단계: 배경음악 매칭 ====================
+      // ==================== 4단계: 배경음악 매칭 (선택적) ====================
       updateStage(4, { status: 'processing', message: '🎵 스토리에 어울리는 배경음악 선택 중...' });
       
-      await sleep(2000);
+      let backgroundMusic = null;
+      
+      try {
+        // 배경음악 매칭 시도 (타임아웃 5초)
+        const musicResponse = await Promise.race([
+          fetch('/api/music', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mood: generatedStory.mood,
+              genre: generatedStory.genre,
+              title: generatedStory.title
+            })
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Music matching timeout')), 5000)
+          )
+        ]) as Response;
+
+        if (musicResponse.ok) {
+          const musicData = await musicResponse.json();
+          backgroundMusic = musicData.music;
+        }
+      } catch (error) {
+        console.warn('배경음악 매칭 실패:', error);
+      }
       
       updateStage(4, { 
         status: 'completed', 
         progress: 100, 
-        message: `✅ 배경음악 매칭 완료! (${generatedStory.music_suggestion})` 
+        message: backgroundMusic 
+          ? `✅ 배경음악 매칭 완료! (${backgroundMusic.name})` 
+          : `⚠️ 배경음악 건너뜀`
       });
 
-      await sleep(1000);
+      await sleep(500);
 
       // ==================== 5단계: 카메라 움직임 분석 ====================
       updateStage(5, { status: 'processing', message: '🎬 카메라 움직임 효과 적용 중...' });
