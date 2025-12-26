@@ -203,6 +203,214 @@ export class MusicLibrary {
         url: 'https://cdn.pixabay.com/audio/2023/03/10/audio_e9b5d8f28d.mp3',
         tags: ['trap', 'hip hop', 'aggressive'],
         license: 'free'
+      },
+      
+      // 🆕 Ambient / Atmospheric (NEW!)
+      {
+        id: 'ambient-1',
+        name: 'Space Odyssey',
+        artist: 'Ambient Sounds',
+        genre: 'Ambient',
+        mood: 'Mysterious',
+        duration: 240,
+        bpm: 70,
+        url: 'https://cdn.pixabay.com/audio/2022/07/12/audio_a9f8e17485.mp3',
+        tags: ['ambient', 'space', 'atmospheric'],
+        license: 'free'
+      },
+      {
+        id: 'ambient-2',
+        name: 'Ocean Waves',
+        artist: 'Nature Sounds',
+        genre: 'Ambient',
+        mood: 'Peaceful',
+        duration: 300,
+        bpm: 60,
+        url: 'https://cdn.pixabay.com/audio/2023/04/14/audio_4f2c8c8e22.mp3',
+        tags: ['ambient', 'nature', 'ocean'],
+        license: 'free'
+      },
+      
+      // 🆕 Classical / Orchestral (NEW!)
+      {
+        id: 'classical-1',
+        name: 'Piano Sonata',
+        artist: 'Classical Music',
+        genre: 'Classical',
+        mood: 'Elegant',
+        duration: 210,
+        bpm: 80,
+        url: 'https://cdn.pixabay.com/audio/2022/12/08/audio_e47d1f9c62.mp3',
+        tags: ['classical', 'piano', 'elegant'],
+        license: 'free'
+      },
+      {
+        id: 'classical-2',
+        name: 'String Quartet',
+        artist: 'Chamber Music',
+        genre: 'Classical',
+        mood: 'Romantic',
+        duration: 185,
+        bpm: 90,
+        url: 'https://cdn.pixabay.com/audio/2023/05/17/audio_b8c4e9f123.mp3',
+        tags: ['classical', 'strings', 'romantic'],
+        license: 'free'
+      },
+      
+      // 🆕 Rock / Metal (NEW!)
+      {
+        id: 'rock-1',
+        name: 'Electric Guitar Solo',
+        artist: 'Rock Band',
+        genre: 'Rock',
+        mood: 'Powerful',
+        duration: 155,
+        bpm: 135,
+        url: 'https://cdn.pixabay.com/audio/2022/04/19/audio_c9d2f8e742.mp3',
+        tags: ['rock', 'guitar', 'powerful'],
+        license: 'free'
+      },
+      {
+        id: 'rock-2',
+        name: 'Hard Rock Anthem',
+        artist: 'Metal Band',
+        genre: 'Rock',
+        mood: 'Intense',
+        duration: 170,
+        bpm: 145,
+        url: 'https://cdn.pixabay.com/audio/2023/08/09/audio_d7e8f9a456.mp3',
+        tags: ['rock', 'metal', 'intense'],
+        license: 'free'
+      },
+      
+      // 🆕 Jazz / Blues (NEW!)
+      {
+        id: 'jazz-1',
+        name: 'Smooth Jazz',
+        artist: 'Jazz Ensemble',
+        genre: 'Jazz',
+        mood: 'Sophisticated',
+        duration: 195,
+        bpm: 100,
+        url: 'https://cdn.pixabay.com/audio/2022/06/15/audio_e8f9a1b234.mp3',
+        tags: ['jazz', 'smooth', 'sophisticated'],
+        license: 'free'
+      },
+      {
+        id: 'jazz-2',
+        name: 'Blues Night',
+        artist: 'Blues Band',
+        genre: 'Jazz',
+        mood: 'Melancholic',
+        duration: 175,
+        bpm: 85,
+        url: 'https://cdn.pixabay.com/audio/2023/07/21/audio_f9a2b3c456.mp3',
+        tags: ['jazz', 'blues', 'melancholic'],
+        license: 'free'
+      },
+      
+      // 🆕 World Music (NEW!)
+      {
+        id: 'world-1',
+        name: 'Asian Zen',
+        artist: 'World Music',
+        genre: 'World',
+        mood: 'Meditative',
+        duration: 220,
+        bpm: 75,
+        url: 'https://cdn.pixabay.com/audio/2022/09/14/audio_a3b4c5d678.mp3',
+        tags: ['world', 'asian', 'zen'],
+        license: 'free'
+      },
+      {
+        id: 'world-2',
+        name: 'African Drums',
+        artist: 'Tribal Beats',
+        genre: 'World',
+        mood: 'Rhythmic',
+        duration: 185,
+        bpm: 110,
+        url: 'https://cdn.pixabay.com/audio/2023/02/18/audio_b4c5d6e789.mp3',
+        tags: ['world', 'african', 'drums'],
+        license: 'free'
+      },
+      
+      // 🆕 Funk / Disco (NEW!)
+      {
+        id: 'funk-1',
+        name: 'Funky Groove',
+        artist: 'Funk Band',
+        genre: 'Funk',
+        mood: 'Groovy',
+        duration: 165,
+        bpm: 115,
+        url: 'https://cdn.pixabay.com/audio/2022/11/27/audio_c5d6e7f890.mp3',
+        tags: ['funk', 'groove', 'disco'],
+        license: 'free'
+      },
+      {
+        id: 'funk-2',
+        name: 'Disco Nights',
+        artist: 'Disco Era',
+        genre: 'Funk',
+        mood: 'Party',
+        duration: 180,
+        bpm: 125,
+        url: 'https://cdn.pixabay.com/audio/2023/03/25/audio_d6e7f8g901.mp3',
+        tags: ['funk', 'disco', 'party'],
+        license: 'free'
+      },
+      
+      // 🆕 Acoustic / Folk (NEW!)
+      {
+        id: 'acoustic-1',
+        name: 'Acoustic Guitar',
+        artist: 'Folk Music',
+        genre: 'Acoustic',
+        mood: 'Warm',
+        duration: 140,
+        bpm: 95,
+        url: 'https://cdn.pixabay.com/audio/2022/05/12/audio_e7f8g9h012.mp3',
+        tags: ['acoustic', 'guitar', 'folk'],
+        license: 'free'
+      },
+      {
+        id: 'acoustic-2',
+        name: 'Country Road',
+        artist: 'Country Band',
+        genre: 'Acoustic',
+        mood: 'Nostalgic',
+        duration: 155,
+        bpm: 105,
+        url: 'https://cdn.pixabay.com/audio/2023/06/08/audio_f8g9h0i123.mp3',
+        tags: ['acoustic', 'country', 'nostalgic'],
+        license: 'free'
+      },
+      
+      // 🆕 Holiday / Seasonal (NEW!)
+      {
+        id: 'holiday-1',
+        name: 'Christmas Spirit',
+        artist: 'Holiday Music',
+        genre: 'Holiday',
+        mood: 'Festive',
+        duration: 160,
+        bpm: 110,
+        url: 'https://cdn.pixabay.com/audio/2022/12/15/audio_g9h0i1j234.mp3',
+        tags: ['holiday', 'christmas', 'festive'],
+        license: 'free'
+      },
+      {
+        id: 'holiday-2',
+        name: 'Summer Celebration',
+        artist: 'Seasonal Sounds',
+        genre: 'Holiday',
+        mood: 'Joyful',
+        duration: 145,
+        bpm: 120,
+        url: 'https://cdn.pixabay.com/audio/2023/07/04/audio_h0i1j2k345.mp3',
+        tags: ['holiday', 'summer', 'celebration'],
+        license: 'free'
       }
     ];
   }

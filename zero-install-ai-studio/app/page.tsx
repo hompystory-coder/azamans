@@ -124,6 +124,21 @@ export default function Home() {
               </Link>
             </div>
 
+            {/* 새로운 기능 버튼 추가 */}
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <Link href="/gallery" className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <span>🖼️ 갤러리</span>
+              </Link>
+              
+              <Link href="/analytics" className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <span>📊 애널리틱스</span>
+              </Link>
+              
+              <Link href="/batch" className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-orange-600 to-red-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <span>⚡ 배치 생성</span>
+              </Link>
+            </div>
+
             {/* Stats */}
             <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
