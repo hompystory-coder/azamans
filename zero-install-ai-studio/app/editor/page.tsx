@@ -11,7 +11,14 @@ export default function AdvancedEditorPage() {
   
   // 자막 관련 상태
   const [subtitles, setSubtitles] = useState<SubtitleSegment[]>([]);
-  const [subtitleStyle, setSubtitleStyle] = useState<SubtitleStyle>(subtitleEngine.constructor.getDefaultStyle());
+  const [subtitleStyle, setSubtitleStyle] = useState<SubtitleStyle>({
+    fontFamily: 'Arial, sans-serif',
+    fontSize: 32,
+    color: '#FFFFFF',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    position: 'bottom',
+    alignment: 'center'
+  });
   const [showSubtitleEditor, setShowSubtitleEditor] = useState(false);
   
   // Canvas 및 비디오 refs
