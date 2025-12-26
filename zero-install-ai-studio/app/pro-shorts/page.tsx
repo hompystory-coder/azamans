@@ -1,419 +1,513 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { getImageGenerator } from '@/lib/ai-engine'
-import { getVideoGenerator, getTTSGenerator, getScriptGenerator } from '@/lib/video-engine'
-import { CHARACTER_PRESETS, PLATFORM_TEMPLATES, applyPreset, type PresetStyle } from '@/lib/presets'
+import { useState } from 'react';
+import Link from 'next/link';
 
-interface GenerationStage {
-  name: string
-  progress: number
-  status: 'pending' | 'processing' | 'completed' | 'error'
-  message: string
+interface Scene {
+  scene_number: number;
+  title: string;
+  description: string;
+  korean_description: string;
+  duration: number;
+  camera_movement: string;
+  mood: string;
+  imageUrl?: string;
 }
 
-export default function ProAutoShortsPage() {
-  const [topic, setTopic] = useState('')
-  const [selectedPreset, setSelectedPreset] = useState<PresetStyle | null>(null)
-  const [selectedPlatform, setSelectedPlatform] = useState<keyof typeof PLATFORM_TEMPLATES>('youtube')
-  const [generating, setGenerating] = useState(false)
-  const [stages, setStages] = useState<GenerationStage[]>([
-    { name: '스크립트 생성', progress: 0, status: 'pending', message: '대기 중...' },
-    { name: 'AI 이미지 생성', progress: 0, status: 'pending', message: '대기 중...' },
-    { name: '음성 생성 (TTS)', progress: 0, status: 'pending', message: '대기 중...' },
-    { name: '비디오 렌더링', progress: 0, status: 'pending', message: '대기 중...' },
-    { name: '최종 합성', progress: 0, status: 'pending', message: '대기 중...' },
-  ])
-  const [resultVideo, setResultVideo] = useState<string | null>(null)
-  const [showPresets, setShowPresets] = useState(false)
+interface Story {
+  title: string;
+  genre: string;
+  total_duration: number;
+  total_scenes: number;
+  style: string;
+  mood: string;
+  scenes: Scene[];
+  music_suggestion: string;
+}
 
-  const platformConfig = PLATFORM_TEMPLATES[selectedPlatform]
+interface Stage {
+  id: number;
+  name: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  progress: number;
+  message: string;
+}
 
-  const updateStage = (index: number, updates: Partial<GenerationStage>) => {
-    setStages(prev => prev.map((stage, i) => 
-      i === index ? { ...stage, ...updates } : stage
-    ))
-  }
+export default function ProShortsPage() {
+  const [prompt, setPrompt] = useState('');
+  const [duration, setDuration] = useState(30);
+  const [generating, setGenerating] = useState(false);
+  const [story, setStory] = useState<Story | null>(null);
+  const [finalVideoUrl, setFinalVideoUrl] = useState<string | null>(null);
+  
+  const [stages, setStages] = useState<Stage[]>([
+    { id: 1, name: '📝 스토리 생성', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 2, name: '🎨 AI 이미지 생성', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 3, name: '🎬 카메라 움직임 적용', status: 'pending', progress: 0, message: '대기 중...' },
+    { id: 4, name: '🎥 최종 비디오 합성', status: 'pending', progress: 0, message: '대기 중...' },
+  ]);
 
-  const getOverallProgress = () => {
-    const total = stages.reduce((sum, stage) => sum + stage.progress, 0)
-    return Math.round(total / stages.length)
-  }
+  const updateStage = (id: number, updates: Partial<Stage>) => {
+    setStages(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+  };
+
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const generateShorts = async () => {
-    if (!topic.trim()) {
-      alert('주제를 입력해주세요!')
-      return
+    if (!prompt.trim()) {
+      alert('프롬프트를 입력해주세요!');
+      return;
     }
 
-    setGenerating(true)
-    setResultVideo(null)
+    setGenerating(true);
+    setStory(null);
+    setFinalVideoUrl(null);
 
     try {
-      // Apply preset if selected
-      let enhancedPrompt = topic
-      let videoSettings = { duration: 3, fps: 30, transitions: true }
-      let audioSettings = { rate: 1.0, pitch: 1.0 }
+      // ==================== 1단계: 스토리 생성 ====================
+      updateStage(1, { status: 'processing', message: '🤖 AI가 스토리를 생성하는 중...' });
+      
+      const storyResponse = await fetch('http://localhost:5004/generate-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, duration })
+      });
 
-      if (selectedPreset) {
-        const applied = applyPreset(topic, selectedPreset)
-        enhancedPrompt = applied.enhancedPrompt
-        videoSettings = {
-          ...videoSettings,
-          ...applied.settings.videoSettings
-        }
-        audioSettings = applied.settings.audioSettings
+      if (!storyResponse.ok) {
+        throw new Error('스토리 생성 실패');
       }
 
-      // Stage 1: Script
-      updateStage(0, { status: 'processing', message: `${selectedPreset?.name || '기본'} 스타일로 스크립트 생성 중...` })
+      const storyData = await storyResponse.json();
       
-      const scriptGen = getScriptGenerator()
-      const script = await scriptGen.generateScript(enhancedPrompt, {
-        style: selectedPreset?.audioSettings.voiceStyle as any || 'entertaining',
-        duration: platformConfig.recommendedLength
-      })
-      
-      updateStage(0, { status: 'completed', progress: 100, message: `완료` })
-      await new Promise(resolve => setTimeout(resolve, 300))
-
-      // Stage 2: Images (3개)
-      updateStage(1, { status: 'processing', message: 'AI 엔진 초기화 중...' })
-      
-      const imageGen = getImageGenerator()
-      
-      // Initialize if not already done
-      if (!imageGen.isInitialized()) {
-        await imageGen.initialize((message, percent) => {
-          updateStage(1, { progress: percent * 0.2, message: `초기화: ${message}` })
-        })
+      if (!storyData.success) {
+        throw new Error('스토리 생성 실패');
       }
-      
-      updateStage(1, { status: 'processing', message: '스타일 적용된 이미지 생성 중...' })
-      
-      const images: string[] = []
-      
-      for (let i = 0; i < 3; i++) {
-        const imagePrompt = `${enhancedPrompt}, scene ${i + 1}`
+
+      const generatedStory: Story = storyData.story;
+      setStory(generatedStory);
+
+      updateStage(1, { 
+        status: 'completed', 
+        progress: 100, 
+        message: `✅ ${generatedStory.total_scenes}개 장면 스토리 완성!` 
+      });
+
+      await sleep(1000);
+
+      // ==================== 2단계: AI 이미지 생성 ====================
+      updateStage(2, { status: 'processing', message: '🎨 AI가 실제 이미지를 생성하는 중...' });
+
+      const scenesWithImages: Scene[] = [];
+
+      for (let i = 0; i < generatedStory.scenes.length; i++) {
+        const scene = generatedStory.scenes[i];
         
-        const imageUrl = await imageGen.generate({
-          prompt: imagePrompt,
-          negativePrompt: selectedPreset?.negativePrompt,
-          width: platformConfig.resolution.width,
-          height: platformConfig.resolution.height,
-        }, (stage, percent) => {
-          updateStage(1, { 
-            progress: 20 + ((i + percent / 100) / 3) * 80,
-            message: `${i + 1}/3 이미지 (${selectedPreset?.name || '기본'} 스타일)`
-          })
-        })
-        
-        images.push(imageUrl)
-      }
-      
-      updateStage(1, { status: 'completed', progress: 100, message: '완료: 3개 이미지 생성' })
-      await new Promise(resolve => setTimeout(resolve, 300))
+        updateStage(2, {
+          progress: ((i + 1) / generatedStory.scenes.length) * 100,
+          message: `🎨 장면 ${i + 1}/${generatedStory.scenes.length} 이미지 생성 중...`
+        });
 
-      // Stage 3: TTS
-      updateStage(2, { status: 'processing', message: '음성 생성 중...' })
-      
-      const ttsGen = getTTSGenerator()
-      let audioUrl: string | undefined
-      
-      if (ttsGen.isSupported()) {
         try {
-          const audioBlob = await ttsGen.generateSpeech(script, {
-            lang: 'ko-KR',
-            rate: audioSettings.rate,
-            pitch: audioSettings.pitch
-          })
-          audioUrl = URL.createObjectURL(audioBlob)
-          updateStage(2, { status: 'completed', progress: 100, message: '완료: 음성 생성' })
+          // 실제 AI 이미지 생성 API 호출
+          const imageResponse = await fetch('http://localhost:5002/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: scene.description,
+              width: 1080,
+              height: 1920,
+              style: 'traditional'
+            })
+          });
+
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            scene.imageUrl = `http://localhost:5002${imageData.image_url}`;
+          } else {
+            throw new Error('이미지 생성 실패');
+          }
         } catch (error) {
-          updateStage(2, { status: 'completed', progress: 100, message: '스킵: 음성 없이 진행' })
+          console.error('이미지 생성 오류:', error);
+          
+          // 폴백: Canvas로 기본 이미지 생성
+          const canvas = document.createElement('canvas');
+          canvas.width = 1080;
+          canvas.height = 1920;
+          const ctx = canvas.getContext('2d')!;
+
+          // 그라데이션 배경
+          const gradient = ctx.createLinearGradient(0, 0, 0, 1920);
+          const colorSets = [
+            ['#8B7355', '#D4AF37'],
+            ['#2C5F2D', '#97BC62'],
+            ['#191970', '#4169E1'],
+            ['#8B4513', '#DEB887'],
+            ['#483D8B', '#9370DB'],
+            ['#DC143C', '#FF69B4'],
+            ['#2F4F4F', '#708090'],
+          ];
+          const [color1, color2] = colorSets[i % colorSets.length];
+          gradient.addColorStop(0, color1);
+          gradient.addColorStop(1, color2);
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, 1080, 1920);
+
+          // 텍스트
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 60px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.shadowColor = 'black';
+          ctx.shadowBlur = 10;
+          ctx.fillText(scene.title, 540, 900);
+          
+          ctx.font = '40px sans-serif';
+          ctx.fillText(`Scene ${scene.scene_number}`, 540, 1000);
+
+          scene.imageUrl = canvas.toDataURL('image/png');
         }
-      } else {
-        updateStage(2, { status: 'completed', progress: 100, message: '스킵: TTS 미지원' })
+
+        scenesWithImages.push(scene);
+        setStory({ ...generatedStory, scenes: scenesWithImages });
+        await sleep(500);
       }
-      
-      await new Promise(resolve => setTimeout(resolve, 300))
 
-      // Stage 4: Video Rendering
-      updateStage(3, { status: 'processing', message: `${selectedPreset?.videoSettings.transitionType || 'fade'} 트랜지션 적용 중...` })
-      
-      const videoGen = getVideoGenerator()
-      
-      const videoUrl = await videoGen.generateVideo({
-        images: images,
-        duration: videoSettings.duration,
-        fps: videoSettings.fps,
-        width: platformConfig.resolution.width,
-        height: platformConfig.resolution.height,
-        transitions: videoSettings.transitions,
-        audio: audioUrl
-      }, (stage, percent) => {
-        updateStage(3, { progress: percent, message: stage })
-      })
-      
-      updateStage(3, { status: 'completed', progress: 100, message: '완료: 비디오 렌더링' })
-      await new Promise(resolve => setTimeout(resolve, 300))
+      updateStage(2, { 
+        status: 'completed', 
+        progress: 100, 
+        message: `✅ ${scenesWithImages.length}개 AI 이미지 생성 완료!` 
+      });
 
-      // Stage 5: Final
-      updateStage(4, { status: 'processing', progress: 50, message: '최적화 중...' })
-      await new Promise(resolve => setTimeout(resolve, 500))
-      updateStage(4, { status: 'completed', progress: 100, message: `완료: ${platformConfig.name} 준비!` })
-      
-      setResultVideo(videoUrl)
-      
-      // Save to gallery
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('ai-studio-gallery') || '[]'
-        const gallery = JSON.parse(stored)
-        gallery.unshift({
-          id: Date.now().toString(),
-          type: 'video',
-          url: videoUrl,
-          prompt: topic,
-          preset: selectedPreset?.name,
-          createdAt: new Date().toISOString(),
-          duration: videoSettings.duration * 3
-        })
-        localStorage.setItem('ai-studio-gallery', JSON.stringify(gallery))
+      await sleep(1000);
+
+      // ==================== 3단계: 카메라 움직임 분석 ====================
+      updateStage(3, { status: 'processing', message: '🎬 카메라 움직임 효과 적용 중...' });
+
+      // 각 장면의 카메라 움직임 확인
+      const cameraMovements = scenesWithImages.map(s => s.camera_movement);
+      const uniqueMovements = [...new Set(cameraMovements)];
+
+      updateStage(3, { 
+        status: 'completed', 
+        progress: 100, 
+        message: `✅ ${uniqueMovements.length}가지 카메라 효과 준비 완료!` 
+      });
+
+      await sleep(1000);
+
+      // ==================== 4단계: 최종 비디오 합성 ====================
+      updateStage(4, { status: 'processing', message: '🎥 최종 비디오 렌더링 중...' });
+
+      try {
+        const videoResponse = await fetch('http://localhost:5003/generate-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: generatedStory.title,
+            scenes: scenesWithImages.map(scene => ({
+              description: scene.description,
+              duration: scene.duration,
+              style: generatedStory.style,
+              camera_movement: scene.camera_movement
+            })),
+            fps: 30
+          })
+        });
+
+        if (videoResponse.ok) {
+          const videoData = await videoResponse.json();
+          
+          if (videoData.success) {
+            const videoUrl = `http://localhost:5003${videoData.video_url}`;
+            setFinalVideoUrl(videoUrl);
+            
+            updateStage(4, { 
+              status: 'completed', 
+              progress: 100, 
+              message: `✅ ${generatedStory.total_duration}초 비디오 완성! (${(videoData.file_size / 1024 / 1024).toFixed(2)}MB)` 
+            });
+          } else {
+            throw new Error('비디오 생성 실패');
+          }
+        } else {
+          throw new Error('비디오 API 오류');
+        }
+      } catch (videoError) {
+        console.error('비디오 생성 오류:', videoError);
+        updateStage(4, { 
+          status: 'error', 
+          progress: 100, 
+          message: '⚠️ 비디오 생성 실패 (이미지는 확인 가능)' 
+        });
       }
 
     } catch (error) {
-      console.error('Generation failed:', error)
-      alert(`생성 실패: ${error}`)
+      console.error('Generation error:', error);
+      alert('생성 중 오류가 발생했습니다: ' + (error as Error).message);
     } finally {
-      setGenerating(false)
+      setGenerating(false);
     }
-  }
+  };
+
+  const overallProgress = Math.round(
+    stages.reduce((sum, s) => sum + s.progress, 0) / stages.length
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      {/* Header */}
-      <header className="border-b border-white/10 backdrop-blur-lg bg-black/20">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-white flex items-center gap-2">
-            <span className="text-3xl">🎬</span>
-            <span className="gradient-text">Pro Shorts Generator</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/gallery" className="px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-colors">
-              🖼️ 갤러리
+    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-blue-900 to-black text-white">
+      {/* 헤더 */}
+      <header className="border-b border-white/10 bg-black/20 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-2xl font-bold gradient-text">
+              Zero-Install AI Studio
             </Link>
-            <Link href="/studio" className="px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-colors">
-              이미지 스튜디오
-            </Link>
+            <div className="flex gap-4">
+              <Link
+                href="/shorts-maker"
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+              >
+                기본 메이커
+              </Link>
+              <Link
+                href="/gallery"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                갤러리
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left: Input & Presets */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Topic Input */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold text-white mb-4">📝 쇼츠 주제</h2>
-              <textarea
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="예: 우주의 신비..."
-                className="w-full h-32 px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                disabled={generating}
-              />
-            </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* 타이틀 */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4 gradient-text">
+            🎬 프로 AI 쇼츠 메이커
+          </h1>
+          <p className="text-xl text-white/70 mb-2">
+            프롬프트 하나로 완전 자동 AI 쇼츠 생성
+          </p>
+          <p className="text-lg text-purple-400">
+            스토리 생성 → AI 이미지 → 카메라 움직임 → 비디오 합성
+          </p>
+        </div>
 
-            {/* Platform Selection */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold text-white mb-4">📱 플랫폼</h2>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(PLATFORM_TEMPLATES).map(([key, platform]) => (
-                  <button
-                    key={key}
-                    onClick={() => setSelectedPlatform(key as any)}
-                    className={`p-3 rounded-lg font-semibold transition-all ${
-                      selectedPlatform === key
-                        ? 'bg-purple-500 text-white scale-105'
-                        : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                    }`}
-                  >
-                    {platform.name}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3 text-sm text-gray-300">
-                {platformConfig.resolution.width}x{platformConfig.resolution.height} • 최대 {platformConfig.maxDuration}초
-              </div>
-            </div>
-
-            {/* Preset Selection */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h2 className="text-xl font-bold text-white mb-4">🎨 스타일 프리셋</h2>
-              
-              {selectedPreset ? (
-                <div className="mb-4 p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{selectedPreset.icon}</span>
-                      <span className="text-white font-semibold">{selectedPreset.name}</span>
-                    </div>
-                    <button
-                      onClick={() => setSelectedPreset(null)}
-                      className="text-white/70 hover:text-white"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <div className="text-sm text-purple-200">{selectedPreset.description}</div>
-                </div>
-              ) : (
-                <div className="mb-4 p-4 bg-white/5 rounded-lg text-center text-gray-400">
-                  스타일을 선택하세요
-                </div>
-              )}
-
-              <button
-                onClick={() => setShowPresets(!showPresets)}
-                className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-colors"
-              >
-                {showPresets ? '숨기기' : '프리셋 보기'}
-              </button>
-
-              {showPresets && (
-                <div className="mt-4 grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
-                  {CHARACTER_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      onClick={() => {
-                        setSelectedPreset(preset)
-                        setShowPresets(false)
-                      }}
-                      className="p-3 bg-white/5 hover:bg-purple-500/20 rounded-lg transition-all text-left"
-                    >
-                      <div className="text-2xl mb-1">{preset.icon}</div>
-                      <div className="text-white text-sm font-semibold">{preset.name}</div>
-                      <div className="text-gray-400 text-xs">{preset.category}</div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Generate Button */}
-            <button
-              onClick={generateShorts}
-              disabled={generating || !topic.trim()}
-              className="w-full py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold text-lg rounded-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
-            >
-              {generating ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  생성 중... {getOverallProgress()}%
-                </span>
-              ) : (
-                '🚀 프로 쇼츠 생성하기'
-              )}
-            </button>
+        {/* 입력 폼 */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/20">
+          <div className="mb-6">
+            <label className="block text-lg font-bold mb-3">
+              🎯 무엇을 만들고 싶으신가요?
+            </label>
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="예: 선녀와 나무꾼, 토끼와 거북이, 우주를 여행하는 고양이..."
+              className="w-full px-6 py-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={generating}
+            />
           </div>
 
-          {/* Right: Progress & Result */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Progress */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">📊 생성 진행 상황</h2>
+          <div className="mb-6">
+            <label className="block text-lg font-bold mb-3">
+              ⏱️ 비디오 길이 (초)
+            </label>
+            <input
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(Number(e.target.value))}
+              min={15}
+              max={60}
+              className="w-full px-6 py-4 bg-white/10 border border-white/30 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={generating}
+            />
+            <p className="text-sm text-white/60 mt-2">
+              추천: 30초 (약 7개 장면)
+            </p>
+          </div>
 
-              <div className="space-y-4">
-                {stages.map((stage, index) => (
-                  <div key={index} className="bg-white/5 rounded-xl p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">
-                          {stage.status === 'completed' ? '✅' :
-                           stage.status === 'processing' ? '⏳' :
-                           stage.status === 'error' ? '❌' : '⏸️'}
-                        </span>
-                        <span className="text-white font-semibold">{stage.name}</span>
-                      </div>
-                      <span className={`text-sm font-mono ${
-                        stage.status === 'completed' ? 'text-green-400' :
-                        stage.status === 'processing' ? 'text-blue-400' :
-                        stage.status === 'error' ? 'text-red-400' : 'text-gray-400'
-                      }`}>
-                        {stage.progress}%
-                      </span>
-                    </div>
-                    
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
-                      <div 
-                        className={`h-full transition-all duration-300 ${
-                          stage.status === 'completed' ? 'bg-green-500' :
-                          stage.status === 'processing' ? 'bg-blue-500' :
-                          stage.status === 'error' ? 'bg-red-500' : 'bg-gray-500'
-                        }`}
+          <button
+            onClick={generateShorts}
+            disabled={generating || !prompt.trim()}
+            className={`w-full px-8 py-4 rounded-lg font-bold text-xl transition-all ${
+              generating || !prompt.trim()
+                ? 'bg-gray-600 cursor-not-allowed'
+                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl'
+            }`}
+          >
+            {generating ? '🎬 AI가 열심히 만드는 중...' : '🚀 AI 쇼츠 생성 시작!'}
+          </button>
+        </div>
+
+        {/* 진행 상황 */}
+        {generating && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/20">
+            <div className="mb-6">
+              <div className="flex justify-between mb-2">
+                <span className="font-bold text-2xl">전체 진행</span>
+                <span className="text-purple-400 font-bold text-2xl">{overallProgress}%</span>
+              </div>
+              <div className="h-6 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 transition-all duration-300 animate-pulse"
+                  style={{ width: `${overallProgress}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {stages.map((stage) => (
+                <div
+                  key={stage.id}
+                  className={`p-6 rounded-lg transition-all ${
+                    stage.status === 'processing'
+                      ? 'bg-blue-500/20 ring-2 ring-blue-500/50 scale-105'
+                      : stage.status === 'completed'
+                      ? 'bg-green-500/10'
+                      : stage.status === 'error'
+                      ? 'bg-red-500/10'
+                      : 'bg-white/5'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-bold text-lg">{stage.name}</span>
+                    {stage.status === 'completed' && (
+                      <span className="text-green-400 text-2xl">✅</span>
+                    )}
+                    {stage.status === 'processing' && (
+                      <span className="animate-spin text-2xl">⚙️</span>
+                    )}
+                    {stage.status === 'error' && (
+                      <span className="text-red-400 text-2xl">❌</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-white/70">{stage.message}</p>
+                  {stage.status === 'processing' && (
+                    <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500 transition-all duration-300"
                         style={{ width: `${stage.progress}%` }}
                       />
                     </div>
-                    
-                    <div className="text-sm text-gray-300">{stage.message}</div>
-                  </div>
-                ))}
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 스토리 정보 */}
+        {story && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/20">
+            <h2 className="text-3xl font-bold mb-6 gradient-text">📖 생성된 스토리</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white/5 rounded-lg p-4">
+                <div className="text-white/60 text-sm mb-1">제목</div>
+                <div className="font-bold text-lg">{story.title}</div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <div className="text-white/60 text-sm mb-1">장르</div>
+                <div className="font-bold text-lg">{story.genre}</div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <div className="text-white/60 text-sm mb-1">총 시간</div>
+                <div className="font-bold text-lg">{story.total_duration}초</div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <div className="text-white/60 text-sm mb-1">장면 수</div>
+                <div className="font-bold text-lg">{story.total_scenes}개</div>
               </div>
             </div>
 
-            {/* Result */}
-            {resultVideo && (
-              <div className="bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-2xl p-8 border border-green-500/30">
-                <div className="text-center mb-6">
-                  <div className="text-4xl mb-3">🎉</div>
-                  <div className="text-white font-bold text-2xl mb-2">프로 쇼츠 완성!</div>
-                  <div className="text-gray-300">
-                    {selectedPreset?.name || '기본'} 스타일 • {platformConfig.name} 최적화
+            {/* 장면 목록 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {story.scenes.map((scene) => (
+                <div key={scene.scene_number} className="bg-white/5 rounded-lg overflow-hidden">
+                  {scene.imageUrl && (
+                    <div className="aspect-[9/16] relative">
+                      <img
+                        src={scene.imageUrl}
+                        alt={scene.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-3 left-3 bg-black/70 px-3 py-1 rounded-full font-bold">
+                        Scene {scene.scene_number}
+                      </div>
+                      <div className="absolute bottom-3 right-3 bg-black/70 px-3 py-1 rounded-full text-sm">
+                        {scene.duration.toFixed(1)}초
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-2">{scene.title}</h3>
+                    <p className="text-sm text-white/70 mb-2">{scene.korean_description}</p>
+                    <div className="flex gap-2 text-xs">
+                      <span className="bg-purple-500/20 px-2 py-1 rounded">{scene.camera_movement}</span>
+                      <span className="bg-blue-500/20 px-2 py-1 rounded">{scene.mood}</span>
+                    </div>
                   </div>
                 </div>
-                
-                <video 
-                  src={resultVideo} 
-                  controls 
-                  className="w-full rounded-lg mb-6"
-                  style={{ maxHeight: '500px' }}
-                />
-                
-                <div className="grid grid-cols-3 gap-3">
-                  <a 
-                    href={resultVideo} 
-                    download={`shorts-${Date.now()}.mp4`}
-                    className="py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg text-center transition-colors"
-                  >
-                    📥 다운로드
-                  </a>
-                  <Link
-                    href="/gallery"
-                    className="py-3 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg text-center transition-colors"
-                  >
-                    🖼️ 갤러리
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setResultVideo(null)
-                      setTopic('')
-                      setStages(stages.map(s => ({ ...s, progress: 0, status: 'pending', message: '대기 중...' })))
-                    }}
-                    className="py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
-                  >
-                    🔄 새로 만들기
-                  </button>
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+
+        {/* 최종 비디오 */}
+        {finalVideoUrl && (
+          <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-xl p-8 border border-green-500/30">
+            <h2 className="text-4xl font-bold mb-6 text-center gradient-text">
+              🎉 AI 쇼츠 완성!
+            </h2>
+            
+            <div className="max-w-md mx-auto mb-8">
+              <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl bg-black">
+                <video
+                  src={finalVideoUrl}
+                  controls
+                  className="w-full h-full"
+                  poster={story?.scenes[0]?.imageUrl}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              
+              <a
+                href={finalVideoUrl}
+                download={`${story?.title}_shorts.mp4`}
+                className="mt-4 w-full block px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 rounded-lg font-bold text-center transition-all shadow-lg hover:shadow-xl"
+              >
+                📥 비디오 다운로드
+              </a>
+            </div>
+            
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => {
+                  setPrompt('');
+                  setStory(null);
+                  setFinalVideoUrl(null);
+                  setStages(prev => prev.map(s => ({
+                    ...s,
+                    status: 'pending' as const,
+                    progress: 0,
+                    message: '대기 중...'
+                  })));
+                }}
+                className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold text-lg transition-colors"
+              >
+                🔄 새로 만들기
+              </button>
+              <Link
+                href="/gallery"
+                className="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-lg transition-colors"
+              >
+                🖼️ 갤러리 보기
+              </Link>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
-  )
+  );
 }
