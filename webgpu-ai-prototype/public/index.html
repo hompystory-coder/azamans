@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU AI Prototype - Zero-Install AI Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .status-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-value {
+            font-family: 'Courier New', monospace;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .status-value.checking {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-value.supported {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-value.not-supported {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .demo-section {
+            margin-top: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-box img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 WebGPU AI Studio</h1>
+        <p class="subtitle">설치 없이 브라우저에서 바로 실행되는 AI 이미지 생성</p>
+
+        <!-- 시스템 상태 체크 -->
+        <div class="status-box">
+            <h2 style="margin-bottom: 15px; color: #333;">시스템 상태</h2>
+            <div class="status-item">
+                <span class="status-label">WebGPU 지원</span>
+                <span id="webgpu-status" class="status-value checking">확인 중...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">GPU 정보</span>
+                <span id="gpu-info" class="status-value checking">확인 중...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">브라우저</span>
+                <span id="browser-info" class="status-value checking">확인 중...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">AI 모델 상태</span>
+                <span id="model-status" class="status-value checking">준비 중...</span>
+            </div>
+        </div>
+
+        <!-- 데모 섹션 -->
+        <div class="demo-section">
+            <div class="input-group">
+                <label for="prompt-input">이미지 설명 (영어로 입력하세요)</label>
+                <input 
+                    type="text" 
+                    id="prompt-input" 
+                    placeholder="예: a cute cat playing with yarn"
+                    value="a beautiful landscape with mountains and lake at sunset"
+                >
+            </div>
+
+            <button id="generate-btn" class="btn" disabled>
+                🎨 이미지 생성하기
+            </button>
+
+            <div class="progress-bar" id="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div class="result-box" id="result-box">
+                <div class="loader" id="loader"></div>
+                <p id="result-text">생성 중...</p>
+                <img id="result-image" style="display: none;" />
+            </div>
+        </div>
+
+        <!-- 정보 박스 -->
+        <div class="info-box">
+            <h3>💡 프로토타입 정보</h3>
+            <ul>
+                <li><strong>목적:</strong> WebGPU + 로컬 AI 기술 검증</li>
+                <li><strong>현재 단계:</strong> 기술 가능성 테스트</li>
+                <li><strong>브라우저 요구사항:</strong> Chrome 113+, Edge 113+ (WebGPU 지원)</li>
+                <li><strong>다음 단계:</strong> 실제 AI 모델 통합 (ONNX Runtime)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../src/main.js"></script>
+</body>
+</html>

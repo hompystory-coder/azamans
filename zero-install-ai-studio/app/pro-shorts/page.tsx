@@ -79,9 +79,19 @@ export default function ProAutoShortsPage() {
       await new Promise(resolve => setTimeout(resolve, 300))
 
       // Stage 2: Images (3개)
-      updateStage(1, { status: 'processing', message: '스타일 적용된 이미지 생성 중...' })
+      updateStage(1, { status: 'processing', message: 'AI 엔진 초기화 중...' })
       
       const imageGen = getImageGenerator()
+      
+      // Initialize if not already done
+      if (!imageGen.isInitialized()) {
+        await imageGen.initialize((message, percent) => {
+          updateStage(1, { progress: percent * 0.2, message: `초기화: ${message}` })
+        })
+      }
+      
+      updateStage(1, { status: 'processing', message: '스타일 적용된 이미지 생성 중...' })
+      
       const images: string[] = []
       
       for (let i = 0; i < 3; i++) {
@@ -94,7 +104,7 @@ export default function ProAutoShortsPage() {
           height: platformConfig.resolution.height,
         }, (stage, percent) => {
           updateStage(1, { 
-            progress: ((i + percent / 100) / 3) * 100,
+            progress: 20 + ((i + percent / 100) / 3) * 80,
             message: `${i + 1}/3 이미지 (${selectedPreset?.name || '기본'} 스타일)`
           })
         })
