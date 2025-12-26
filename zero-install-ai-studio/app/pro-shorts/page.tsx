@@ -34,7 +34,7 @@ interface Story {
 
 interface TimelineItem {
   id: string;
-  type: 'stage' | 'story' | 'scenes' | 'video';
+  type: 'stage' | 'story' | 'scene' | 'scenes' | 'video';
   title: string;
   status: 'pending' | 'processing' | 'completed' | 'error';
   timestamp: Date;
@@ -103,26 +103,34 @@ export default function ProShortsPage() {
         }
       });
 
-      await sleep(500);
+      await sleep(300);
 
-      // 2단계: AI 이미지 생성
+      // 2단계: AI 이미지 생성 시작
       addToTimeline({
-        id: 'stage-2',
+        id: 'stage-2-start',
         type: 'stage',
-        title: '🎨 AI 이미지 생성',
-        status: 'processing',
-        data: { message: 'AI가 실제 이미지를 생성하는 중...', progress: 0 }
+        title: '🎨 AI 이미지 생성 시작',
+        status: 'completed',
+        data: { message: `${generatedStory.scenes.length}개 장면 이미지를 생성합니다...` }
       });
+
+      await sleep(300);
 
       const scenesWithImages: Scene[] = [];
 
+      // 각 장면별로 개별 타임라인 추가
       for (let i = 0; i < generatedStory.scenes.length; i++) {
         const scene = generatedStory.scenes[i];
         
-        updateTimelineItem('stage-2', {
+        // 장면 생성 시작 타임라인 추가
+        addToTimeline({
+          id: `scene-${i}-image`,
+          type: 'scene',
+          title: `🖼️ Scene ${i + 1}: ${scene.title}`,
+          status: 'processing',
           data: { 
-            message: `장면 ${i + 1}/${generatedStory.scenes.length} 이미지 생성 중...`,
-            progress: Math.round(((i + 1) / generatedStory.scenes.length) * 100)
+            message: 'AI 이미지 생성 중...',
+            scene: scene
           }
         });
 
@@ -141,63 +149,79 @@ export default function ProShortsPage() {
           if (imageResponse.ok) {
             const imageData = await imageResponse.json();
             scene.imageUrl = imageData.image_url;
+            
+            // 이미지 생성 완료로 업데이트
+            updateTimelineItem(`scene-${i}-image`, {
+              status: 'completed',
+              data: { 
+                message: '✅ 이미지 생성 완료!',
+                scene: scene,
+                imageUrl: scene.imageUrl
+              }
+            });
           }
         } catch (error) {
           console.error('이미지 생성 오류:', error);
+          updateTimelineItem(`scene-${i}-image`, {
+            status: 'error',
+            data: { message: '❌ 이미지 생성 실패' }
+          });
         }
 
         scenesWithImages.push(scene);
-        await sleep(300);
+        await sleep(200);
       }
 
-      updateTimelineItem('stage-2', {
+      setStory({ ...generatedStory, scenes: scenesWithImages });
+
+      await sleep(300);
+
+      // 이미지 생성 완료 요약
+      addToTimeline({
+        id: 'stage-2-complete',
+        type: 'stage',
+        title: '✅ AI 이미지 생성 완료',
         status: 'completed',
         data: { 
-          message: `${scenesWithImages.length}개 AI 이미지 생성 완료!`,
+          message: `${scenesWithImages.length}개 이미지 생성 완료!`,
           scenes: scenesWithImages
         }
       });
 
-      setStory({ ...generatedStory, scenes: scenesWithImages });
+      await sleep(300);
 
-      await sleep(500);
-
-      // 장면 표시 추가
+      // 3단계: TTS 음성 생성 시작
       addToTimeline({
-        id: 'scenes-display',
-        type: 'scenes',
-        title: '🎬 생성된 장면들',
-        status: 'completed',
-        data: { scenes: scenesWithImages }
-      });
-
-      await sleep(500);
-
-      // 3단계: TTS 음성 생성
-      addToTimeline({
-        id: 'stage-3',
+        id: 'stage-3-start',
         type: 'stage',
-        title: '🎙️ TTS 음성 생성',
-        status: 'processing',
-        data: { message: 'AI가 나레이션 음성을 생성하는 중...', progress: 0 }
+        title: '🎙️ TTS 음성 생성 시작',
+        status: 'completed',
+        data: { message: `${scenesWithImages.length}개 장면 음성을 생성합니다...` }
       });
+
+      await sleep(300);
 
       const scenesWithAudio: Scene[] = [...scenesWithImages];
       let ttsSuccessCount = 0;
 
+      // 각 장면별로 TTS 생성
       for (let i = 0; i < scenesWithImages.length; i++) {
         const scene = scenesWithAudio[i];
+        const narration = scene.narration || scene.korean_description;
         
-        updateTimelineItem('stage-3', {
-          data: {
-            message: `장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중...`,
-            progress: Math.round(((i + 1) / scenesWithImages.length) * 100)
+        // 음성 생성 시작 타임라인 추가
+        addToTimeline({
+          id: `scene-${i}-audio`,
+          type: 'scene',
+          title: `🎙️ Scene ${i + 1}: 음성 생성`,
+          status: 'processing',
+          data: { 
+            message: `"${narration.substring(0, 30)}..." 음성 생성 중...`,
+            scene: scene
           }
         });
 
         try {
-          const narration = scene.narration || scene.korean_description;
-          
           const ttsResponse = await Promise.race([
             fetch('/api/tts', {
               method: 'POST',
@@ -213,15 +237,42 @@ export default function ProShortsPage() {
             const ttsData = await ttsResponse.json();
             scene.audioUrl = ttsData.audio_url;
             ttsSuccessCount++;
+            
+            // 음성 생성 완료로 업데이트
+            updateTimelineItem(`scene-${i}-audio`, {
+              status: 'completed',
+              data: { 
+                message: '✅ 음성 생성 완료!',
+                scene: scene,
+                audioUrl: scene.audioUrl
+              }
+            });
+          } else {
+            updateTimelineItem(`scene-${i}-audio`, {
+              status: 'error',
+              data: { message: '❌ 음성 생성 실패' }
+            });
           }
         } catch (error) {
           console.warn(`Scene ${i + 1} TTS failed:`, error);
+          updateTimelineItem(`scene-${i}-audio`, {
+            status: 'error',
+            data: { message: '⚠️ 음성 생성 타임아웃' }
+          });
         }
 
-        await sleep(300);
+        await sleep(200);
       }
 
-      updateTimelineItem('stage-3', {
+      setStory({ ...generatedStory, scenes: scenesWithAudio });
+
+      await sleep(300);
+
+      // TTS 생성 완료 요약
+      addToTimeline({
+        id: 'stage-3-complete',
+        type: 'stage',
+        title: '✅ TTS 음성 생성 완료',
         status: 'completed',
         data: { 
           message: ttsSuccessCount > 0 
@@ -230,8 +281,6 @@ export default function ProShortsPage() {
           scenes: scenesWithAudio
         }
       });
-
-      setStory({ ...generatedStory, scenes: scenesWithAudio });
 
       await sleep(500);
 
@@ -510,6 +559,49 @@ export default function ProShortsPage() {
                           <audio src={item.data.music.url} controls className="w-full mt-3 h-10" />
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {item.type === 'scene' && (
+                    <div className={`bg-white/5 backdrop-blur-sm rounded-xl p-4 border ${
+                      item.status === 'processing' ? 'border-blue-500/50' :
+                      item.status === 'completed' ? 'border-green-500/30' :
+                      item.status === 'error' ? 'border-red-500/30' :
+                      'border-white/20'
+                    }`}>
+                      <div className="flex items-start gap-4">
+                        {/* 상태 아이콘 */}
+                        <div className="flex-shrink-0 mt-1">
+                          {item.status === 'completed' && <span className="text-xl">✅</span>}
+                          {item.status === 'processing' && <span className="text-xl animate-spin">⚙️</span>}
+                          {item.status === 'error' && <span className="text-xl">❌</span>}
+                        </div>
+
+                        <div className="flex-1">
+                          <h4 className="font-bold text-lg mb-1">{item.title}</h4>
+                          <p className="text-sm text-white/70 mb-2">{item.data?.message}</p>
+                          
+                          {/* 이미지 표시 */}
+                          {item.data?.imageUrl && item.status === 'completed' && (
+                            <div className="mt-3">
+                              <div className="aspect-[9/16] max-w-[200px] relative rounded-lg overflow-hidden">
+                                <img
+                                  src={item.data.imageUrl}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 오디오 표시 */}
+                          {item.data?.audioUrl && item.status === 'completed' && (
+                            <div className="mt-3">
+                              <audio src={item.data.audioUrl} controls className="w-full h-8" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
 
