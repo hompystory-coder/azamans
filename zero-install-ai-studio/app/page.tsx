@@ -89,8 +89,8 @@ export default function Home() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center flex-wrap">
-              <Link href="/demo" className="group relative inline-flex items-center justify-center px-10 py-5 text-xl font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-full hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 animate-pulse">
-                <span className="relative z-10">✨ AI 쇼츠 데모 (즉시 체험)</span>
+              <Link href="/shorts-maker" className="group relative inline-flex items-center justify-center px-10 py-5 text-xl font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-full hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 animate-pulse">
+                <span className="relative z-10">🎬 AI 스토리 쇼츠 (30초+)</span>
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </Link>
               
