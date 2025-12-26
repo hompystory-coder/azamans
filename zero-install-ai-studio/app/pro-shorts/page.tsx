@@ -67,7 +67,7 @@ export default function ProShortsPage() {
       // ==================== 1단계: 스토리 생성 ====================
       updateStage(1, { status: 'processing', message: '🤖 AI가 스토리를 생성하는 중...' });
       
-      const storyResponse = await fetch('http://localhost:5004/generate-story', {
+      const storyResponse = await fetch('/api/story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, duration })
@@ -109,7 +109,7 @@ export default function ProShortsPage() {
 
         try {
           // 실제 AI 이미지 생성 API 호출
-          const imageResponse = await fetch('http://localhost:5002/generate', {
+          const imageResponse = await fetch('/api/image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -122,7 +122,7 @@ export default function ProShortsPage() {
 
           if (imageResponse.ok) {
             const imageData = await imageResponse.json();
-            scene.imageUrl = `http://localhost:5002${imageData.image_url}`;
+            scene.imageUrl = imageData.image_url;
           } else {
             throw new Error('이미지 생성 실패');
           }
@@ -198,7 +198,7 @@ export default function ProShortsPage() {
       updateStage(4, { status: 'processing', message: '🎥 최종 비디오 렌더링 중...' });
 
       try {
-        const videoResponse = await fetch('http://localhost:5003/generate-video', {
+        const videoResponse = await fetch('/api/video', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -217,7 +217,7 @@ export default function ProShortsPage() {
           const videoData = await videoResponse.json();
           
           if (videoData.success) {
-            const videoUrl = `http://localhost:5003${videoData.video_url}`;
+            const videoUrl = videoData.video_url;
             setFinalVideoUrl(videoUrl);
             
             updateStage(4, { 
