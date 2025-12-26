@@ -8,40 +8,84 @@ export default function DownloadsPage() {
 
   const documents = [
     {
+      id: 'simple-docx',
+      title: '⚡ 간편 출원 가이드 (워드)',
+      filename: '간편출원_가이드.docx',
+      description: '전자출원 시 바로 사용할 수 있는 간편 양식 (워드 문서)',
+      size: '38 KB',
+      icon: '📋',
+      recommended: true,
+      format: 'DOCX'
+    },
+    {
+      id: 'application-docx',
+      title: '📄 특허 명세서 완전판 (워드)',
+      filename: '특허출원서_명세서.docx',
+      description: '15개 청구항을 포함한 완전한 특허 명세서 (워드 문서)',
+      size: '47 KB',
+      icon: '📜',
+      recommended: true,
+      format: 'DOCX'
+    },
+    {
+      id: 'disability-docx',
+      title: '♿ 장애인 무료 출원 가이드 (워드)',
+      filename: '장애인_무료출원_가이드.docx',
+      description: '100% 수수료 감면 신청 방법 상세 안내 (워드 문서)',
+      size: '40 KB',
+      icon: '💰',
+      recommended: true,
+      format: 'DOCX'
+    },
+    {
+      id: 'guide-docx',
+      title: '📚 특허 출원 완전 가이드 (워드)',
+      filename: '특허출원_완전가이드.docx',
+      description: '7개 도면 설명 및 출원 체크리스트 (워드 문서)',
+      size: '44 KB',
+      icon: '🎨',
+      recommended: false,
+      format: 'DOCX'
+    },
+    {
       id: 'simple',
-      title: '⚡ 간편 출원 가이드',
+      title: '⚡ 간편 출원 가이드 (텍스트)',
       filename: 'PATENT_SIMPLE_SUBMISSION.txt',
       description: '전자출원 시 바로 사용할 수 있는 간편 양식',
       size: '3.4 KB',
       icon: '📋',
-      recommended: true
+      recommended: false,
+      format: 'TXT'
     },
     {
       id: 'application',
-      title: '📄 특허 명세서 (완전판)',
+      title: '📄 특허 명세서 (마크다운)',
       filename: 'PATENT_APPLICATION.md',
       description: '15개 청구항을 포함한 완전한 특허 명세서',
       size: '32 KB',
       icon: '📜',
-      recommended: true
+      recommended: false,
+      format: 'MD'
     },
     {
       id: 'disability',
-      title: '♿ 장애인 무료 출원 가이드',
+      title: '♿ 장애인 무료 출원 가이드 (마크다운)',
       filename: 'PATENT_DISABILITY_GUIDE.md',
       description: '100% 수수료 감면 신청 방법 상세 안내',
       size: '8.3 KB',
       icon: '💰',
-      recommended: true
+      recommended: false,
+      format: 'MD'
     },
     {
       id: 'guide',
-      title: '📚 특허 출원 완전 가이드',
+      title: '📚 특허 출원 완전 가이드 (마크다운)',
       filename: 'PATENT_GUIDE.md',
       description: '7개 도면 설명 및 출원 체크리스트',
       size: '43 KB',
       icon: '🎨',
-      recommended: false
+      recommended: false,
+      format: 'MD'
     }
   ]
 
@@ -97,13 +141,22 @@ export default function DownloadsPage() {
               특허 출원 문서 다운로드
             </span>
           </h1>
-          <p className="text-xl text-gray-600 mb-6">
+          <p className="text-xl text-gray-600 mb-4">
             세계 최초 Zero-Install AI 쇼츠 생성 시스템
           </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full">
-            <span className="text-2xl">✅</span>
-            <span className="font-semibold">특허 문서 작성 완료</span>
+          <div className="flex flex-wrap justify-center gap-3 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full">
+              <span className="text-2xl">✅</span>
+              <span className="font-semibold">특허 문서 작성 완료</span>
+            </div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
+              <span className="text-2xl">📄</span>
+              <span className="font-semibold">워드 문서(.docx) 제공</span>
+            </div>
           </div>
+          <p className="text-sm text-gray-500">
+            💡 <strong>워드 문서</strong>로 작성되어 특허청에 바로 제출 가능합니다
+          </p>
         </div>
 
         {/* Download All Button */}
@@ -135,7 +188,14 @@ export default function DownloadsPage() {
                 <div className="flex items-start gap-4 mb-4">
                   <div className="text-5xl">{doc.icon}</div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2">{doc.title}</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-bold">{doc.title}</h3>
+                      <span className={`text-xs px-2 py-1 rounded font-bold ${
+                        doc.format === 'DOCX' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {doc.format}
+                      </span>
+                    </div>
                     <p className="text-gray-600 text-sm mb-3">{doc.description}</p>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span>📦 파일 크기: {doc.size}</span>
