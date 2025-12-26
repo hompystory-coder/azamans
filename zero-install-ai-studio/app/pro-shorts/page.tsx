@@ -32,32 +32,31 @@ interface Story {
   };
 }
 
-interface Stage {
-  id: number;
-  name: string;
+interface TimelineItem {
+  id: string;
+  type: 'stage' | 'story' | 'scenes' | 'video';
+  title: string;
   status: 'pending' | 'processing' | 'completed' | 'error';
-  progress: number;
-  message: string;
+  timestamp: Date;
+  data?: any;
 }
 
-export default function ProShortsPage() {
+export default function ProShortsTimelinePage() {
   const [prompt, setPrompt] = useState('');
   const [duration, setDuration] = useState(30);
   const [generating, setGenerating] = useState(false);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [story, setStory] = useState<Story | null>(null);
   const [finalVideoUrl, setFinalVideoUrl] = useState<string | null>(null);
-  
-  const [stages, setStages] = useState<Stage[]>([
-    { id: 1, name: '📝 스토리 생성', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 2, name: '🎨 AI 이미지 생성', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 3, name: '🎙️ TTS 음성 생성', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 4, name: '🎬 카메라 움직임 적용', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 5, name: '🎥 장면별 비디오 합성', status: 'pending', progress: 0, message: '대기 중...' },
-    { id: 6, name: '🎵 배경음악 추가', status: 'pending', progress: 0, message: '대기 중...' },
-  ]);
 
-  const updateStage = (id: number, updates: Partial<Stage>) => {
-    setStages(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+  const addToTimeline = (item: Omit<TimelineItem, 'timestamp'>) => {
+    setTimeline(prev => [...prev, { ...item, timestamp: new Date() }]);
+  };
+
+  const updateTimelineItem = (id: string, updates: Partial<TimelineItem>) => {
+    setTimeline(prev => prev.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ));
   };
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -69,55 +68,65 @@ export default function ProShortsPage() {
     }
 
     setGenerating(true);
+    setTimeline([]);
     setStory(null);
     setFinalVideoUrl(null);
 
     try {
-      // ==================== 1단계: 스토리 생성 ====================
-      updateStage(1, { status: 'processing', message: '🤖 AI가 스토리를 생성하는 중...' });
-      
+      // 1단계: 스토리 생성
+      addToTimeline({
+        id: 'stage-1',
+        type: 'stage',
+        title: '📝 스토리 생성',
+        status: 'processing',
+        data: { message: 'AI가 스토리를 생성하는 중...' }
+      });
+
       const storyResponse = await fetch('/api/story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, duration })
       });
 
-      if (!storyResponse.ok) {
-        throw new Error('스토리 생성 실패');
-      }
-
+      if (!storyResponse.ok) throw new Error('스토리 생성 실패');
       const storyData = await storyResponse.json();
-      
-      if (!storyData.success) {
-        throw new Error('스토리 생성 실패');
-      }
+      if (!storyData.success) throw new Error('스토리 생성 실패');
 
       const generatedStory: Story = storyData.story;
       setStory(generatedStory);
 
-      updateStage(1, { 
-        status: 'completed', 
-        progress: 100, 
-        message: `✅ ${generatedStory.total_scenes}개 장면 스토리 완성!` 
+      updateTimelineItem('stage-1', {
+        status: 'completed',
+        data: { 
+          message: `${generatedStory.total_scenes}개 장면 스토리 완성!`,
+          story: generatedStory
+        }
       });
 
-      await sleep(1000);
+      await sleep(500);
 
-      // ==================== 2단계: AI 이미지 생성 ====================
-      updateStage(2, { status: 'processing', message: '🎨 AI가 실제 이미지를 생성하는 중...' });
+      // 2단계: AI 이미지 생성
+      addToTimeline({
+        id: 'stage-2',
+        type: 'stage',
+        title: '🎨 AI 이미지 생성',
+        status: 'processing',
+        data: { message: 'AI가 실제 이미지를 생성하는 중...', progress: 0 }
+      });
 
       const scenesWithImages: Scene[] = [];
 
       for (let i = 0; i < generatedStory.scenes.length; i++) {
         const scene = generatedStory.scenes[i];
         
-        updateStage(2, {
-          progress: ((i + 1) / generatedStory.scenes.length) * 100,
-          message: `🎨 장면 ${i + 1}/${generatedStory.scenes.length} 이미지 생성 중...`
+        updateTimelineItem('stage-2', {
+          data: { 
+            message: `장면 ${i + 1}/${generatedStory.scenes.length} 이미지 생성 중...`,
+            progress: Math.round(((i + 1) / generatedStory.scenes.length) * 100)
+          }
         });
 
         try {
-          // 실제 AI 이미지 생성 API 호출
           const imageResponse = await fetch('/api/image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -132,299 +141,212 @@ export default function ProShortsPage() {
           if (imageResponse.ok) {
             const imageData = await imageResponse.json();
             scene.imageUrl = imageData.image_url;
-          } else {
-            throw new Error('이미지 생성 실패');
           }
         } catch (error) {
           console.error('이미지 생성 오류:', error);
-          
-          // 폴백: Canvas로 기본 이미지 생성
-          const canvas = document.createElement('canvas');
-          canvas.width = 1080;
-          canvas.height = 1920;
-          const ctx = canvas.getContext('2d')!;
-
-          // 그라데이션 배경
-          const gradient = ctx.createLinearGradient(0, 0, 0, 1920);
-          const colorSets = [
-            ['#8B7355', '#D4AF37'],
-            ['#2C5F2D', '#97BC62'],
-            ['#191970', '#4169E1'],
-            ['#8B4513', '#DEB887'],
-            ['#483D8B', '#9370DB'],
-            ['#DC143C', '#FF69B4'],
-            ['#2F4F4F', '#708090'],
-          ];
-          const [color1, color2] = colorSets[i % colorSets.length];
-          gradient.addColorStop(0, color1);
-          gradient.addColorStop(1, color2);
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, 1080, 1920);
-
-          // 텍스트
-          ctx.fillStyle = 'white';
-          ctx.font = 'bold 60px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.shadowColor = 'black';
-          ctx.shadowBlur = 10;
-          ctx.fillText(scene.title, 540, 900);
-          
-          ctx.font = '40px sans-serif';
-          ctx.fillText(`Scene ${scene.scene_number}`, 540, 1000);
-
-          scene.imageUrl = canvas.toDataURL('image/png');
         }
 
         scenesWithImages.push(scene);
-        setStory({ ...generatedStory, scenes: scenesWithImages });
-        await sleep(500);
+        await sleep(300);
       }
 
-      updateStage(2, { 
-        status: 'completed', 
-        progress: 100, 
-        message: `✅ ${scenesWithImages.length}개 AI 이미지 생성 완료!` 
+      updateTimelineItem('stage-2', {
+        status: 'completed',
+        data: { 
+          message: `${scenesWithImages.length}개 AI 이미지 생성 완료!`,
+          scenes: scenesWithImages
+        }
       });
 
-      await sleep(1000);
+      setStory({ ...generatedStory, scenes: scenesWithImages });
 
-      // ==================== 3단계: TTS 음성 생성 (선택적) ====================
-      updateStage(3, { status: 'processing', progress: 0, message: '🎙️ AI가 나레이션 음성을 생성하는 중... (0/0)' });
+      await sleep(500);
+
+      // 장면 표시 추가
+      addToTimeline({
+        id: 'scenes-display',
+        type: 'scenes',
+        title: '🎬 생성된 장면들',
+        status: 'completed',
+        data: { scenes: scenesWithImages }
+      });
+
+      await sleep(500);
+
+      // 3단계: TTS 음성 생성
+      addToTimeline({
+        id: 'stage-3',
+        type: 'stage',
+        title: '🎙️ TTS 음성 생성',
+        status: 'processing',
+        data: { message: 'AI가 나레이션 음성을 생성하는 중...', progress: 0 }
+      });
 
       const scenesWithAudio: Scene[] = [...scenesWithImages];
       let ttsSuccessCount = 0;
 
-      // TTS는 실패해도 계속 진행 (이미지만으로도 비디오 생성 가능)
-      try {
-        for (let i = 0; i < scenesWithImages.length; i++) {
-          const scene = scenesWithAudio[i];
-          
-          const currentProgress = Math.round(((i) / scenesWithImages.length) * 100);
-          updateStage(3, {
-            status: 'processing',
-            progress: currentProgress,
-            message: `🎙️ 장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중... (${ttsSuccessCount}개 완료)`
-          });
-
-          try {
-            const narration = scene.narration || scene.korean_description;
-            console.log(`[TTS] Scene ${i + 1}: Generating audio for "${narration.substring(0, 30)}..."`);
-            
-            // TTS 음성 생성 API 호출 (타임아웃 15초)
-            const ttsResponse = await Promise.race([
-              fetch('/api/tts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: narration })
-              }),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('TTS timeout')), 15000)
-              )
-            ]) as Response;
-
-            if (ttsResponse.ok) {
-              const ttsData = await ttsResponse.json();
-              scene.audioUrl = ttsData.audio_url;
-              ttsSuccessCount++;
-              console.log(`[TTS] Scene ${i + 1}: Success! Audio URL: ${ttsData.audio_url}`);
-            } else {
-              console.warn(`[TTS] Scene ${i + 1}: API returned ${ttsResponse.status}`);
-            }
-          } catch (error) {
-            console.warn(`[TTS] Scene ${i + 1}: Failed -`, error);
-          }
-
-          setStory({ ...generatedStory, scenes: scenesWithAudio });
-          await sleep(500);
-        }
-      } catch (error) {
-        console.error('TTS 전체 프로세스 오류:', error);
-      }
-
-      updateStage(3, { 
-        status: 'completed', 
-        progress: 100, 
-        message: ttsSuccessCount > 0 
-          ? `✅ ${ttsSuccessCount}/${scenesWithAudio.length}개 음성 생성 완료!` 
-          : `⚠️ 음성 생성 건너뜀 (이미지만 사용)`
-      });
-
-      await sleep(500);
-
-      // ==================== 4단계: 카메라 움직임 적용 ====================
-      console.log('[Stage 4] Starting camera movement application...');
-      updateStage(4, { status: 'processing', progress: 0, message: '🎬 각 장면에 카메라 움직임 효과 준비 중...' });
-      
-      // 각 장면의 카메라 움직임 확인
-      const cameraMovements = scenesWithAudio.map(s => s.camera_movement);
-      const uniqueMovements = [...new Set(cameraMovements)];
-      console.log(`[Camera] Found ${uniqueMovements.length} unique camera movements:`, uniqueMovements);
-
-      updateStage(4, { 
-        status: 'completed', 
-        progress: 100, 
-        message: `✅ ${uniqueMovements.length}가지 카메라 효과 준비 완료!` 
-      });
-
-      await sleep(500);
-
-      // ==================== 5단계: 장면별 비디오 합성 ====================
-      console.log('[Stage 5] Starting scene-by-scene video composition...');
-      updateStage(5, { status: 'processing', progress: 0, message: '🎥 이미지 + 음성 + 카메라 효과 → 비디오로 합성 중...' });
-
-      let mergedVideoUrl = null;
-
-      try {
-        const videoPayload = {
-          title: generatedStory.title,
-          scenes: scenesWithAudio.map(scene => ({
-            description: scene.description,
-            duration: scene.duration,
-            style: generatedStory.style,
-            camera_movement: scene.camera_movement,
-            audio_url: scene.audioUrl,
-            image_url: scene.imageUrl
-          })),
-          fps: 30
-        };
+      for (let i = 0; i < scenesWithImages.length; i++) {
+        const scene = scenesWithAudio[i];
         
-        console.log('[Video] Request payload:', {
-          title: videoPayload.title,
-          scenes_count: videoPayload.scenes.length,
-          fps: videoPayload.fps
+        updateTimelineItem('stage-3', {
+          data: {
+            message: `장면 ${i + 1}/${scenesWithImages.length} 음성 생성 중...`,
+            progress: Math.round(((i + 1) / scenesWithImages.length) * 100)
+          }
         });
 
-        updateStage(5, { progress: 20, message: '🎥 비디오 API 호출 중...' });
+        try {
+          const narration = scene.narration || scene.korean_description;
+          
+          const ttsResponse = await Promise.race([
+            fetch('/api/tts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: narration })
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('TTS timeout')), 15000)
+            )
+          ]) as Response;
 
+          if (ttsResponse.ok) {
+            const ttsData = await ttsResponse.json();
+            scene.audioUrl = ttsData.audio_url;
+            ttsSuccessCount++;
+          }
+        } catch (error) {
+          console.warn(`Scene ${i + 1} TTS failed:`, error);
+        }
+
+        await sleep(300);
+      }
+
+      updateTimelineItem('stage-3', {
+        status: 'completed',
+        data: { 
+          message: ttsSuccessCount > 0 
+            ? `${ttsSuccessCount}/${scenesWithAudio.length}개 음성 생성 완료!`
+            : `음성 생성 건너뜀`,
+          scenes: scenesWithAudio
+        }
+      });
+
+      setStory({ ...generatedStory, scenes: scenesWithAudio });
+
+      await sleep(500);
+
+      // 4-6단계는 간단히 표시
+      addToTimeline({
+        id: 'stage-4',
+        type: 'stage',
+        title: '🎬 카메라 움직임 적용',
+        status: 'completed',
+        data: { message: '카메라 효과 준비 완료!' }
+      });
+
+      await sleep(500);
+
+      addToTimeline({
+        id: 'stage-5',
+        type: 'stage',
+        title: '🎥 장면별 비디오 합성',
+        status: 'processing',
+        data: { message: '이미지 + 음성 + 카메라 → 비디오 합성 중...' }
+      });
+
+      // 비디오 생성 API 호출
+      try {
         const videoResponse = await fetch('/api/video', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(videoPayload)
+          body: JSON.stringify({
+            title: generatedStory.title,
+            scenes: scenesWithAudio.map(scene => ({
+              description: scene.description,
+              duration: scene.duration,
+              style: generatedStory.style,
+              camera_movement: scene.camera_movement,
+              audio_url: scene.audioUrl,
+              image_url: scene.imageUrl
+            })),
+            fps: 30
+          })
         });
-
-        console.log(`[Video] API response status: ${videoResponse.status}`);
-
-        updateStage(5, { progress: 70, message: '🎥 비디오 합성 처리 중...' });
 
         if (videoResponse.ok) {
           const videoData = await videoResponse.json();
-          console.log('[Video] API response data:', videoData);
           
           if (videoData.success) {
-            mergedVideoUrl = videoData.video_url;
-            console.log(`[Video] Success! Video URL: ${mergedVideoUrl}`);
+            setFinalVideoUrl(videoData.video_url);
             
-            updateStage(5, { 
-              status: 'completed', 
-              progress: 100, 
-              message: `✅ ${generatedStory.total_duration}초 비디오 합성 완료!` 
+            updateTimelineItem('stage-5', {
+              status: 'completed',
+              data: { 
+                message: `${generatedStory.total_duration}초 비디오 합성 완료!`,
+                videoUrl: videoData.video_url
+              }
             });
-          } else {
-            console.error('[Video] API returned success=false:', videoData);
-            throw new Error(videoData.error || '비디오 생성 실패');
+
+            await sleep(500);
+
+            // 배경음악 단계
+            addToTimeline({
+              id: 'stage-6',
+              type: 'stage',
+              title: '🎵 배경음악 추가',
+              status: 'processing',
+              data: { message: '배경음악 선택 중...' }
+            });
+
+            // 배경음악 매칭
+            const musicResponse = await fetch('/api/music', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                mood: generatedStory.mood,
+                genre: generatedStory.genre,
+                title: generatedStory.title
+              })
+            });
+
+            if (musicResponse.ok) {
+              const musicData = await musicResponse.json();
+              const backgroundMusic = musicData.music;
+              
+              if (backgroundMusic) {
+                setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
+                
+                updateTimelineItem('stage-6', {
+                  status: 'completed',
+                  data: { 
+                    message: `배경음악 선택 완료! (${backgroundMusic.name})`,
+                    music: backgroundMusic
+                  }
+                });
+              }
+            }
+
+            await sleep(500);
+
+            // 최종 비디오 표시
+            addToTimeline({
+              id: 'final-video',
+              type: 'video',
+              title: '🎉 완성된 AI 쇼츠',
+              status: 'completed',
+              data: { 
+                videoUrl: videoData.video_url,
+                story: generatedStory
+              }
+            });
           }
-        } else {
-          const errorText = await videoResponse.text();
-          console.error(`[Video] API returned ${videoResponse.status}:`, errorText);
-          throw new Error(`비디오 API 오류: ${videoResponse.status}`);
         }
-      } catch (videoError) {
-        console.error('[Video] Generation failed with error:', videoError);
-        updateStage(5, { 
-          status: 'error', 
-          progress: 100, 
-          message: `⚠️ 비디오 생성 실패: ${(videoError as Error).message}` 
+      } catch (error) {
+        console.error('비디오 생성 오류:', error);
+        updateTimelineItem('stage-5', {
+          status: 'error',
+          data: { message: '비디오 생성 실패' }
         });
-      }
-
-      await sleep(500);
-
-      // ==================== 6단계: 배경음악 추가 ====================
-      console.log('[Stage 6] Starting background music addition...');
-      updateStage(6, { status: 'processing', progress: 0, message: '🎵 스토리에 어울리는 배경음악 선택 중...' });
-      
-      let backgroundMusic = null;
-      
-      try {
-        console.log(`[Music] Request data: mood=${generatedStory.mood}, genre=${generatedStory.genre}, title=${generatedStory.title}`);
-        
-        // 배경음악 매칭 시도 (타임아웃 8초)
-        const musicResponse = await Promise.race([
-          fetch('/api/music', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              mood: generatedStory.mood,
-              genre: generatedStory.genre,
-              title: generatedStory.title
-            })
-          }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Music matching timeout')), 8000)
-          )
-        ]) as Response;
-
-        console.log(`[Music] API response status: ${musicResponse.status}`);
-        updateStage(6, { progress: 30, message: '🎵 음악 데이터 처리 중...' });
-
-        if (musicResponse.ok) {
-          const musicData = await musicResponse.json();
-          console.log('[Music] API response data:', musicData);
-          backgroundMusic = musicData.music;
-          console.log(`[Music] Matched successfully: ${backgroundMusic?.name}`);
-          
-          // 스토리에 배경음악 정보 추가 (UI 표시용)
-          if (backgroundMusic) {
-            setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
-          }
-        } else {
-          console.warn(`[Music] API returned non-OK status: ${musicResponse.status}`);
-        }
-
-        // 배경음악을 비디오에 추가 (실제 구현 시)
-        // TODO: 백엔드에서 배경음악 믹싱 기능 구현 필요
-        if (mergedVideoUrl && backgroundMusic) {
-          console.log('[Music] Adding background music to video...');
-          updateStage(6, { progress: 70, message: '🎵 배경음악을 비디오에 믹싱 중...' });
-          
-          // 현재는 배경음악 없이 비디오만 완성
-          setFinalVideoUrl(mergedVideoUrl);
-          
-          updateStage(6, { 
-            status: 'completed', 
-            progress: 100, 
-            message: `✅ 배경음악 선택 완료! (${backgroundMusic.name}) - 믹싱 예정` 
-          });
-        } else if (mergedVideoUrl) {
-          // 배경음악 없이 비디오만 완성
-          setFinalVideoUrl(mergedVideoUrl);
-          
-          updateStage(6, { 
-            status: 'completed', 
-            progress: 100, 
-            message: `⚠️ 배경음악 없이 비디오 완성` 
-          });
-        } else {
-          throw new Error('비디오가 생성되지 않았습니다');
-        }
-      } catch (musicError) {
-        console.error('[Music] Matching failed with error:', musicError);
-        
-        // 배경음악 실패해도 비디오는 있으면 표시
-        if (mergedVideoUrl) {
-          setFinalVideoUrl(mergedVideoUrl);
-          updateStage(6, { 
-            status: 'completed', 
-            progress: 100, 
-            message: `⚠️ 배경음악 추가 실패 (비디오는 생성됨)` 
-          });
-        } else {
-          updateStage(6, { 
-            status: 'error', 
-            progress: 100, 
-            message: `❌ 배경음악 및 비디오 생성 실패` 
-          });
-        }
       }
 
     } catch (error) {
@@ -434,10 +356,6 @@ export default function ProShortsPage() {
       setGenerating(false);
     }
   };
-
-  const overallProgress = Math.round(
-    stages.reduce((sum, s) => sum + s.progress, 0) / stages.length
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-900 via-blue-900 to-black text-white">
@@ -466,7 +384,7 @@ export default function ProShortsPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* 타이틀 */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4 gradient-text">
@@ -476,7 +394,7 @@ export default function ProShortsPage() {
             프롬프트 하나로 완전 자동 AI 쇼츠 생성
           </p>
           <p className="text-lg text-purple-400">
-            스토리 생성 → AI 이미지 → TTS 음성 → 카메라 효과 → 비디오 합성 → 배경음악
+            스토리 → 이미지 → 음성 → 카메라 → 비디오 → 배경음악
           </p>
         </div>
 
@@ -527,198 +445,160 @@ export default function ProShortsPage() {
           </button>
         </div>
 
-        {/* 진행 상황 */}
-        {generating && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/20">
-            <div className="mb-6">
-              <div className="flex justify-between mb-2">
-                <span className="font-bold text-2xl">전체 진행</span>
-                <span className="text-purple-400 font-bold text-2xl">{overallProgress}%</span>
-              </div>
-              <div className="h-6 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 transition-all duration-300 animate-pulse"
-                  style={{ width: `${overallProgress}%` }}
-                />
-              </div>
-            </div>
+        {/* 타임라인 */}
+        {timeline.length > 0 && (
+          <div className="relative">
+            {/* 타임라인 라인 */}
+            <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 via-pink-500 to-blue-500"></div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {stages.map((stage) => (
-                <div
-                  key={stage.id}
-                  className={`p-6 rounded-lg transition-all ${
-                    stage.status === 'processing'
-                      ? 'bg-blue-500/20 ring-2 ring-blue-500/50 scale-105'
-                      : stage.status === 'completed'
-                      ? 'bg-green-500/10'
-                      : stage.status === 'error'
-                      ? 'bg-red-500/10'
-                      : 'bg-white/5'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-bold text-lg">{stage.name}</span>
-                    {stage.status === 'completed' && (
-                      <span className="text-green-400 text-2xl">✅</span>
-                    )}
-                    {stage.status === 'processing' && (
-                      <span className="animate-spin text-2xl">⚙️</span>
-                    )}
-                    {stage.status === 'error' && (
-                      <span className="text-red-400 text-2xl">❌</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-white/70">{stage.message}</p>
-                  {stage.status === 'processing' && (
-                    <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 transition-all duration-300"
-                        style={{ width: `${stage.progress}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* 타임라인 아이템들 */}
+            <div className="space-y-8">
+              {timeline.map((item, index) => (
+                <div key={item.id} className="relative pl-20">
+                  {/* 타임라인 점 */}
+                  <div className={`absolute left-6 top-6 w-5 h-5 rounded-full border-4 ${
+                    item.status === 'completed' ? 'bg-green-500 border-green-300' :
+                    item.status === 'processing' ? 'bg-blue-500 border-blue-300 animate-pulse' :
+                    item.status === 'error' ? 'bg-red-500 border-red-300' :
+                    'bg-gray-500 border-gray-300'
+                  }`}></div>
 
-        {/* 스토리 정보 */}
-        {story && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/20">
-            <h2 className="text-3xl font-bold mb-6 gradient-text">📖 생성된 스토리</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white/5 rounded-lg p-4">
-                <div className="text-white/60 text-sm mb-1">제목</div>
-                <div className="font-bold text-lg">{story.title}</div>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <div className="text-white/60 text-sm mb-1">장르</div>
-                <div className="font-bold text-lg">{story.genre}</div>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <div className="text-white/60 text-sm mb-1">총 시간</div>
-                <div className="font-bold text-lg">{story.total_duration}초</div>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <div className="text-white/60 text-sm mb-1">장면 수</div>
-                <div className="font-bold text-lg">{story.total_scenes}개</div>
-              </div>
-            </div>
-
-            {/* 배경음악 정보 */}
-            {story.backgroundMusic && (
-              <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-6 mb-6 border border-purple-500/30">
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl">🎵</div>
-                  <div className="flex-1">
-                    <div className="text-sm text-white/60 mb-1">배경음악</div>
-                    <div className="font-bold text-xl mb-1">{story.backgroundMusic.name}</div>
-                    <div className="text-sm text-white/70">{story.backgroundMusic.description}</div>
-                  </div>
-                  <audio 
-                    src={story.backgroundMusic.url} 
-                    controls 
-                    className="h-10"
-                    preload="metadata"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* 장면 목록 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {story.scenes.map((scene) => (
-                <div key={scene.scene_number} className="bg-white/5 rounded-lg overflow-hidden">
-                  {scene.imageUrl && (
-                    <div className="aspect-[9/16] relative">
-                      <img
-                        src={scene.imageUrl}
-                        alt={scene.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-3 left-3 bg-black/70 px-3 py-1 rounded-full font-bold">
-                        Scene {scene.scene_number}
+                  {/* 타임라인 컨텐츠 */}
+                  {item.type === 'stage' && (
+                    <div className={`bg-white/10 backdrop-blur-sm rounded-xl p-6 border ${
+                      item.status === 'processing' ? 'border-blue-500/50 ring-2 ring-blue-500/30' :
+                      item.status === 'completed' ? 'border-green-500/30' :
+                      item.status === 'error' ? 'border-red-500/30' :
+                      'border-white/20'
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xl font-bold">{item.title}</h3>
+                        {item.status === 'completed' && <span className="text-2xl">✅</span>}
+                        {item.status === 'processing' && <span className="text-2xl animate-spin">⚙️</span>}
+                        {item.status === 'error' && <span className="text-2xl">❌</span>}
                       </div>
-                      <div className="absolute bottom-3 right-3 bg-black/70 px-3 py-1 rounded-full text-sm">
-                        {scene.duration.toFixed(1)}초
-                      </div>
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-2">{scene.title}</h3>
-                    <p className="text-sm text-white/70 mb-2">{scene.korean_description}</p>
-                    {scene.audioUrl && (
-                      <div className="mb-2">
-                        <audio src={scene.audioUrl} controls className="w-full h-8" />
-                      </div>
-                    )}
-                    <div className="flex gap-2 text-xs">
-                      <span className="bg-purple-500/20 px-2 py-1 rounded">{scene.camera_movement}</span>
-                      <span className="bg-blue-500/20 px-2 py-1 rounded">{scene.mood}</span>
-                      {scene.audioUrl && (
-                        <span className="bg-green-500/20 px-2 py-1 rounded">🎙️ 음성</span>
+                      <p className="text-white/70">{item.data?.message}</p>
+                      {item.status === 'processing' && item.data?.progress !== undefined && (
+                        <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 transition-all duration-300"
+                            style={{ width: `${item.data.progress}%` }}
+                          />
+                        </div>
+                      )}
+                      {item.status === 'completed' && item.data?.story && (
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                          <div className="bg-white/5 rounded-lg p-3">
+                            <div className="text-xs text-white/60">제목</div>
+                            <div className="font-bold">{item.data.story.title}</div>
+                          </div>
+                          <div className="bg-white/5 rounded-lg p-3">
+                            <div className="text-xs text-white/60">장면 수</div>
+                            <div className="font-bold">{item.data.story.total_scenes}개</div>
+                          </div>
+                        </div>
+                      )}
+                      {item.status === 'completed' && item.data?.music && (
+                        <div className="mt-4 bg-purple-500/20 rounded-lg p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="text-3xl">🎵</div>
+                            <div>
+                              <div className="font-bold">{item.data.music.name}</div>
+                              <div className="text-sm text-white/70">{item.data.music.description}</div>
+                            </div>
+                          </div>
+                          <audio src={item.data.music.url} controls className="w-full mt-3 h-10" />
+                        </div>
                       )}
                     </div>
+                  )}
+
+                  {item.type === 'scenes' && (
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                      <h3 className="text-xl font-bold mb-4">{item.title}</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {item.data?.scenes?.map((scene: Scene) => (
+                          <div key={scene.scene_number} className="bg-white/5 rounded-lg overflow-hidden">
+                            {scene.imageUrl && (
+                              <div className="aspect-[9/16] relative">
+                                <img
+                                  src={scene.imageUrl}
+                                  alt={scene.title}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute top-2 left-2 bg-black/70 px-2 py-1 rounded-full text-xs font-bold">
+                                  Scene {scene.scene_number}
+                                </div>
+                              </div>
+                            )}
+                            <div className="p-3">
+                              <h4 className="font-bold text-sm mb-1">{scene.title}</h4>
+                              <p className="text-xs text-white/60 mb-2 line-clamp-2">{scene.korean_description}</p>
+                              {scene.audioUrl && (
+                                <audio src={scene.audioUrl} controls className="w-full h-8" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {item.type === 'video' && (
+                    <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-xl p-8 border border-green-500/30">
+                      <h3 className="text-3xl font-bold mb-6 text-center">{item.title}</h3>
+                      
+                      <div className="max-w-md mx-auto mb-6">
+                        <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl bg-black">
+                          <video
+                            src={item.data?.videoUrl}
+                            controls
+                            className="w-full h-full"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <a
+                          href={item.data?.videoUrl}
+                          download={`${item.data?.story?.title}_shorts.mp4`}
+                          className="inline-block px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+                        >
+                          📥 비디오 다운로드
+                        </a>
+                      </div>
+
+                      {item.data?.story && (
+                        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="bg-white/10 rounded-lg p-3">
+                            <div className="text-xs text-white/60">제목</div>
+                            <div className="font-bold text-sm">{item.data.story.title}</div>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-3">
+                            <div className="text-xs text-white/60">장르</div>
+                            <div className="font-bold text-sm">{item.data.story.genre}</div>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-3">
+                            <div className="text-xs text-white/60">총 시간</div>
+                            <div className="font-bold text-sm">{item.data.story.total_duration}초</div>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-3">
+                            <div className="text-xs text-white/60">장면 수</div>
+                            <div className="font-bold text-sm">{item.data.story.total_scenes}개</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 타임스탬프 */}
+                  <div className="text-xs text-white/40 mt-2">
+                    {item.timestamp.toLocaleTimeString('ko-KR')}
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* 최종 비디오 */}
-        {finalVideoUrl && (
-          <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-xl p-8 border border-green-500/30">
-            <h2 className="text-4xl font-bold mb-6 text-center gradient-text">
-              🎉 AI 쇼츠 완성!
-            </h2>
-            
-            <div className="max-w-md mx-auto mb-8">
-              <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl bg-black">
-                <video
-                  src={finalVideoUrl}
-                  controls
-                  className="w-full h-full"
-                  poster={story?.scenes[0]?.imageUrl}
-                >
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-              
-              <a
-                href={finalVideoUrl}
-                download={`${story?.title}_shorts.mp4`}
-                className="mt-4 w-full block px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 rounded-lg font-bold text-center transition-all shadow-lg hover:shadow-xl"
-              >
-                📥 비디오 다운로드
-              </a>
-            </div>
-            
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => {
-                  setPrompt('');
-                  setStory(null);
-                  setFinalVideoUrl(null);
-                  setStages(prev => prev.map(s => ({
-                    ...s,
-                    status: 'pending' as const,
-                    progress: 0,
-                    message: '대기 중...'
-                  })));
-                }}
-                className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold text-lg transition-colors"
-              >
-                🔄 새로 만들기
-              </button>
-              <Link
-                href="/gallery"
-                className="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-lg transition-colors"
-              >
-                🖼️ 갤러리 보기
-              </Link>
             </div>
           </div>
         )}
