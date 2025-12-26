@@ -7,9 +7,6 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from moviepy import ImageClip, concatenate_videoclips, AudioFileClip, CompositeVideoClip, TextClip
-from moviepy.video.fx.FadeIn import FadeIn
-from moviepy.video.fx.FadeOut import FadeOut
-from moviepy.video.fx.Resize import Resize
 import io
 import os
 import logging
@@ -160,22 +157,8 @@ def create_video_from_images(images_data, output_path, fps=30):
             # 지속 시간
             duration = img_data.get('duration', 3)
             
-            # ImageClip 생성
+            # ImageClip 생성 (duration 명시)
             clip = ImageClip(img_path, duration=duration)
-            
-            # 트랜지션 효과 추가
-            if i > 0:
-                clip = FadeIn(clip, 0.5)
-            if i < len(images_data) - 1:
-                clip = FadeOut(clip, 0.5)
-            
-            # Ken Burns 효과 (줌 인/아웃)
-            if i % 2 == 0:
-                # 줌 인
-                clip = Resize(clip, lambda t: 1 + 0.1 * (t / duration))
-            else:
-                # 줌 아웃
-                clip = Resize(clip, lambda t: 1.1 - 0.1 * (t / duration))
             
             clips.append(clip)
             logger.info(f"Processed scene {i+1}/{len(images_data)}")
