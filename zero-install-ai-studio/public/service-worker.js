@@ -1,7 +1,7 @@
 // Service Worker for Zero-Install AI Studio
 // PWA 오프라인 지원 및 캐싱
 
-const CACHE_NAME = 'zero-install-ai-studio-v1';
+const CACHE_NAME = 'zero-install-ai-studio-v2';
 const urlsToCache = [
   '/',
   '/studio',
@@ -100,11 +100,17 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // 응답을 캐시에 저장
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
+        // 206 Partial Response는 캐시하지 않음 (비디오/오디오 Range 요청)
+        // 200 OK 응답만 캐시
+        if (response.status === 200) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache).catch(err => {
+              // 캐시 저장 실패는 무시 (사일런트 fail)
+              console.log('Cache put failed:', err.message);
+            });
+          });
+        }
         
         return response;
       })

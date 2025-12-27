@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>캐시 정리</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 { margin-top: 0; }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.2);
+        }
+        .success { color: #4ade80; }
+        .info { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 캐시 정리 도구</h1>
+        <p>Service Worker와 브라우저 캐시를 정리합니다.</p>
+        
+        <button onclick="clearAllCaches()">🗑️ 모든 캐시 정리</button>
+        <button onclick="unregisterServiceWorker()">❌ Service Worker 해제</button>
+        <button onclick="clearAndReload()">🔄 정리 후 새로고침</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const result = document.getElementById('result');
+
+        async function clearAllCaches() {
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                result.innerHTML = '<span class="success">✅ 모든 캐시 삭제 완료! (' + cacheNames.length + '개)</span>';
+            } catch (error) {
+                result.innerHTML = '<span class="error">❌ 캐시 삭제 실패: ' + error.message + '</span>';
+            }
+        }
+
+        async function unregisterServiceWorker() {
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+                result.innerHTML = '<span class="success">✅ Service Worker 해제 완료! (' + registrations.length + '개)</span>';
+            } catch (error) {
+                result.innerHTML = '<span class="error">❌ Service Worker 해제 실패: ' + error.message + '</span>';
+            }
+        }
+
+        async function clearAndReload() {
+            await clearAllCaches();
+            await unregisterServiceWorker();
+            result.innerHTML = '<span class="info">🔄 3초 후 메인 페이지로 이동합니다...</span>';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
