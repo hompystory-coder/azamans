@@ -1500,14 +1500,15 @@ def generate_custom_story(user_input: str, scenes_count: int, scene_duration: fl
     ]
     
     # 5막별 mood/camera 설정 (각 15개씩)
+    # 🆕 검은 배경이 보이지 않도록 모든 카메라를 zoom_in으로 통일
     ACT_SETTINGS = [
         {
             "moods": ["mysterious", "curious", "intriguing", "calm", "wondering", 
                       "enchanting", "discovering", "awakening", "gentle", "serene",
                       "inviting", "anticipating", "fresh", "beginning", "hopeful"],
-            "cameras": ["slow_zoom_in", "pan_right", "dolly_in", "crane_down", "static_wide",
-                        "orbit_left", "gentle_push", "wide_establishing", "soft_focus", "slow_reveal",
-                        "tracking_left", "dolly_right", "crane_up_slow", "pan_left_gentle", "zoom_in_subtle"],
+            "cameras": ["zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in"],
             "korean_moods": ["신비로운", "호기심 가득한", "흥미진진한", "고요한", "궁금증 유발하는",
                             "매혹적인", "발견하는", "깨어나는", "부드러운", "평온한",
                             "초대하는", "기대하는", "신선한", "시작하는", "희망찬"]
@@ -1516,9 +1517,9 @@ def generate_custom_story(user_input: str, scenes_count: int, scene_duration: fl
             "moods": ["revealing", "intriguing", "developing", "surprising", "transforming",
                       "evolving", "unfolding", "shifting", "changing", "progressing",
                       "advancing", "intensifying", "building", "emerging", "growing"],
-            "cameras": ["pan_left", "zoom_in", "dolly_forward", "orbit", "tracking",
-                        "push_in", "crane_right", "tilt_down", "dolly_left", "pan_right_smooth",
-                        "zoom_in_steady", "orbit_right", "tracking_forward", "crane_down_slow", "dolly_in_medium"],
+            "cameras": ["zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in"],
             "korean_moods": ["서서히 드러나는", "흥미진진한", "발전하는", "놀라운", "변화하는",
                             "진화하는", "펼쳐지는", "이동하는", "바뀌는", "진행되는",
                             "전진하는", "강화되는", "쌓이는", "출현하는", "성장하는"]
@@ -1527,9 +1528,9 @@ def generate_custom_story(user_input: str, scenes_count: int, scene_duration: fl
             "moods": ["intense", "suspenseful", "challenging", "critical", "tense",
                       "gripping", "thrilling", "precarious", "urgent", "desperate",
                       "perilous", "daunting", "nerve-wracking", "harrowing", "pressing"],
-            "cameras": ["shake", "quick_zoom", "dutch_angle", "handheld", "tight_close",
-                        "crash_zoom", "rapid_pan", "shaky_cam", "close_tracking", "erratic_move",
-                        "quick_tilt", "jerky_zoom", "unstable_shot", "fast_dolly", "chaotic_orbit"],
+            "cameras": ["zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in"],
             "korean_moods": ["긴장감 넘치는", "숨막히는", "도전적인", "결정적인", "팽팽한",
                             "사로잡는", "짜릿한", "아슬아슬한", "긴급한", "필사적인",
                             "위태로운", "벅찬", "조마조마한", "고통스러운", "압박적인"]
@@ -1538,9 +1539,9 @@ def generate_custom_story(user_input: str, scenes_count: int, scene_duration: fl
             "moods": ["shocking", "dramatic", "explosive", "pivotal", "epic",
                       "climactic", "breathtaking", "stunning", "overwhelming", "powerful",
                       "monumental", "spectacular", "astonishing", "electrifying", "thunderous"],
-            "cameras": ["tilt_up", "dramatic_zoom", "360_spin", "crash_zoom", "aerial_rise",
-                        "rapid_tilt", "explosive_zoom", "spinning_crane", "power_zoom", "vertical_crane",
-                        "fast_orbit", "dynamic_tilt", "surge_forward", "spiral_up", "rocket_zoom"],
+            "cameras": ["zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in"],
             "korean_moods": ["충격적인", "극적인", "폭발적인", "전환점의", "장대한",
                             "절정의", "숨막히는", "놀라운", "압도적인", "강력한",
                             "거대한", "장관을 이루는", "경이로운", "짜릿한", "천둥같은"]
@@ -1549,9 +1550,9 @@ def generate_custom_story(user_input: str, scenes_count: int, scene_duration: fl
             "moods": ["reflective", "peaceful", "hopeful", "enlightening", "satisfying",
                       "serene", "tranquil", "harmonious", "uplifting", "triumphant",
                       "content", "joyful", "fulfilled", "grateful", "nostalgic"],
-            "cameras": ["zoom_out", "slow_zoom_out", "crane_up", "pull_back", "wide_establishing",
-                        "gentle_crane", "smooth_retreat", "rising_crane", "slow_pull", "wide_reveal",
-                        "ascending_shot", "gradual_zoom_out", "soft_crane_up", "gentle_rise", "panoramic_out"],
+            "cameras": ["zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in",
+                        "zoom_in", "zoom_in", "zoom_in", "zoom_in", "zoom_in"],
             "korean_moods": ["여운이 남는", "평화로운", "희망찬", "깨달음의", "만족스러운",
                             "고요한", "평온한", "조화로운", "고무적인", "승리의",
                             "만족한", "기쁜", "충족된", "감사하는", "그리운"]
