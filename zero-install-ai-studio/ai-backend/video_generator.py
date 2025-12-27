@@ -6,7 +6,7 @@ AI Video Generator API
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from moviepy import ImageClip, concatenate_videoclips, AudioFileClip, CompositeVideoClip, TextClip
+from moviepy import ImageClip, concatenate_videoclips, AudioFileClip, CompositeVideoClip, TextClip, CompositeAudioClip
 import io
 import os
 import logging
@@ -252,9 +252,15 @@ def apply_camera_effect(clip, camera_movement, duration):
         logger.warning(f"Failed to apply camera effect '{camera_movement}': {e}")
         return clip
 
-def create_video_from_images(images_data, output_path, fps=30):
+def create_video_from_images(images_data, output_path, fps=30, background_music_url=None):
     """
-    이미지들을 비디오로 변환 (트랜지션 효과 포함)
+    이미지들을 비디오로 변환 (카메라 효과 + 배경음악 포함)
+    
+    Args:
+        images_data: 씬 데이터 리스트
+        output_path: 출력 비디오 경로
+        fps: 프레임레이트
+        background_music_url: 배경음악 URL (선택 사항)
     """
     try:
         clips = []
@@ -330,6 +336,63 @@ def create_video_from_images(images_data, output_path, fps=30):
         # 모든 클립 연결
         logger.info("Concatenating clips...")
         final_clip = concatenate_videoclips(clips, method="compose")
+        
+        # 🆕 배경음악 추가
+        if background_music_url:
+            logger.info(f"Adding background music: {background_music_url}")
+            try:
+                # 배경음악 로드
+                bgm_path = None
+                if background_music_url.startswith('http'):
+                    # URL인 경우 다운로드
+                    import requests
+                    response = requests.get(background_music_url, timeout=10)
+                    if response.status_code == 200:
+                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                        bgm_path = f'/tmp/bgm_{timestamp}.mp3'
+                        with open(bgm_path, 'wb') as f:
+                            f.write(response.content)
+                        logger.info(f"  → Downloaded BGM to: {bgm_path}")
+                elif background_music_url.startswith('/'):
+                    # 로컬 파일 경로
+                    bgm_path = background_music_url
+                
+                if bgm_path and os.path.exists(bgm_path):
+                    bgm_clip = AudioFileClip(bgm_path)
+                    
+                    # 배경음악 길이 조정 (비디오 길이에 맞춤)
+                    video_duration = final_clip.duration
+                    if bgm_clip.duration < video_duration:
+                        # 배경음악이 짧으면 반복
+                        logger.info(f"  → Looping BGM (original: {bgm_clip.duration:.1f}s, needed: {video_duration:.1f}s)")
+                        num_loops = int(video_duration / bgm_clip.duration) + 1
+                        bgm_clip = bgm_clip.loop(n=num_loops).subclipped(0, video_duration)
+                    elif bgm_clip.duration > video_duration:
+                        # 배경음악이 길면 자르기
+                        logger.info(f"  → Trimming BGM (original: {bgm_clip.duration:.1f}s, needed: {video_duration:.1f}s)")
+                        bgm_clip = bgm_clip.subclipped(0, video_duration)
+                    
+                    # 배경음악 볼륨 조절 (30%로 낮춤)
+                    bgm_clip = bgm_clip.with_effects([("audio_fadein", 1.0), ("audio_fadeout", 1.0)])
+                    bgm_clip = bgm_clip.multiply_volume(0.3)
+                    
+                    # 기존 오디오와 배경음악 믹싱
+                    if final_clip.audio is not None:
+                        logger.info("  → Mixing narration + BGM")
+                        mixed_audio = CompositeAudioClip([final_clip.audio, bgm_clip])
+                        final_clip = final_clip.with_audio(mixed_audio)
+                    else:
+                        logger.info("  → Adding BGM only (no narration)")
+                        final_clip = final_clip.with_audio(bgm_clip)
+                    
+                    logger.info("  ✅ Background music added successfully!")
+                else:
+                    logger.warning(f"  ⚠️ BGM file not found: {bgm_path}")
+                    
+            except Exception as e:
+                logger.warning(f"  ⚠️ Failed to add background music: {e}")
+                import traceback
+                traceback.print_exc()
         
         # 비디오 저장
         logger.info(f"Writing video to {output_path}...")
@@ -416,6 +479,7 @@ def generate_video():
         title = data.get('title', '스토리')
         scenes = data.get('scenes', [])
         fps = data.get('fps', 30)
+        background_music_url = data.get('background_music_url', None)  # 🆕 배경음악 URL
         
         if not scenes:
             return jsonify({
@@ -424,6 +488,8 @@ def generate_video():
             }), 400
         
         logger.info(f"Generating video for: {title} ({len(scenes)} scenes)")
+        if background_music_url:
+            logger.info(f"  → Background music: {background_music_url}")
         
         # scene_number로 정렬 (있는 경우)
         if scenes and 'scene_number' in scenes[0]:
@@ -459,8 +525,13 @@ def generate_video():
             
             processed_scenes.append(scene_data)
         
-        # 비디오 생성
-        success = create_video_from_images(processed_scenes, output_path, fps)
+        # 비디오 생성 (🆕 배경음악 포함)
+        success = create_video_from_images(
+            processed_scenes, 
+            output_path, 
+            fps, 
+            background_music_url=background_music_url
+        )
         
         if not success:
             return jsonify({

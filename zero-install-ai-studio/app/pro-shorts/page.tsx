@@ -334,7 +334,77 @@ export default function ProShortsPage() {
         data: { message: '장면들을 하나의 비디오로 합성하는 중...' }
       });
 
-      // 비디오 생성 API 호출
+      // 5.5단계: 배경음악 매칭 (비디오 생성 전에 수행)
+      addToTimeline({
+        id: 'stage-5-5-start',
+        type: 'stage',
+        title: '🎵 배경음악 매칭 시작',
+        status: 'processing',
+        data: { message: '스토리 분위기에 맞는 배경음악을 찾는 중...' }
+      });
+
+      await sleep(300);
+
+      let backgroundMusicUrl: string | null = null;
+      
+      // 배경음악 매칭
+      try {
+        const musicResponse = await Promise.race([
+          fetch('/api/music', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mood: generatedStory.mood,
+              genre: generatedStory.genre,
+              title: generatedStory.title
+            })
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Music timeout')), 8000)
+          )
+        ]) as Response;
+
+        if (musicResponse.ok) {
+          const musicData = await musicResponse.json();
+          const backgroundMusic = musicData.music;
+          
+          if (backgroundMusic) {
+            setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
+            backgroundMusicUrl = backgroundMusic.url;
+            
+            updateTimelineItem('stage-5-5-start', {
+              status: 'completed',
+              data: { 
+                message: `배경음악 매칭 완료!`,
+                music: backgroundMusic
+              }
+            });
+
+            await sleep(200);
+
+            addToTimeline({
+              id: `music-matched`,
+              type: 'music',
+              title: '🎵 배경음악',
+              status: 'completed',
+              data: { 
+                message: `${backgroundMusic.name} - ${backgroundMusic.description}`,
+                music: backgroundMusic
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('배경음악 매칭 오류:', error);
+        updateTimelineItem('stage-5-5-start', {
+          status: 'completed',
+          data: { message: '⚠️ 배경음악 매칭 타임아웃 (배경음악 없이 계속)' }
+        });
+      }
+
+      await sleep(500);
+
+      // 비디오 생성 API 호출 (배경음악 포함)
       try {
         const videoResponse = await fetch('/api/video', {
           method: 'POST',
@@ -350,6 +420,7 @@ export default function ProShortsPage() {
               audio_url: scene.audioUrl,
               image_url: scene.imageUrl
             })),
+            background_music_url: backgroundMusicUrl,
             fps: 30
           })
         });
@@ -363,83 +434,10 @@ export default function ProShortsPage() {
             updateTimelineItem('stage-5-start', {
               status: 'completed',
               data: { 
-                message: `${generatedStory.total_duration}초 비디오 합성 완료!`,
+                message: `${generatedStory.total_duration}초 비디오 합성 완료! ${backgroundMusicUrl ? '(배경음악 포함)' : ''}`,
                 videoUrl: videoData.video_url
               }
             });
-
-            await sleep(500);
-
-            // 6단계: 배경음악 매칭 시작
-            addToTimeline({
-              id: 'stage-6-start',
-              type: 'stage',
-              title: '🎵 배경음악 매칭 시작',
-              status: 'processing',
-              data: { message: '스토리 분위기에 맞는 배경음악을 찾는 중...' }
-            });
-
-            await sleep(300);
-
-            // 배경음악 매칭
-            try {
-              const musicResponse = await Promise.race([
-                fetch('/api/music', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    mood: generatedStory.mood,
-                    genre: generatedStory.genre,
-                    title: generatedStory.title
-                  })
-                }),
-                new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('Music timeout')), 8000)
-                )
-              ]) as Response;
-
-              if (musicResponse.ok) {
-                const musicData = await musicResponse.json();
-                const backgroundMusic = musicData.music;
-                
-                if (backgroundMusic) {
-                  setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
-                  
-                  updateTimelineItem('stage-6-start', {
-                    status: 'completed',
-                    data: { 
-                      message: `배경음악 매칭 완료!`,
-                      music: backgroundMusic
-                    }
-                  });
-
-                  await sleep(300);
-
-                  // 배경음악 상세 정보 표시
-                  addToTimeline({
-                    id: 'stage-6-music',
-                    type: 'stage',
-                    title: '🎵 배경음악 정보',
-                    status: 'completed',
-                    data: { 
-                      message: `${backgroundMusic.name} - ${backgroundMusic.description}`,
-                      music: backgroundMusic
-                    }
-                  });
-                } else {
-                  updateTimelineItem('stage-6-start', {
-                    status: 'error',
-                    data: { message: '배경음악 매칭 실패' }
-                  });
-                }
-              }
-            } catch (error) {
-              console.warn('Music matching failed:', error);
-              updateTimelineItem('stage-6-start', {
-                status: 'error',
-                data: { message: '⚠️ 배경음악 매칭 타임아웃 (배경음악 없이 계속)' }
-              });
-            }
 
             await sleep(500);
 
