@@ -509,48 +509,117 @@ def get_act_name(act_num: int) -> str:
 def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: str, act_num: int) -> str:
     """
     각 막의 특성에 맞는 상세한 장면 설명 생성
-    스토리 제목을 최우선으로 강조하고 각 막별 구체적인 행동 포함
+    스토리 제목의 핵심 키워드를 추출하여 각 막에 맞는 구체적 행동으로 변환
     """
-    # 각 막별로 구체적인 시각적 요소와 행동 정의
-    act_visual_details = {
-        1: {
-            "action": "character introduction, establishing the world",
-            "elements": "main character in their environment, peaceful beginning",
-            "composition": "wide establishing shot, character in setting"
+    # 프롬프트에서 핵심 키워드 추출 및 직업/캐릭터 식별
+    prompt_lower = prompt.lower()
+    
+    # 각 막별 기본 행동 템플릿
+    act_templates = {
+        1: {  # 발단
+            "default": "showing the main character starting their day in their usual environment",
+            "keywords": {
+                "소방관|firefighter|소방": "firefighter at fire station getting ready, putting on fire gear, checking equipment",
+                "우주|space|astronaut": "astronaut preparing for space mission, checking spacecraft systems",
+                "기사|knight": "brave knight at castle preparing armor and sword",
+                "고양이|cat": "curious cat waking up and stretching in cozy home",
+                "의사|doctor": "doctor arriving at hospital, putting on white coat",
+                "요리사|chef|cook": "chef entering kitchen, preparing cooking tools",
+                "선생님|teacher": "teacher preparing classroom, organizing lesson materials",
+                "마법사|wizard|magic": "wizard in mystical library, examining ancient magical books and scrolls",
+                "탐험|explorer|adventure": "brave explorer preparing expedition gear, checking map and compass",
+                "로봇|robot": "friendly robot powering up, checking systems and circuits",
+                "공주|princess": "beautiful princess waking up in royal castle bedroom",
+                "해적|pirate": "pirate captain on ship deck, looking through telescope at horizon"
+            }
         },
-        2: {
-            "action": "character embarking on journey, first challenges appear",
-            "elements": "character in motion, obstacles emerging, path ahead",
-            "composition": "dynamic movement, character facing forward"
+        2: {  # 전개
+            "default": "character beginning their main activity or challenge",
+            "keywords": {
+                "소방관|firefighter|소방": "fire alarm rings, firefighters sliding down pole, rushing to fire truck",
+                "우주|space|astronaut": "rocket launch, astronaut floating in space station",
+                "기사|knight": "knight riding horse towards adventure, encountering first obstacle",
+                "고양이|cat": "cat exploring outside, discovering new interesting things",
+                "의사|doctor": "doctor examining patients, checking medical charts",
+                "요리사|chef|cook": "chef cooking actively, flames and steam rising from pans",
+                "선생님|teacher": "teacher explaining lesson to students, writing on blackboard",
+                "마법사|wizard|magic": "wizard casting spell, magical energy glowing from hands, mysterious ancient book",
+                "탐험|explorer|adventure": "explorer discovering hidden cave entrance, venturing into unknown territory",
+                "로봇|robot": "robot beginning mission, moving through futuristic city streets",
+                "공주|princess": "princess leaving castle, starting royal journey, guards escorting",
+                "해적|pirate": "pirate ship sailing stormy seas, crew working on deck"
+            }
         },
-        3: {
-            "action": "intense confrontation, major obstacle blocking the way",
-            "elements": "dramatic conflict, tension rising, difficult choice",
-            "composition": "close-up dramatic moment, high tension"
+        3: {  # 위기
+            "default": "facing major challenge or obstacle",
+            "keywords": {
+                "소방관|firefighter|소방": "arriving at burning building, intense flames and smoke everywhere",
+                "우주|space|astronaut": "spacecraft malfunction, warning lights flashing, crisis moment",
+                "기사|knight": "knight fighting dangerous dragon or monster",
+                "고양이|cat": "cat stuck in dangerous situation, looking worried",
+                "의사|doctor": "emergency surgery, doctor focused intensely on critical patient",
+                "요리사|chef|cook": "kitchen crisis, multiple dishes burning, chef stressed",
+                "선생님|teacher": "classroom chaos, students causing trouble, teacher worried",
+                "마법사|wizard|magic": "wizard facing dark magic attack, magical battle with evil sorcerer, intense spell combat",
+                "탐험|explorer|adventure": "explorer trapped by collapsing ruins, dangerous situation, rocks falling",
+                "로봇|robot": "robot malfunction, sparks flying, system error warnings",
+                "공주|princess": "princess captured by villain, locked in tower, desperate situation",
+                "해적|pirate": "pirate ship under attack, enemy ships firing cannons, battle at sea"
+            }
         },
-        4: {
-            "action": "climactic battle or decisive moment, peak of the story",
-            "elements": "explosive action, transformation, breakthrough moment",
-            "composition": "epic wide shot, maximum drama and energy"
+        4: {  # 절정
+            "default": "peak action moment, climactic scene",
+            "keywords": {
+                "소방관|firefighter|소방": "firefighter heroically rescuing person from burning building, carrying victim through flames",
+                "우주|space|astronaut": "astronaut making daring spacewalk repair, Earth in background",
+                "기사|knight": "knight delivering final blow to enemy, epic battle climax",
+                "고양이|cat": "cat making incredible leap or escape, action peak",
+                "의사|doctor": "doctor successfully completing difficult surgery, life saved",
+                "요리사|chef|cook": "chef presenting masterpiece dish, judges amazed",
+                "선생님|teacher": "students finally understanding, breakthrough teaching moment",
+                "마법사|wizard|magic": "wizard unleashing ultimate spell, massive magical explosion, defeating evil with powerful magic",
+                "탐험|explorer|adventure": "explorer finding legendary treasure, triumphant discovery moment, golden artifacts",
+                "로봇|robot": "robot saving the day with incredible strength, heroic robot action",
+                "공주|princess": "princess bravely escaping captivity, showing courage and determination",
+                "해적|pirate": "pirate captain winning epic sword duel, claiming victory"
+            }
         },
-        5: {
-            "action": "resolution and peace, character transformed and fulfilled",
-            "elements": "peaceful conclusion, achievement, new beginning",
-            "composition": "serene final shot, emotional closure"
+        5: {  # 결말
+            "default": "peaceful resolution, character satisfied",
+            "keywords": {
+                "소방관|firefighter|소방": "tired but proud firefighter at station, fire extinguished, hero's rest",
+                "우주|space|astronaut": "astronaut safely back on Earth, mission accomplished",
+                "기사|knight": "victorious knight returning home, peace restored",
+                "고양이|cat": "happy cat back home, sleeping peacefully after adventure",
+                "의사|doctor": "doctor smiling with recovered patient, successful healing",
+                "요리사|chef|cook": "chef receiving praise, satisfied with delicious meal",
+                "선생님|teacher": "teacher happy with student success, rewarding teaching",
+                "마법사|wizard|magic": "wise wizard back in peaceful library, organizing magical books, satisfied smile",
+                "탐험|explorer|adventure": "exhausted but happy explorer returning home with treasure, adventure complete",
+                "로봇|robot": "robot resting after mission complete, happy robot expression",
+                "공주|princess": "princess living happily in castle, peace and harmony restored",
+                "해적|pirate": "pirate crew celebrating with treasure, joyful party on ship deck"
+            }
         }
     }
     
-    details = act_visual_details.get(act_num, act_visual_details[1])
+    # 현재 막의 템플릿 가져오기
+    act_template = act_templates.get(act_num, act_templates[1])
     
-    # 스토리 제목을 중심으로 각 막의 구체적인 장면 구성
+    # 키워드 매칭하여 구체적 행동 찾기
+    specific_action = act_template["default"]
+    for pattern, action in act_template["keywords"].items():
+        if any(keyword in prompt_lower for keyword in pattern.split("|")):
+            specific_action = action
+            break
+    
+    # 최종 프롬프트 구성 - 제목보다 구체적 행동을 먼저!
     return (
-        f"Scene {scene_num}: {prompt} - {details['action']}. "
-        f"Visual elements: {details['elements']}. "
-        f"The story is about: {prompt}. "
-        f"{details['composition']}, {korean_mood} mood. "
-        f"Cinematic lighting, 1080x1920 vertical composition, "
-        f"highly detailed, professional photography, "
-        f"emotional storytelling, 4K quality, masterpiece"
+        f"{prompt}, scene {scene_num}: {specific_action}. "
+        f"{korean_mood} atmosphere. "
+        f"This is a scene from the story '{prompt}'. "
+        f"Highly detailed, cinematic lighting, 1080x1920 vertical format, "
+        f"professional photography, dramatic storytelling, 4K quality, masterpiece"
     )
 
 def generate_custom_story(user_input: str, scenes_count: int, scene_duration: float) -> dict:
