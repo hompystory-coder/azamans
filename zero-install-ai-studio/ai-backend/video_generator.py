@@ -294,6 +294,11 @@ def generate_video():
         
         logger.info(f"Generating video for: {title} ({len(scenes)} scenes)")
         
+        # scene_number로 정렬 (있는 경우)
+        if scenes and 'scene_number' in scenes[0]:
+            scenes = sorted(scenes, key=lambda x: x.get('scene_number', 0))
+            logger.info(f"Sorted scenes by scene_number")
+        
         # 비디오 파일명
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).strip()
