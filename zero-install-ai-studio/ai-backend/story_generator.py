@@ -19,24 +19,58 @@ except ImportError:
     OpenAI = None
     OPENAI_AVAILABLE = False
 
+# Ollama 통합 (로컬 AI 모델)
+try:
+    import requests
+    OLLAMA_AVAILABLE = True
+    OLLAMA_BASE_URL = "http://localhost:11434"
+except ImportError:
+    OLLAMA_AVAILABLE = False
+
 app = Flask(__name__)
 CORS(app)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# OpenAI API 초기화 (선택적)
-openai_client = None
-AI_ENABLED = False
+# AI 시스템 초기화 우선순위:
+# 1순위: Ollama (로컬, 무료, 빠름)
+# 2순위: OpenAI (클라우드, 유료, 정확)
+# 3순위: 규칙 기반 폴백 (항상 작동)
 
-if OPENAI_AVAILABLE and os.environ.get("OPENAI_API_KEY"):
+openai_client = None
+ollama_available = False
+AI_ENABLED = False
+AI_PROVIDER = None
+
+# 1순위: Ollama 체크
+if OLLAMA_AVAILABLE:
+    try:
+        # Ollama 서비스 상태 확인
+        response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=2)
+        if response.status_code == 200:
+            models = response.json().get('models', [])
+            if models:
+                ollama_available = True
+                AI_ENABLED = True
+                AI_PROVIDER = "ollama"
+                logger.info(f"✅ Ollama AI 시스템 활성화 ({len(models)}개 모델 사용 가능)")
+                logger.info(f"   모델: {', '.join([m['name'] for m in models[:3]])}")
+    except Exception as e:
+        logger.warning(f"⚠️ Ollama 연결 실패, OpenAI 시도: {e}")
+
+# 2순위: OpenAI 체크 (Ollama 실패 시)
+if not AI_ENABLED and OPENAI_AVAILABLE and os.environ.get("OPENAI_API_KEY"):
     try:
         openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         AI_ENABLED = True
-        logger.info("✅ AI 동적 행동 생성 시스템 활성화")
+        AI_PROVIDER = "openai"
+        logger.info("✅ OpenAI API 시스템 활성화")
     except Exception as e:
-        logger.warning(f"⚠️ AI 초기화 실패 - 확장 키워드 템플릿 사용: {e}")
-else:
+        logger.warning(f"⚠️ OpenAI 초기화 실패: {e}")
+
+# 3순위: 폴백 (항상 작동)
+if not AI_ENABLED:
     logger.info("✅ 확장 키워드 템플릿 시스템 사용 (33개 직업/활동 지원)")
 
 def is_long_story(text: str) -> bool:
@@ -49,6 +83,66 @@ def is_long_story(text: str) -> bool:
     sentence_markers = text.count('.') + text.count('!') + text.count('?') + text.count('。')
     
     return char_count > 100 or sentence_markers >= 3
+
+def analyze_with_ollama(long_story: str) -> dict:
+    """
+    🤖 Ollama (로컬 AI)를 사용하여 스토리 분석
+    - 무료, 빠름, 로컬 처리
+    - deepseek-r1:1.5b 또는 llama3.1:8b 사용
+    """
+    try:
+        # 장문 분석은 정확도가 중요 → llama3.1:8b 사용
+        model = "llama3.1:8b"
+        
+        # 간단한 프롬프트 (Ollama가 더 잘 이해)
+        prompt = f"""Analyze the story and create a JSON response.
+
+Story: "{long_story[:1000]}"
+
+Create JSON with:
+- title: short catchy title
+- summary: one sentence summary  
+- main_character: main character name
+- key_events: array of 5 key events
+- five_acts: object with exposition, rising_action, conflict, climax, resolution
+
+Output ONLY valid JSON, no explanation:"""
+
+        response = requests.post(
+            f"{OLLAMA_BASE_URL}/api/generate",
+            json={
+                "model": model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "num_predict": 500
+                }
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result_text = response.json().get('response', '')
+            
+            # JSON 추출 시도
+            try:
+                # 중괄호로 둘러싸인 JSON 찾기
+                import re
+                json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+                if json_match:
+                    result = json.loads(json_match.group())
+                    logger.info(f"✅ Ollama 분석 성공: {result.get('title', 'N/A')}")
+                    return result
+            except:
+                pass
+        
+        logger.warning("⚠️ Ollama JSON 파싱 실패 - 폴백 사용")
+        return None
+        
+    except Exception as e:
+        logger.error(f"❌ Ollama 분석 실패: {e}")
+        return None
 
 def analyze_and_summarize_story(long_story: str) -> dict:
     """
@@ -72,6 +166,14 @@ def analyze_and_summarize_story(long_story: str) -> dict:
             }
         }
     """
+    # 1순위: Ollama 시도
+    if ollama_available:
+        result = analyze_with_ollama(long_story)
+        if result:
+            return result
+        logger.warning("⚠️ Ollama 실패 - OpenAI 시도")
+    
+    # 2순위: OpenAI 시도
     if not OPENAI_AVAILABLE or not openai_client:
         logger.warning("⚠️ AI 비활성화 - 기본 분석 사용")
         return _fallback_story_analysis(long_story)
@@ -713,9 +815,54 @@ def extract_subject_and_activity(prompt: str) -> tuple:
     
     return (subject, activity)
 
+def generate_dynamic_actions_with_ollama(prompt: str, act_num: int) -> str:
+    """
+    🤖 Ollama를 사용하여 주제에 맞는 구체적 행동 자동 생성
+    """
+    try:
+        act_names = {
+            1: "Introduction", 2: "Rising Action", 3: "Conflict", 4: "Climax", 5: "Resolution"
+        }
+        
+        user_prompt = f"""Story: "{prompt}"
+Act: {act_names.get(act_num, 'Scene')}
+
+Generate a VERY SPECIFIC visual scene description for AI image generation.
+Include concrete actions, objects, and visual details.
+Keep it under 30 words, in English.
+
+Response format: [specific action description only]"""
+
+        response = requests.post(
+            f"{OLLAMA_BASE_URL}/api/generate",
+            json={
+                "model": "deepseek-r1:1.5b",
+                "prompt": user_prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "num_predict": 100
+                }
+            },
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            action = response.json().get('response', '').strip()
+            logger.info(f"✅ Ollama 행동 생성: {action[:50]}...")
+            return action
+        return None
+    except Exception as e:
+        logger.error(f"❌ Ollama 행동 생성 실패: {e}")
+        return None
+
 def generate_dynamic_actions_with_ai(prompt: str, act_num: int) -> str:
     """
     🤖 AI를 사용하여 주제에 맞는 구체적 행동 자동 생성
+    
+    우선순위:
+    1. Ollama (로컬, 무료)
+    2. OpenAI (클라우드, 유료)
     
     Args:
         prompt: 사용자 입력 스토리 제목 (예: "행복한 제빵사의 아침")
@@ -724,6 +871,13 @@ def generate_dynamic_actions_with_ai(prompt: str, act_num: int) -> str:
     Returns:
         구체적 행동 설명 (영어)
     """
+    # 1순위: Ollama
+    if ollama_available:
+        action = generate_dynamic_actions_with_ollama(prompt, act_num)
+        if action:
+            return action
+    
+    # 2순위: OpenAI
     if not AI_ENABLED or not openai_client:
         logger.warning("AI 비활성화 - 폴백 사용")
         return None
