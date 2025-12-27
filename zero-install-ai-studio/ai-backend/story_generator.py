@@ -9,12 +9,35 @@ import logging
 from datetime import datetime
 import json
 import re
+import os
+
+# Optional: OpenAI import (폴백 시스템이 있으므로 선택적)
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OpenAI = None
+    OPENAI_AVAILABLE = False
 
 app = Flask(__name__)
 CORS(app)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# OpenAI API 초기화 (선택적)
+openai_client = None
+AI_ENABLED = False
+
+if OPENAI_AVAILABLE and os.environ.get("OPENAI_API_KEY"):
+    try:
+        openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        AI_ENABLED = True
+        logger.info("✅ AI 동적 행동 생성 시스템 활성화")
+    except Exception as e:
+        logger.warning(f"⚠️ AI 초기화 실패 - 확장 키워드 템플릿 사용: {e}")
+else:
+    logger.info("✅ 확장 키워드 템플릿 시스템 사용 (33개 직업/활동 지원)")
 
 def generate_story_script(user_input: str, duration_seconds: int = 30) -> dict:
     """
@@ -506,19 +529,128 @@ def get_act_name(act_num: int) -> str:
     }
     return act_names.get(act_num, f"제{act_num}막")
 
+def extract_subject_and_activity(prompt: str) -> tuple:
+    """
+    프롬프트에서 주체(subject)와 활동(activity)을 추출
+    예: "용감한 소방관의 하루" → ("소방관", "하루")
+    예: "행복한 제빵사의 아침" → ("제빵사", "아침")
+    """
+    import re
+    
+    # 조사 제거 패턴
+    prompt_clean = re.sub(r'의|가|을|를|이|은|는|에서|과|와', ' ', prompt)
+    
+    # 명사 추출 (간단한 패턴)
+    words = prompt_clean.split()
+    
+    # 직업/캐릭터 후보 단어들
+    subjects = []
+    for word in words:
+        # 2글자 이상 명사로 보이는 것
+        if len(word) >= 2:
+            subjects.append(word)
+    
+    # 주체는 보통 앞쪽, 활동은 뒤쪽
+    subject = subjects[0] if len(subjects) > 0 else prompt
+    activity = subjects[-1] if len(subjects) > 1 else ""
+    
+    return (subject, activity)
+
+def generate_dynamic_actions_with_ai(prompt: str, act_num: int) -> str:
+    """
+    🤖 AI를 사용하여 주제에 맞는 구체적 행동 자동 생성
+    
+    Args:
+        prompt: 사용자 입력 스토리 제목 (예: "행복한 제빵사의 아침")
+        act_num: 막 번호 (1-5)
+    
+    Returns:
+        구체적 행동 설명 (영어)
+    """
+    if not AI_ENABLED or not openai_client:
+        logger.warning("AI 비활성화 - 폴백 사용")
+        return None
+    
+    act_names = {
+        1: "발단 (Introduction)",
+        2: "전개 (Rising Action)", 
+        3: "위기 (Conflict)",
+        4: "절정 (Climax)",
+        5: "결말 (Resolution)"
+    }
+    
+    act_description = act_names.get(act_num, "장면")
+    
+    system_prompt = """You are a professional storyboard artist and visual storyteller.
+Your job is to create VERY SPECIFIC, VISUAL, and ACTIONABLE scene descriptions for AI image generation.
+
+IMPORTANT RULES:
+1. Generate CONCRETE ACTIONS and VISUALS (not abstract concepts)
+2. Include DETAILED visual elements (objects, movements, expressions, environment)
+3. Use English for AI image generation
+4. Be SPECIFIC to the given topic/profession/character
+5. Each act should progress the story logically
+
+Example:
+Topic: "Happy Baker's Morning"
+Act 1 (Introduction): "baker opening bakery door at dawn, turning on lights, putting on white apron and chef hat, checking flour bags and ingredients on wooden shelves"
+Act 2 (Rising Action): "baker kneading dough with flour dust in air, mixing ingredients in large bowl, bread rising in warm oven"
+Act 3 (Conflict): "oven timer beeping urgently, smoke coming from oven, baker rushing to save burning bread, stressed expression"
+Act 4 (Climax): "baker pulling out perfectly golden bread loaves, steam rising, beautiful brown crust, relieved and proud smile"
+Act 5 (Resolution): "happy customers buying fresh bread, baker smiling behind counter, warm cozy bakery atmosphere, satisfied day ending"
+"""
+
+    user_prompt = f"""Story Title: "{prompt}"
+Act: {act_description}
+
+Generate a VERY SPECIFIC visual scene description for this act.
+Include concrete actions, objects, and visual details.
+Keep it under 30 words, in English, perfect for AI image generation.
+
+Response format: [specific action description only, no explanation]"""
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",  # 빠르고 저렴한 모델
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=100,
+            temperature=0.7,
+            timeout=10  # 10초 타임아웃
+        )
+        
+        action = response.choices[0].message.content.strip()
+        logger.info(f"✅ AI 생성 성공: {prompt} (막 {act_num}) → {action[:50]}...")
+        return action
+        
+    except Exception as e:
+        logger.error(f"❌ AI 생성 실패: {e}")
+        return None
+
 def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: str, act_num: int) -> str:
     """
     각 막의 특성에 맞는 상세한 장면 설명 생성
     스토리 제목의 핵심 키워드를 추출하여 각 막에 맞는 구체적 행동으로 변환
+    
+    🎯 확장된 키워드 시스템:
+    - 기존 13개 키워드 지원
+    - 새로운 직업/활동 자동 감지 (제빵사, 택시기사, 수영선수, 바리스타 등)
+    - 일반 패턴 폴백
     """
     # 프롬프트에서 핵심 키워드 추출 및 직업/캐릭터 식별
     prompt_lower = prompt.lower()
     
-    # 각 막별 기본 행동 템플릿
+    # 주체와 활동 추출
+    subject, activity = extract_subject_and_activity(prompt)
+    
+    # 각 막별 확장 행동 템플릿 (기존 13개 + 새로운 20개 = 총 33개 패턴)
     act_templates = {
         1: {  # 발단
             "default": "showing the main character starting their day in their usual environment",
             "keywords": {
+                # 기존 13개
                 "소방관|firefighter|소방": "firefighter at fire station getting ready, putting on fire gear, checking equipment",
                 "우주|space|astronaut": "astronaut preparing for space mission, checking spacecraft systems",
                 "기사|knight": "brave knight at castle preparing armor and sword",
@@ -530,12 +662,35 @@ def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: 
                 "탐험|explorer|adventure": "brave explorer preparing expedition gear, checking map and compass",
                 "로봇|robot": "friendly robot powering up, checking systems and circuits",
                 "공주|princess": "beautiful princess waking up in royal castle bedroom",
-                "해적|pirate": "pirate captain on ship deck, looking through telescope at horizon"
+                "해적|pirate": "pirate captain on ship deck, looking through telescope at horizon",
+                
+                # 🆕 새로운 20개 키워드
+                "제빵사|baker|빵": "baker opening bakery at dawn, turning on lights, putting on apron and chef hat, checking flour and ingredients",
+                "택시|taxi|운전사|driver": "taxi driver starting morning shift, cleaning car, checking GPS and meter",
+                "수영|swimmer|선수|athlete": "swimmer arriving at pool, stretching muscles, putting on swim cap and goggles",
+                "바리스타|barista|커피": "barista opening coffee shop, turning on espresso machine, arranging cups and beans",
+                "경찰|police|officer": "police officer at station, putting on uniform and badge, checking equipment",
+                "간호사|nurse": "nurse arriving at hospital, changing into scrubs, checking patient charts",
+                "조종사|pilot": "pilot entering cockpit, checking flight instruments, preparing for takeoff",
+                "농부|farmer": "farmer waking up at sunrise, putting on work clothes, heading to fields",
+                "화가|painter|artist": "artist in studio, setting up canvas and paints, preparing brushes",
+                "음악가|musician": "musician in practice room, tuning instrument, warming up",
+                "건축가|architect": "architect at desk, reviewing blueprints, preparing design tools",
+                "사진작가|photographer": "photographer checking camera equipment, adjusting lenses, preparing for shoot",
+                "과학자|scientist": "scientist in lab, putting on lab coat, checking microscope and samples",
+                "변호사|lawyer": "lawyer at office, reviewing case files, preparing briefcase",
+                "소설가|writer|작가": "writer at desk, opening laptop, staring at blank page with coffee nearby",
+                "댄서|dancer": "dancer in studio, stretching at barre, warming up muscles",
+                "배우|actor": "actor reading script, practicing lines in dressing room mirror",
+                "정원사|gardener": "gardener entering garden, putting on gloves, checking plants and tools",
+                "기자|journalist|reporter": "journalist at newsroom, checking notes, preparing recording equipment",
+                "승무원|flight attendant": "flight attendant at airport, checking uniform, preparing for boarding"
             }
         },
         2: {  # 전개
             "default": "character beginning their main activity or challenge",
             "keywords": {
+                # 기존 13개
                 "소방관|firefighter|소방": "fire alarm rings, firefighters sliding down pole, rushing to fire truck",
                 "우주|space|astronaut": "rocket launch, astronaut floating in space station",
                 "기사|knight": "knight riding horse towards adventure, encountering first obstacle",
@@ -547,12 +702,35 @@ def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: 
                 "탐험|explorer|adventure": "explorer discovering hidden cave entrance, venturing into unknown territory",
                 "로봇|robot": "robot beginning mission, moving through futuristic city streets",
                 "공주|princess": "princess leaving castle, starting royal journey, guards escorting",
-                "해적|pirate": "pirate ship sailing stormy seas, crew working on deck"
+                "해적|pirate": "pirate ship sailing stormy seas, crew working on deck",
+                
+                # 🆕 새로운 20개
+                "제빵사|baker|빵": "baker kneading dough, flour dust in air, bread dough rising in warm oven",
+                "택시|taxi|운전사|driver": "taxi driving through city streets, picking up first passenger, navigating traffic",
+                "수영|swimmer|선수|athlete": "swimmer diving into pool, powerful strokes cutting through water, racing against time",
+                "바리스타|barista|커피": "barista making espresso, milk steam rising, artistic latte art creation",
+                "경찰|police|officer": "police officer on patrol, checking neighborhood, responding to call",
+                "간호사|nurse": "nurse checking vital signs, administering medication, caring for patients",
+                "조종사|pilot": "pilot taking off, aircraft ascending through clouds, navigating flight path",
+                "농부|farmer": "farmer planting seeds, driving tractor through fields, tending crops",
+                "화가|painter|artist": "artist painting with bold strokes, colors mixing on palette, creating masterpiece",
+                "음악가|musician": "musician performing, fingers moving rapidly on instrument, music flowing",
+                "건축가|architect": "architect sketching designs, using drafting tools, creating 3D models",
+                "사진작가|photographer": "photographer capturing moments, adjusting camera settings, finding perfect angle",
+                "과학자|scientist": "scientist conducting experiment, mixing chemicals, observing reactions",
+                "변호사|lawyer": "lawyer in courtroom, presenting case, questioning witness",
+                "소설가|writer|작가": "writer typing rapidly, ideas flowing, words appearing on screen",
+                "댄서|dancer": "dancer performing choreography, graceful movements, expressing through motion",
+                "배우|actor": "actor on stage, delivering lines, immersed in character",
+                "정원사|gardener": "gardener planting flowers, watering plants, pruning bushes",
+                "기자|journalist|reporter": "journalist interviewing subject, taking notes, recording statements",
+                "승무원|flight attendant": "flight attendant serving passengers, demonstrating safety, helping travelers"
             }
         },
         3: {  # 위기
             "default": "facing major challenge or obstacle",
             "keywords": {
+                # 기존 13개
                 "소방관|firefighter|소방": "arriving at burning building, intense flames and smoke everywhere",
                 "우주|space|astronaut": "spacecraft malfunction, warning lights flashing, crisis moment",
                 "기사|knight": "knight fighting dangerous dragon or monster",
@@ -564,12 +742,35 @@ def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: 
                 "탐험|explorer|adventure": "explorer trapped by collapsing ruins, dangerous situation, rocks falling",
                 "로봇|robot": "robot malfunction, sparks flying, system error warnings",
                 "공주|princess": "princess captured by villain, locked in tower, desperate situation",
-                "해적|pirate": "pirate ship under attack, enemy ships firing cannons, battle at sea"
+                "해적|pirate": "pirate ship under attack, enemy ships firing cannons, battle at sea",
+                
+                # 🆕 새로운 20개
+                "제빵사|baker|빵": "oven timer beeping urgently, bread burning, smoke alarm, baker rushing in panic",
+                "택시|taxi|운전사|driver": "stuck in terrible traffic jam, passenger getting angry, time running out",
+                "수영|swimmer|선수|athlete": "swimmer losing breath underwater, cramping muscles, struggling to continue",
+                "바리스타|barista|커피": "espresso machine breaking down, long line of impatient customers, stress mounting",
+                "경찰|police|officer": "high-speed chase, dangerous criminal fleeing, tense pursuit situation",
+                "간호사|nurse": "patient's condition worsening, emergency codes, medical crisis unfolding",
+                "조종사|pilot": "engine failure mid-flight, warning alarms, emergency protocols activated",
+                "농부|farmer": "sudden storm threatening crops, heavy rain and wind, harvest in danger",
+                "화가|painter|artist": "paint spilling on canvas, ruining work, deadline approaching, artistic crisis",
+                "음악가|musician": "instrument string breaking during performance, missed notes, concert crisis",
+                "건축가|architect": "structural problem discovered, building plans rejected, major revision needed",
+                "사진작가|photographer": "camera malfunctioning at crucial moment, memory card full, missing the shot",
+                "과학자|scientist": "experiment going wrong, chemical reaction out of control, lab emergency",
+                "변호사|lawyer": "key witness contradicting case, opposing lawyer dominating, trial turning bad",
+                "소설가|writer|작가": "writer's block, deadline tomorrow, story falling apart, creative crisis",
+                "댄서|dancer": "dancer injuring ankle mid-performance, pain shooting through leg, critical moment",
+                "배우|actor": "forgetting lines on stage, audience watching, career-defining moment failing",
+                "정원사|gardener": "plants dying from disease, garden wilting, all work threatened",
+                "기자|journalist|reporter": "source backing out, story falling apart, publication deadline approaching",
+                "승무원|flight attendant": "severe turbulence, passengers panicking, emergency situation onboard"
             }
         },
         4: {  # 절정
             "default": "peak action moment, climactic scene",
             "keywords": {
+                # 기존 13개
                 "소방관|firefighter|소방": "firefighter heroically rescuing person from burning building, carrying victim through flames",
                 "우주|space|astronaut": "astronaut making daring spacewalk repair, Earth in background",
                 "기사|knight": "knight delivering final blow to enemy, epic battle climax",
@@ -581,12 +782,35 @@ def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: 
                 "탐험|explorer|adventure": "explorer finding legendary treasure, triumphant discovery moment, golden artifacts",
                 "로봇|robot": "robot saving the day with incredible strength, heroic robot action",
                 "공주|princess": "princess bravely escaping captivity, showing courage and determination",
-                "해적|pirate": "pirate captain winning epic sword duel, claiming victory"
+                "해적|pirate": "pirate captain winning epic sword duel, claiming victory",
+                
+                # 🆕 새로운 20개
+                "제빵사|baker|빵": "baker pulling out perfect golden bread loaves, steam rising, beautiful crust, triumph",
+                "택시|taxi|운전사|driver": "taxi speeding through shortcut, arriving just in time, passenger relieved and grateful",
+                "수영|swimmer|선수|athlete": "swimmer touching wall first, winning gold medal, arms raised in victory",
+                "바리스타|barista|커피": "barista creating perfect latte art, customer amazed, winning coffee competition",
+                "경찰|police|officer": "police officer catching criminal, handcuffs clicking, justice served",
+                "간호사|nurse": "patient's vitals stabilizing, crisis averted, successful emergency response",
+                "조종사|pilot": "pilot executing perfect emergency landing, passengers safe, heroic aviation save",
+                "농부|farmer": "storm passing, crops saved, rainbow appearing over fields, harvest secured",
+                "화가|painter|artist": "artist unveiling completed masterpiece, gallery crowd applauding, artistic triumph",
+                "음악가|musician": "musician's flawless improvisation saving performance, standing ovation, musical genius",
+                "건축가|architect": "architect's innovative solution approved, building design perfected, professional victory",
+                "사진작가|photographer": "photographer capturing once-in-lifetime perfect shot, award-winning moment",
+                "과학자|scientist": "breakthrough discovery made, experiment succeeding brilliantly, scientific triumph",
+                "변호사|lawyer": "lawyer presenting decisive evidence, jury convinced, winning the case",
+                "소설가|writer|작가": "writer typing final perfect sentence, story complete, manuscript finished",
+                "댄서|dancer": "dancer executing perfect final leap despite injury, audience gasping, triumph over pain",
+                "배우|actor": "actor delivering powerful emotional climax, audience in tears, performance peak",
+                "정원사|gardener": "garden blooming magnificently, flowers in full color, gardening triumph",
+                "기자|journalist|reporter": "journalist publishing exposé, truth revealed, journalistic victory",
+                "승무원|flight attendant": "flight attendant successfully calming all passengers, safe landing, crisis resolved"
             }
         },
         5: {  # 결말
             "default": "peaceful resolution, character satisfied",
             "keywords": {
+                # 기존 13개
                 "소방관|firefighter|소방": "tired but proud firefighter at station, fire extinguished, hero's rest",
                 "우주|space|astronaut": "astronaut safely back on Earth, mission accomplished",
                 "기사|knight": "victorious knight returning home, peace restored",
@@ -598,20 +822,62 @@ def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: 
                 "탐험|explorer|adventure": "exhausted but happy explorer returning home with treasure, adventure complete",
                 "로봇|robot": "robot resting after mission complete, happy robot expression",
                 "공주|princess": "princess living happily in castle, peace and harmony restored",
-                "해적|pirate": "pirate crew celebrating with treasure, joyful party on ship deck"
+                "해적|pirate": "pirate crew celebrating with treasure, joyful party on ship deck",
+                
+                # 🆕 새로운 20개
+                "제빵사|baker|빵": "happy customers enjoying fresh bread, baker smiling behind counter, successful day ending",
+                "택시|taxi|운전사|driver": "taxi driver finishing shift, satisfied smile, heading home after good day",
+                "수영|swimmer|선수|athlete": "swimmer on podium with medal, national anthem playing, dreams achieved",
+                "바리스타|barista|커피": "barista closing shop contentedly, satisfied regulars waving goodbye, fulfilling day",
+                "경찰|police|officer": "police officer at station, paperwork done, community safe and peaceful",
+                "간호사|nurse": "nurse seeing recovered patient smile, rewarding moment, successful care",
+                "조종사|pilot": "pilot leaving cockpit after safe flight, passengers thanking, job well done",
+                "농부|farmer": "farmer surveying bountiful harvest, sunset over fields, year's work rewarded",
+                "화가|painter|artist": "artist in peaceful studio, paintings hanging in gallery, artistic satisfaction",
+                "음악가|musician": "musician at home, relaxing with instrument, memories of performance",
+                "건축가|architect": "architect seeing building completed, design realized, professional pride",
+                "사진작가|photographer": "photographer reviewing day's perfect shots, exhibition planning, fulfilled",
+                "과학자|scientist": "scientist publishing findings, colleagues congratulating, research success",
+                "변호사|lawyer": "lawyer at office, client grateful, justice served, case closed",
+                "소설가|writer|작가": "writer sending completed manuscript to publisher, relieved and hopeful",
+                "댄서|dancer": "dancer resting peacefully, injury healing, next performance awaiting",
+                "배우|actor": "actor receiving flowers backstage, critics praising, performance success",
+                "정원사|gardener": "gardener sitting peacefully in beautiful garden, life's work blooming",
+                "기자|journalist|reporter": "journalist receiving journalism award, story making impact, truth prevailing",
+                "승무원|flight attendant": "flight attendant at home relaxing, another safe flight completed, day well done"
             }
         }
     }
     
-    # 현재 막의 템플릿 가져오기
-    act_template = act_templates.get(act_num, act_templates[1])
+    # 🤖 1순위: AI 기반 동적 행동 생성 시도
+    specific_action = None
+    if AI_ENABLED:
+        specific_action = generate_dynamic_actions_with_ai(prompt, act_num)
     
-    # 키워드 매칭하여 구체적 행동 찾기
-    specific_action = act_template["default"]
-    for pattern, action in act_template["keywords"].items():
-        if any(keyword in prompt_lower for keyword in pattern.split("|")):
-            specific_action = action
-            break
+    # 🔧 2순위: AI 실패 시 키워드 매칭 폴백
+    if not specific_action:
+        act_template = act_templates.get(act_num, act_templates[1])
+        specific_action = act_template["default"]
+        
+        # 키워드 매칭 - 더 구체적인 패턴 우선 (긴 패턴부터 체크)
+        matched = False
+        sorted_patterns = sorted(act_template["keywords"].items(), 
+                                key=lambda x: len(x[0]), reverse=True)
+        
+        for pattern, action in sorted_patterns:
+            keywords = pattern.split("|")
+            # 정확한 매칭을 위해 공백이나 경계 체크
+            for keyword in keywords:
+                if keyword in prompt_lower:
+                    # "택시 기사" vs "기사" 구분
+                    if keyword == "기사" and ("택시" in prompt_lower or "운전" in prompt_lower):
+                        continue  # "택시 기사"는 taxi 패턴으로 처리
+                    specific_action = action
+                    logger.info(f"✅ 키워드 매칭 성공: {prompt} → {pattern}")
+                    matched = True
+                    break
+            if matched:
+                break
     
     # 최종 프롬프트 구성 - 제목보다 구체적 행동을 먼저!
     return (
