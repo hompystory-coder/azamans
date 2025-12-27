@@ -302,8 +302,8 @@ def generate_video():
         # 비디오 파일명
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).strip()
-        filename = f"{safe_title}_{timestamp}.mp4"
-        output_path = os.path.join(VIDEO_DIR, filename)
+        video_filename = f"{safe_title}_{timestamp}.mp4"
+        output_path = os.path.join(VIDEO_DIR, video_filename)
         
         # scenes 데이터 변환 (image_url을 실제 파일 경로로)
         processed_scenes = []
@@ -315,11 +315,11 @@ def generate_video():
                 image_url = scene_data['image_url']
                 # /generated/xxx.png → /home/azamans/webapp/zero-install-ai-studio/public/generated/xxx.png
                 if image_url.startswith('/generated/'):
-                    filename = image_url.replace('/generated/', '')
-                    scene_data['image_path'] = os.path.join(OUTPUT_DIR, filename)
+                    image_filename = image_url.replace('/generated/', '')
+                    scene_data['image_path'] = os.path.join(OUTPUT_DIR, image_filename)
                 elif image_url.startswith('/videos/'):
-                    filename = image_url.replace('/videos/', '')
-                    scene_data['image_path'] = os.path.join(VIDEO_DIR, filename)
+                    image_filename = image_url.replace('/videos/', '')
+                    scene_data['image_path'] = os.path.join(VIDEO_DIR, image_filename)
                 else:
                     # 절대 경로인 경우 그대로 사용
                     scene_data['image_path'] = image_url
@@ -340,12 +340,12 @@ def generate_video():
         # 파일 크기 확인
         file_size = os.path.getsize(output_path)
         
-        video_url = f"/videos/{filename}"
+        video_url = f"/videos/{video_filename}"
         
         return jsonify({
             'success': True,
             'video_url': video_url,
-            'filename': filename,
+            'filename': video_filename,
             'file_size': file_size,
             'duration': sum(s.get('duration', 3) for s in scenes),
             'scenes_count': len(scenes)
