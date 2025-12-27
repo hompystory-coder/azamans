@@ -40,7 +40,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icon-192x192.png" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="AI Studio" />
       </head>
@@ -82,12 +82,13 @@ export default function RootLayout({
             // PWA 설치 프롬프트
             let deferredPrompt;
             window.addEventListener('beforeinstallprompt', (e) => {
-              e.preventDefault();
+              // 이벤트 저장만 하고 preventDefault 호출하지 않음
               deferredPrompt = e;
               
-              // 설치 버튼 표시 (옵션)
+              // 설치 버튼이 있을 경우에만 프롬프트 처리
               const installBtn = document.getElementById('install-pwa-btn');
               if (installBtn) {
+                e.preventDefault(); // 버튼이 있을 때만 기본 동작 방지
                 installBtn.style.display = 'block';
                 installBtn.addEventListener('click', () => {
                   deferredPrompt.prompt();

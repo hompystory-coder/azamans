@@ -4,6 +4,16 @@ const nextConfig = {
   swcMinify: true,
   compress: true,
   
+  // 프로덕션 환경 설정
+  productionBrowserSourceMaps: false,
+  
+  // React DevTools 경고 억제 (프로덕션)
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  
   images: {
     domains: ['localhost', 'api-inference.huggingface.co'],
     minimumCacheTTL: 60,
