@@ -27,6 +27,30 @@ try:
 except ImportError:
     OLLAMA_AVAILABLE = False
 
+# Replicate 통합 (이미지/영상 생성)
+try:
+    from replicate_client import ReplicateClient
+    replicate_client = ReplicateClient()
+    REPLICATE_AVAILABLE = replicate_client.enabled
+    if REPLICATE_AVAILABLE:
+        logger.info("✅ Replicate API 통합 완료 (유료, 초기 $5 무료)")
+except ImportError:
+    replicate_client = None
+    REPLICATE_AVAILABLE = False
+    logger.warning("⚠️ Replicate 클라이언트 미설치")
+
+# Hugging Face 통합 (완전 무료 이미지 생성)
+try:
+    from huggingface_client import HuggingFaceClient
+    hf_client = HuggingFaceClient()
+    HF_AVAILABLE = hf_client.enabled
+    if HF_AVAILABLE:
+        logger.info("✅ Hugging Face API 통합 완료 (완전 무료, 느림)")
+except ImportError:
+    hf_client = None
+    HF_AVAILABLE = False
+    logger.warning("⚠️ Hugging Face 클라이언트 미설치")
+
 app = Flask(__name__)
 CORS(app)
 
