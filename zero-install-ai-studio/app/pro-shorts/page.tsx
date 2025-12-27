@@ -371,6 +371,7 @@ export default function ProShortsPage() {
           if (backgroundMusic) {
             setStory(prev => prev ? { ...prev, backgroundMusic } : prev);
             backgroundMusicUrl = backgroundMusic.url;
+            console.log('🎵 배경음악 매칭 성공:', backgroundMusic.name, backgroundMusic.url);
             
             updateTimelineItem('stage-5-5-start', {
               status: 'completed',
@@ -405,6 +406,7 @@ export default function ProShortsPage() {
       await sleep(500);
 
       // 비디오 생성 API 호출 (배경음악 포함)
+      console.log('🎬 비디오 생성 시작, 배경음악 URL:', backgroundMusicUrl);
       try {
         const videoResponse = await fetch('/api/video', {
           method: 'POST',

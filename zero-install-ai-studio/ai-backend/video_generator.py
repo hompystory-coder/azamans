@@ -489,7 +489,9 @@ def generate_video():
         
         logger.info(f"Generating video for: {title} ({len(scenes)} scenes)")
         if background_music_url:
-            logger.info(f"  → Background music: {background_music_url}")
+            logger.info(f"  🎵 Background music URL received: {background_music_url}")
+        else:
+            logger.warning(f"  ⚠️ No background music URL provided")
         
         # scene_number로 정렬 (있는 경우)
         if scenes and 'scene_number' in scenes[0]:
