@@ -468,57 +468,206 @@ def generate_kongjui_patjui_story(scenes_count: int, scene_duration: float) -> d
         "music_suggestion": "Traditional Korean music with magical elements"
     }
 
+def distribute_scenes_to_acts(total_scenes: int) -> list:
+    """
+    장면을 5막 구조에 따라 배분
+    발단(20%) → 전개(25%) → 위기(20%) → 절정(20%) → 결말(15%)
+    """
+    if total_scenes <= 5:
+        return [1] * total_scenes + [0] * (5 - total_scenes)
+    
+    distribution = [
+        max(1, int(total_scenes * 0.20)),  # 발단
+        max(1, int(total_scenes * 0.25)),  # 전개
+        max(1, int(total_scenes * 0.20)),  # 위기
+        max(1, int(total_scenes * 0.20)),  # 절정
+        max(1, int(total_scenes * 0.15))   # 결말
+    ]
+    
+    # 남은 장면 조정
+    diff = total_scenes - sum(distribution)
+    if diff > 0:
+        # 전개에 추가 (가장 유연한 파트)
+        distribution[1] += diff
+    elif diff < 0:
+        # 결말에서 조정
+        distribution[4] += diff
+    
+    return distribution
+
+def get_act_name(act_num: int) -> str:
+    """막 이름 반환"""
+    act_names = {
+        1: "발단",
+        2: "전개", 
+        3: "위기",
+        4: "절정",
+        5: "결말"
+    }
+    return act_names.get(act_num, f"제{act_num}막")
+
+def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: str, act_num: int) -> str:
+    """
+    각 막의 특성에 맞는 상세한 장면 설명 생성
+    """
+    act_contexts = {
+        1: "introduction, establishing shot, setting the scene, calm before the storm",
+        2: "development, action begins, character movement, rising tension",
+        3: "conflict emerges, dramatic lighting, intense atmosphere, building suspense",
+        4: "peak moment, highest drama, explosive action, critical decision point",
+        5: "resolution, aftermath, emotional closure, peaceful ending"
+    }
+    
+    context = act_contexts.get(act_num, "dramatic scene")
+    
+    return (
+        f"{prompt}, scene {scene_num}, {context}, "
+        f"{korean_mood} atmosphere, cinematic lighting, "
+        f"highly detailed 1080x1920 vertical composition, "
+        f"professional photography, emotional depth, "
+        f"dramatic storytelling moment, 4K quality"
+    )
+
 def generate_custom_story(user_input: str, scenes_count: int, scene_duration: float) -> dict:
-    """커스텀 스토리 생성 - 구어체 궁금증 유발형"""
+    """커스텀 스토리 생성 - 구어체 궁금증 유발형 (5막 구조) - 완전 고유 나레이션"""
     
-    # 스토리 구조 템플릿 (도입-전개-위기-절정-결말)
-    story_templates = [
-        "여러분 이건 진짜 믿기 힘든 이야기인데 한번 들어보세요.",
-        "처음에는 평범해 보였지만 알고 보니 완전히 다른 상황이었어요.",
-        "그런데 여기서 예상치 못한 일이 벌어지기 시작했어요.",
-        "이제부터가 진짜 중요한 순간인데 과연 어떻게 될까요.",
-        "결국 상황은 점점 심각해지고 긴장감이 최고조에 달했어요.",
-        "그리고 마지막에 완전히 반전이 일어나는데 정말 놀라울 거예요.",
-        "이 이야기의 진짜 의미는 여러분이 직접 느껴보시면 알 수 있을 거예요."
-    ]
-    
-    # 카메라 무빙과 분위기 조합
-    camera_moods = [
-        ("slow_zoom_in", "mysterious", "조용히 다가가는"),
-        ("pan_right", "revealing", "서서히 드러나는"),
-        ("zoom_in", "intense", "긴장감 넘치는"),
-        ("shake", "shocking", "충격적인"),
-        ("tilt_up", "dramatic", "극적인"),
-        ("zoom_out", "expansive", "광활한"),
-        ("slow_zoom_out", "reflective", "여운이 남는")
-    ]
-    
-    scenes = []
-    
-    for i in range(scenes_count):
-        camera_movement, mood, korean_mood = camera_moods[i % len(camera_moods)]
-        narration = story_templates[i % len(story_templates)]
-        
-        # 영어 프롬프트 (AI 이미지 생성용)
-        description = (
-            f"{user_input}, scene {i + 1}, "
-            f"{korean_mood} atmosphere, cinematic lighting, "
-            f"highly detailed, dramatic composition, "
-            f"4K quality, professional photography, "
-            f"emotional storytelling moment"
-        )
-        
-        scene = {
-            "scene_number": i + 1,
-            "title": f"장면 {i + 1}",
-            "description": description,
-            "korean_description": f"{user_input}의 {korean_mood} 순간",
-            "narration": narration,
-            "duration": scene_duration,
-            "camera_movement": camera_movement,
-            "mood": mood
+    # 5막 구조: 발단 → 전개 → 위기 → 절정 → 결말
+    # 각 막당 최대 10개의 고유 나레이션 풀 제공 (중복 완전 제거)
+    story_structure = [
+        # 1막: 발단 (Exposition) - 호기심 유발
+        {
+            "narrations": [
+                "여러분, 이건 정말 믿기 힘든 이야기인데 한번 들어보세요.",
+                "이 이야기는 아주 평범한 하루에서 시작됐어요.",
+                "오늘 들려드릴 이야기는 여러분을 완전히 사로잡을 거예요.",
+                "모든 건 아무도 예상하지 못한 순간에 시작됐죠.",
+                "평범해 보이는 이 장면 뒤에 숨겨진 비밀이 있어요.",
+                "자, 이제 정말 놀라운 이야기의 시작입니다.",
+                "아주 오래전부터 전해 내려오는 이야기가 있어요.",
+                "이 순간이 모든 것을 바꿔놓을 줄은 아무도 몰랐어요.",
+                "처음엔 아무것도 특별해 보이지 않았죠.",
+                "이 이야기의 주인공은 평범한 일상을 보내고 있었어요."
+            ],
+            "moods": ["mysterious", "curious", "intriguing", "calm", "wondering"],
+            "cameras": ["slow_zoom_in", "pan_right", "dolly_in", "crane_down", "static_wide"],
+            "korean_moods": ["신비로운", "호기심 가득한", "흥미진진한", "고요한", "궁금증 유발하는"]
+        },
+        # 2막: 전개 (Rising Action) - 상황 발전
+        {
+            "narrations": [
+                "처음에는 평범해 보였지만, 뭔가 이상한 느낌이 들기 시작했어요.",
+                "그런데 여기서 예상치 못한 일이 벌어지기 시작했죠.",
+                "상황이 점점 더 흥미로워지고 있었어요.",
+                "모든 게 계획대로 흘러가는 것처럼 보였지만 사실은 아니었어요.",
+                "이때부터 이야기는 완전히 다른 방향으로 흘러가기 시작했죠.",
+                "주인공은 아직 자신에게 무슨 일이 일어날지 몰랐어요.",
+                "작은 변화들이 하나씩 나타나기 시작했어요.",
+                "평범했던 하루가 특별한 모험으로 바뀌고 있었죠.",
+                "이 순간부터 모든 것이 달라지기 시작했어요.",
+                "아무도 예상하지 못한 전개가 펼쳐지고 있었어요."
+            ],
+            "moods": ["revealing", "intriguing", "developing", "surprising", "transforming"],
+            "cameras": ["pan_left", "zoom_in", "dolly_forward", "orbit", "tracking"],
+            "korean_moods": ["서서히 드러나는", "흥미진진한", "발전하는", "놀라운", "변화하는"]
+        },
+        # 3막: 위기 (Conflict) - 긴장감 고조
+        {
+            "narrations": [
+                "이제부터가 진짜 중요한 순간인데, 과연 어떻게 될까요?",
+                "긴장감이 점점 고조되고, 모두가 숨죽이고 지켜보고 있었어요.",
+                "예상치 못한 장애물이 앞을 가로막았어요.",
+                "이대로는 절대 안 될 것 같은 위기의 순간이었죠.",
+                "모든 게 무너질 것만 같은 아슬아슬한 순간이에요.",
+                "과연 이 난관을 어떻게 헤쳐나갈 수 있을까요?",
+                "상황은 점점 더 복잡하고 어려워지고 있었어요.",
+                "이제 선택의 순간이 다가오고 있었죠.",
+                "모두가 불가능하다고 생각하는 그 순간이에요.",
+                "여기서 포기하면 모든 게 끝나버릴 거예요."
+            ],
+            "moods": ["intense", "suspenseful", "challenging", "critical", "tense"],
+            "cameras": ["shake", "quick_zoom", "dutch_angle", "handheld", "tight_close"],
+            "korean_moods": ["긴장감 넘치는", "숨막히는", "도전적인", "결정적인", "팽팽한"]
+        },
+        # 4막: 절정 (Climax) - 결정적 순간
+        {
+            "narrations": [
+                "그리고 드디어, 결정적인 순간이 찾아왔어요!",
+                "바로 이 순간, 모든 게 완전히 바뀌어버렸죠.",
+                "상상도 못 했던 일이 눈앞에서 펼쳐지고 있었어요.",
+                "이게 바로 운명을 가르는 결정적인 한 순간이에요.",
+                "모든 것이 이 한 번의 선택으로 결정되는 순간이죠.",
+                "세상이 멈춘 것 같은 그 짧은 순간이었어요.",
+                "지금까지의 모든 것이 이 순간을 위한 거였어요.",
+                "믿을 수 없는 반전이 기다리고 있었죠.",
+                "아무도 예상하지 못한 놀라운 결과가 나타났어요.",
+                "바로 그 순간, 기적이 일어났어요!"
+            ],
+            "moods": ["shocking", "dramatic", "explosive", "pivotal", "epic"],
+            "cameras": ["tilt_up", "dramatic_zoom", "360_spin", "crash_zoom", "aerial_rise"],
+            "korean_moods": ["충격적인", "극적인", "폭발적인", "전환점의", "장대한"]
+        },
+        # 5막: 결말 (Resolution) - 마무리와 여운
+        {
+            "narrations": [
+                "그렇게 이야기는 마무리되었고, 모두가 깨달음을 얻었어요.",
+                "이 이야기의 진짜 의미는 여러분이 직접 느껴보시면 알 수 있을 거예요.",
+                "모든 것이 제자리를 찾아가고 평화가 찾아왔어요.",
+                "이제 모든 게 이해가 되기 시작했죠.",
+                "결국 진실은 언제나 빛을 발하게 되어 있어요.",
+                "이렇게 또 하나의 이야기가 끝이 났어요.",
+                "그리고 그들은 새로운 시작을 맞이하게 됐어요.",
+                "이 경험을 통해 얻은 교훈은 평생 잊지 못할 거예요.",
+                "마지막 장면은 새로운 희망으로 가득했어요.",
+                "이야기는 끝났지만, 그 의미는 영원히 남을 거예요."
+            ],
+            "moods": ["reflective", "peaceful", "hopeful", "enlightening", "satisfying"],
+            "cameras": ["zoom_out", "slow_zoom_out", "crane_up", "pull_back", "wide_establishing"],
+            "korean_moods": ["여운이 남는", "평화로운", "희망찬", "깨달음의", "만족스러운"]
         }
-        scenes.append(scene)
+    ]
+    
+    # 5막 구조에 따라 장면 배분
+    scenes = []
+    act_distribution = distribute_scenes_to_acts(scenes_count)
+    
+    scene_idx = 0
+    for act_num, (act_data, num_scenes_in_act) in enumerate(zip(story_structure, act_distribution)):
+        for scene_in_act in range(num_scenes_in_act):
+            # 중요: 각 장면마다 고유한 나레이션 사용 (절대 중복 없음)
+            if scene_in_act < len(act_data["narrations"]):
+                narration = act_data["narrations"][scene_in_act]
+            else:
+                # 예외적으로 장면이 10개를 넘어가면 조합 생성
+                base_narration = act_data["narrations"][scene_in_act % len(act_data["narrations"])]
+                narration = f"{base_narration} (파트 {scene_in_act + 1})"
+            
+            mood_idx = scene_in_act % len(act_data["moods"])
+            camera_idx = scene_in_act % len(act_data["cameras"])
+            
+            mood = act_data["moods"][mood_idx]
+            camera_movement = act_data["cameras"][camera_idx]
+            korean_mood = act_data["korean_moods"][mood_idx]
+            
+            # 영어 프롬프트 (AI 이미지 생성용) - 더 구체적으로
+            description = create_detailed_scene_description(
+                user_input, scene_idx + 1, korean_mood, act_num + 1
+            )
+            
+            # 한국어 설명도 더 구체적으로
+            korean_desc = f"{user_input} 이야기 중 {get_act_name(act_num + 1)}의 {korean_mood} 장면"
+            
+            scene = {
+                "scene_number": scene_idx + 1,
+                "title": f"{get_act_name(act_num + 1)} - 장면 {scene_in_act + 1}",
+                "description": description,
+                "korean_description": korean_desc,
+                "narration": narration,
+                "duration": scene_duration,
+                "camera_movement": camera_movement,
+                "mood": mood
+            }
+            scenes.append(scene)
+            scene_idx += 1
     
     return {
         "title": user_input,
