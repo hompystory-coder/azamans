@@ -342,6 +342,7 @@ export default function ProShortsPage() {
           body: JSON.stringify({
             title: generatedStory.title,
             scenes: scenesWithAudio.map(scene => ({
+              scene_number: scene.scene_number,
               description: scene.description,
               duration: scene.duration,
               style: generatedStory.style,
