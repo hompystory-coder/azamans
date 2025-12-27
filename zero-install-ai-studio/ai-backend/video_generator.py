@@ -157,10 +157,8 @@ def create_video_from_images(images_data, output_path, fps=30):
             # 지속 시간
             duration = img_data.get('duration', 3)
             
-            # ImageClip 생성 (duration 명시)
-            clip = ImageClip(img_path, duration=duration)
-            
-            # 오디오 추가 (audio_url이 있는 경우)
+            # 오디오 먼저 확인 (audio_url이 있는 경우)
+            audio_clip = None
             if 'audio_url' in img_data and img_data['audio_url']:
                 audio_url = img_data['audio_url']
                 # /audio/xxx.mp3 → 실제 파일 경로로 변환
@@ -171,15 +169,26 @@ def create_video_from_images(images_data, output_path, fps=30):
                     if os.path.exists(audio_path):
                         try:
                             audio_clip = AudioFileClip(audio_path)
-                            # 오디오 길이에 맞춰 비디오 길이 조정
+                            # 오디오 길이가 있으면 그 길이를 duration으로 사용
                             if audio_clip.duration > 0:
-                                clip = clip.set_duration(audio_clip.duration)
-                                clip = clip.with_audio(audio_clip)
-                                logger.info(f"  → Audio added: {audio_filename} ({audio_clip.duration:.1f}s)")
+                                duration = audio_clip.duration
+                                logger.info(f"  → Using audio duration: {audio_clip.duration:.1f}s for {audio_filename}")
                         except Exception as e:
-                            logger.warning(f"  → Failed to add audio: {e}")
+                            logger.warning(f"  → Failed to load audio: {e}")
+                            audio_clip = None
                     else:
                         logger.warning(f"  → Audio file not found: {audio_path}")
+            
+            # ImageClip 생성 (duration 명시)
+            clip = ImageClip(img_path, duration=duration)
+            
+            # 오디오 추가
+            if audio_clip is not None:
+                try:
+                    clip = clip.with_audio(audio_clip)
+                    logger.info(f"  → Audio successfully attached!")
+                except Exception as e:
+                    logger.warning(f"  → Failed to attach audio: {e}")
             
             clips.append(clip)
             logger.info(f"Processed scene {i+1}/{len(images_data)}")
