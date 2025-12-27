@@ -11,6 +11,10 @@ import json
 import re
 import os
 
+# 로깅 먼저 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Optional: OpenAI import (폴백 시스템이 있으므로 선택적)
 try:
     from openai import OpenAI
@@ -51,11 +55,43 @@ except ImportError:
     HF_AVAILABLE = False
     logger.warning("⚠️ Hugging Face 클라이언트 미설치")
 
+# 🆕 장르 감지 시스템 통합
+try:
+    from genre_detector import GenreDetector
+    genre_detector = GenreDetector()
+    GENRE_DETECTION_AVAILABLE = True
+    logger.info("✅ 장르 감지 시스템 통합 완료 (6개 장르 지원)")
+except ImportError as e:
+    genre_detector = None
+    GENRE_DETECTION_AVAILABLE = False
+    logger.warning(f"⚠️ 장르 감지 시스템 미설치: {e}")
+
+# 🆕 나레이션 자동 생성 시스템 통합
+try:
+    from ollama_narration_generator import OllamaNarrationGenerator
+    narration_gen = OllamaNarrationGenerator()
+    NARRATION_GEN_AVAILABLE = narration_gen.enabled
+    if NARRATION_GEN_AVAILABLE:
+        logger.info("✅ 나레이션 자동 생성 시스템 통합 완료 (Ollama)")
+except ImportError as e:
+    narration_gen = None
+    NARRATION_GEN_AVAILABLE = False
+    logger.warning(f"⚠️ 나레이션 생성 시스템 미설치: {e}")
+
+# 🆕 다국어 번역 시스템 통합
+try:
+    from multilang_translator import MultiLangTranslator
+    translator = MultiLangTranslator()
+    TRANSLATOR_AVAILABLE = translator.enabled
+    if TRANSLATOR_AVAILABLE:
+        logger.info("✅ 다국어 번역 시스템 통합 완료 (5개 언어 지원)")
+except ImportError as e:
+    translator = None
+    TRANSLATOR_AVAILABLE = False
+    logger.warning(f"⚠️ 다국어 번역 시스템 미설치: {e}")
+
 app = Flask(__name__)
 CORS(app)
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # AI 시스템 초기화 우선순위:
 # 1순위: Ollama (로컬, 무료, 빠름)
@@ -1531,23 +1567,44 @@ def generate_custom_story(user_input: str, scenes_count: int, scene_duration: fl
     
     for act_num, num_scenes_in_act in enumerate(act_distribution):
         for scene_in_act in range(num_scenes_in_act):
-            # ✅ 핵심: 글로벌 풀에서 순차적으로 가져오기 (절대 중복 없음)
-            if narration_idx < len(GLOBAL_NARRATION_POOL):
-                narration = GLOBAL_NARRATION_POOL[narration_idx]
-                narration_idx += 1
-            else:
-                # 75개를 초과하면 (극히 드문 케이스) 조합 생성
-                base_idx = (narration_idx - len(GLOBAL_NARRATION_POOL)) % len(GLOBAL_NARRATION_POOL)
-                narration = f"{GLOBAL_NARRATION_POOL[base_idx]} [파트 {narration_idx - len(GLOBAL_NARRATION_POOL) + 1}]"
-                narration_idx += 1
-            
-            # 해당 막의 설정에서 mood/camera 선택
+            # 해당 막의 설정에서 mood/camera 선택 (먼저 필요)
             act_settings = ACT_SETTINGS[act_num]
             setting_idx = scene_in_act % len(act_settings["moods"])
             
             mood = act_settings["moods"][setting_idx]
             camera_movement = act_settings["cameras"][setting_idx]
             korean_mood = act_settings["korean_moods"][setting_idx]
+            act_name = get_act_name(act_num + 1)
+            
+            # 🆕 AI 나레이션 생성 시도 (우선순위 1)
+            narration = None
+            if NARRATION_GEN_AVAILABLE and narration_gen:
+                try:
+                    narration = narration_gen.generate_narration(
+                        scene_number=scene_idx + 1,
+                        act_name=act_name,
+                        korean_mood=korean_mood,
+                        scene_title=f"{user_input}의 {act_name}",
+                        user_input=user_input,
+                        style="curious"  # 기본 스타일
+                    )
+                    if narration:
+                        logger.info(f"✅ AI 나레이션 생성: Scene {scene_idx + 1}")
+                except Exception as e:
+                    logger.warning(f"⚠️ AI 나레이션 생성 실패 (Scene {scene_idx + 1}): {e}")
+            
+            # 폴백: 글로벌 풀에서 가져오기 (AI 실패 시)
+            if not narration:
+                if narration_idx < len(GLOBAL_NARRATION_POOL):
+                    narration = GLOBAL_NARRATION_POOL[narration_idx]
+                    narration_idx += 1
+                else:
+                    # 75개를 초과하면 (극히 드문 케이스) 조합 생성
+                    base_idx = (narration_idx - len(GLOBAL_NARRATION_POOL)) % len(GLOBAL_NARRATION_POOL)
+                    narration = f"{GLOBAL_NARRATION_POOL[base_idx]} [파트 {narration_idx - len(GLOBAL_NARRATION_POOL) + 1}]"
+                    narration_idx += 1
+            
+
             
             # 영어 프롬프트 (AI 이미지 생성용) - 더 구체적으로
             description = create_detailed_scene_description(
@@ -1592,7 +1649,7 @@ def health():
 
 @app.route('/generate-story', methods=['POST'])
 def generate_story():
-    """스토리 스크립트 생성 API"""
+    """스토리 스크립트 생성 API (🆕 AI 나레이션 자동 생성 통합)"""
     try:
         data = request.json
         user_input = data.get('prompt', '선녀와 나무꾼')
@@ -1600,8 +1657,23 @@ def generate_story():
         
         logger.info(f"Generating story for: {user_input} ({duration}s)")
         
-        # 스토리 생성
+        # 🆕 장르 감지 (선택 사항)
+        genre_info = None
+        if GENRE_DETECTION_AVAILABLE and genre_detector:
+            try:
+                genre_info = genre_detector.detect_genre(user_input)
+                if genre_info:
+                    logger.info(f"🎭 장르 감지: {genre_info.get('genre', 'Unknown')}")
+            except Exception as e:
+                logger.warning(f"장르 감지 실패: {e}")
+        
+        # 스토리 생성 (AI 나레이션 자동 생성 포함)
         story = generate_story_script(user_input, duration)
+        
+        # 장르 정보 추가
+        if genre_info:
+            story['detected_genre'] = genre_info.get('genre')
+            story['genre_structure'] = genre_info.get('structure')
         
         return jsonify({
             'success': True,
@@ -1610,6 +1682,53 @@ def generate_story():
         
     except Exception as e:
         logger.error(f"Error in generate_story: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/translate-story', methods=['POST'])
+def translate_story():
+    """다국어 번역 API (🆕 5개 언어 지원)"""
+    try:
+        data = request.json
+        narrations = data.get('narrations', [])
+        target_lang = data.get('target_lang', 'en')  # en, ja, zh, es
+        
+        if not TRANSLATOR_AVAILABLE or not translator:
+            return jsonify({
+                'success': False,
+                'error': '번역 시스템이 활성화되지 않았습니다.'
+            }), 503
+        
+        logger.info(f"Translating {len(narrations)} narrations to {target_lang}")
+        
+        # 나레이션 번역
+        translated_narrations = []
+        for i, narration in enumerate(narrations, 1):
+            try:
+                translated = translator.translate_narration(narration, target_lang)
+                if translated and translated != narration:
+                    translated_narrations.append(translated)
+                    logger.info(f"✅ 번역 완료 ({i}/{len(narrations)})")
+                else:
+                    translated_narrations.append(narration)  # 원문 유지
+                    logger.warning(f"⚠️ 번역 실패 ({i}/{len(narrations)}) - 원문 사용")
+            except Exception as e:
+                logger.error(f"번역 오류 ({i}/{len(narrations)}): {e}")
+                translated_narrations.append(narration)
+        
+        return jsonify({
+            'success': True,
+            'target_lang': target_lang,
+            'translated_narrations': translated_narrations,
+            'language_name': translator.LANGUAGES.get(target_lang, {}).get('name', target_lang)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in translate_story: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
