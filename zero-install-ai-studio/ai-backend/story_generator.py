@@ -39,15 +39,172 @@ if OPENAI_AVAILABLE and os.environ.get("OPENAI_API_KEY"):
 else:
     logger.info("✅ 확장 키워드 템플릿 시스템 사용 (33개 직업/활동 지원)")
 
+def is_long_story(text: str) -> bool:
+    """
+    입력이 장문 스토리인지 판단
+    - 100자 이상: 장문 스토리로 간주
+    - 특수 문자 (마침표, 느낌표, 물음표) 3개 이상: 장문 스토리
+    """
+    char_count = len(text.strip())
+    sentence_markers = text.count('.') + text.count('!') + text.count('?') + text.count('。')
+    
+    return char_count > 100 or sentence_markers >= 3
+
+def analyze_and_summarize_story(long_story: str) -> dict:
+    """
+    🤖 AI를 사용하여 장문 스토리를 분석하고 핵심 요약 추출
+    
+    Args:
+        long_story: 장문 스토리 텍스트
+    
+    Returns:
+        {
+            'title': '스토리 제목',
+            'summary': '한 줄 요약',
+            'main_character': '주인공',
+            'key_events': ['사건1', '사건2', ...],
+            'five_acts': {
+                'exposition': '발단 내용',
+                'rising_action': '전개 내용',
+                'conflict': '위기 내용',
+                'climax': '절정 내용',
+                'resolution': '결말 내용'
+            }
+        }
+    """
+    if not OPENAI_AVAILABLE or not openai_client:
+        logger.warning("⚠️ AI 비활성화 - 기본 분석 사용")
+        return _fallback_story_analysis(long_story)
+    
+    system_prompt = """You are a professional story analyst and screenwriter.
+Your job is to analyze a long story and extract key elements for creating a short video (30-60 seconds).
+
+Analyze the story and provide:
+1. A catchy title (10 words max)
+2. One-line summary (20 words max)
+3. Main character
+4. 5-7 key events in chronological order
+5. Break the story into 5 acts (exposition, rising action, conflict, climax, resolution)
+
+IMPORTANT: Keep everything concise and visual. Focus on action and drama.
+Response must be in JSON format."""
+
+    user_prompt = f"""Analyze this story and extract key elements:
+
+Story:
+{long_story[:2000]}
+
+Return JSON format:
+{{
+    "title": "catchy title here",
+    "summary": "one-line summary",
+    "main_character": "protagonist name/description",
+    "key_events": ["event1", "event2", ...],
+    "five_acts": {{
+        "exposition": "beginning description",
+        "rising_action": "development description",
+        "conflict": "crisis description",
+        "climax": "peak moment description",
+        "resolution": "ending description"
+    }}
+}}"""
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.7,
+            response_format={"type": "json_object"},
+            timeout=30
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        logger.info(f"✅ 장문 스토리 분석 성공: {result.get('title', 'N/A')}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"❌ AI 분석 실패: {e}")
+        return _fallback_story_analysis(long_story)
+
+def _fallback_story_analysis(long_story: str) -> dict:
+    """
+    AI 실패 시 폴백: 간단한 규칙 기반 분석
+    """
+    # 제목 추출 로직 개선
+    # 1. 따옴표 안의 제목이 있는지 확인
+    import re
+    quoted_match = re.search(r'["\']([^"\']+)["\']', long_story[:100])
+    if quoted_match:
+        title = quoted_match.group(1)[:30]
+    else:
+        # 2. 첫 20자를 제목으로 (의미 있는 부분만)
+        first_part = long_story[:30].strip()
+        # 마지막 완전한 단어까지만 포함
+        if ' ' in first_part:
+            words = first_part.split()
+            title = ' '.join(words[:3]) + "..."
+        else:
+            title = first_part
+    
+    # 간단한 5막 구조 (텍스트를 5등분)
+    story_length = len(long_story)
+    chunk_size = max(1, story_length // 5)
+    
+    # 각 막의 핵심 내용 추출 (첫 100자)
+    acts = []
+    for i in range(5):
+        start = i * chunk_size
+        end = min((i + 1) * chunk_size, story_length)
+        chunk = long_story[start:end].strip()
+        # 완전한 문장으로 자르기
+        sentences = chunk.split('.')
+        act_text = '. '.join(sentences[:2])[:150]
+        acts.append(act_text)
+    
+    return {
+        'title': title,
+        'summary': long_story[:100].strip() + "...",
+        'main_character': "주인공",
+        'key_events': [
+            long_story[i*chunk_size:min((i+1)*chunk_size, story_length)][:50].strip() + "..."
+            for i in range(min(5, story_length // chunk_size))
+        ],
+        'five_acts': {
+            'exposition': acts[0] if len(acts) > 0 else "",
+            'rising_action': acts[1] if len(acts) > 1 else "",
+            'conflict': acts[2] if len(acts) > 2 else "",
+            'climax': acts[3] if len(acts) > 3 else "",
+            'resolution': acts[4] if len(acts) > 4 else ""
+        }
+    }
+
 def generate_story_script(user_input: str, duration_seconds: int = 30) -> dict:
     """
     사용자 입력을 기반으로 스토리 스크립트 생성
+    
+    📝 지원 입력 형식:
+    1. 짧은 제목 (예: "행복한 제빵사의 아침")
+    2. 장문 스토리 (100자 이상)
     """
     try:
         # 장면 개수 계산 (3-5초당 1장면)
         scenes_count = max(5, duration_seconds // 4)  # 최소 5장면
         scene_duration = duration_seconds / scenes_count
         
+        # 🆕 장문 스토리 감지 및 분석
+        if is_long_story(user_input):
+            logger.info(f"📚 장문 스토리 감지 ({len(user_input)}자) - AI 분석 시작...")
+            analysis = analyze_and_summarize_story(user_input)
+            
+            # 분석 결과를 사용하여 스토리 생성
+            logger.info(f"✅ 분석 완료: '{analysis.get('title', 'Unknown')}' - {scenes_count} scenes")
+            return generate_story_from_analysis(analysis, scenes_count, scene_duration)
+        
+        # 기존: 짧은 제목 처리
         logger.info(f"Generating story: '{user_input}' - {scenes_count} scenes, {scene_duration}s each")
         
         # 스토리 템플릿 매칭
@@ -887,6 +1044,154 @@ def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: 
         f"Highly detailed, cinematic lighting, 1080x1920 vertical format, "
         f"professional photography, dramatic storytelling, 4K quality, masterpiece"
     )
+
+def generate_story_from_analysis(analysis: dict, scenes_count: int, scene_duration: float) -> dict:
+    """
+    분석된 장문 스토리를 기반으로 5막 구조 쇼츠 생성
+    
+    Args:
+        analysis: analyze_and_summarize_story()의 결과
+        scenes_count: 총 장면 수
+        scene_duration: 장면당 시간
+    
+    Returns:
+        완성된 스토리 객체
+    """
+    title = analysis.get('title', '멋진 이야기')
+    five_acts = analysis.get('five_acts', {})
+    key_events = analysis.get('key_events', [])
+    
+    # 5막 구조 매핑
+    act_descriptions = [
+        five_acts.get('exposition', '이야기의 시작'),
+        five_acts.get('rising_action', '사건이 전개됨'),
+        five_acts.get('conflict', '위기가 찾아옴'),
+        five_acts.get('climax', '결정적 순간'),
+        five_acts.get('resolution', '이야기의 마무리')
+    ]
+    
+    # 장면 배분
+    act_distribution = distribute_scenes_to_acts(scenes_count)
+    
+    scenes = []
+    scene_idx = 0
+    
+    # 기존 5막 스토리 구조 사용 (나레이션, 무드 등)
+    story_structure = _get_default_story_structure()
+    
+    for act_num, (act_data, num_scenes_in_act) in enumerate(zip(story_structure, act_distribution)):
+        for scene_in_act in range(num_scenes_in_act):
+            # 나레이션 선택
+            if scene_in_act < len(act_data["narrations"]):
+                narration = act_data["narrations"][scene_in_act]
+            else:
+                base_narration = act_data["narrations"][scene_in_act % len(act_data["narrations"])]
+                narration = f"{base_narration} (파트 {scene_in_act + 1})"
+            
+            mood_idx = scene_in_act % len(act_data["moods"])
+            camera_idx = scene_in_act % len(act_data["cameras"])
+            
+            mood = act_data["moods"][mood_idx]
+            camera_movement = act_data["cameras"][camera_idx]
+            korean_mood = act_data["korean_moods"][mood_idx]
+            
+            # 영어 프롬프트 생성 - 분석된 내용 활용
+            act_context = act_descriptions[act_num]
+            description = (
+                f"{title}, scene {scene_idx + 1}: {act_context}. "
+                f"{korean_mood} atmosphere. "
+                f"Visual storytelling, cinematic lighting, 1080x1920 vertical format, "
+                f"dramatic composition, 4K quality, masterpiece"
+            )
+            
+            # 한국어 설명
+            korean_desc = f"{title} 이야기 중 {get_act_name(act_num + 1)}의 {korean_mood} 장면"
+            
+            scene = {
+                "scene_number": scene_idx + 1,
+                "title": f"{get_act_name(act_num + 1)} - 장면 {scene_in_act + 1}",
+                "description": description,
+                "korean_description": korean_desc,
+                "narration": narration,
+                "duration": scene_duration,
+                "camera_movement": camera_movement,
+                "mood": mood
+            }
+            scenes.append(scene)
+            scene_idx += 1
+    
+    return {
+        "title": title,
+        "genre": "AI 분석 스토리",
+        "total_duration": sum(s['duration'] for s in scenes),
+        "total_scenes": len(scenes),
+        "style": "cinematic storytelling based on analyzed narrative",
+        "mood": "engaging and dramatic",
+        "scenes": scenes,
+        "music_suggestion": "Emotional cinematic music matching the story arc",
+        "original_analysis": analysis  # 원본 분석 정보 포함
+    }
+
+def _get_default_story_structure() -> list:
+    """
+    기본 5막 스토리 구조 (나레이션, 무드, 카메라) 반환
+    """
+    return [
+        # 1막: 발단
+        {
+            "narrations": [
+                "여러분, 이건 정말 믿기 힘든 이야기인데 한번 들어보세요.",
+                "이 이야기는 아주 평범한 하루에서 시작됐어요.",
+                "오늘 들려드릴 이야기는 여러분을 완전히 사로잡을 거예요.",
+                "모든 건 아무도 예상하지 못한 순간에 시작됐죠.",
+                "평범해 보이는 이 장면 뒤에 숨겨진 비밀이 있어요.",
+            ],
+            "moods": ["mysterious", "curious", "intriguing", "calm", "wondering"],
+            "cameras": ["slow_zoom_in", "pan_right", "dolly_in", "crane_down", "static_wide"],
+            "korean_moods": ["신비로운", "호기심 가득한", "흥미진진한", "고요한", "궁금증 유발하는"]
+        },
+        # 2막: 전개
+        {
+            "narrations": [
+                "처음에는 평범해 보였지만, 뭔가 이상한 느낌이 들기 시작했어요.",
+                "그런데 여기서 예상치 못한 일이 벌어지기 시작했죠.",
+                "상황이 점점 더 흥미로워지고 있었어요.",
+            ],
+            "moods": ["revealing", "intriguing", "developing"],
+            "cameras": ["pan_left", "zoom_in", "dolly_forward"],
+            "korean_moods": ["서서히 드러나는", "흥미진진한", "발전하는"]
+        },
+        # 3막: 위기
+        {
+            "narrations": [
+                "이제부터가 진짜 중요한 순간인데, 과연 어떻게 될까요?",
+                "긴장감이 점점 고조되고, 모두가 숨죽이고 지켜보고 있었어요.",
+            ],
+            "moods": ["intense", "suspenseful"],
+            "cameras": ["shake", "quick_zoom"],
+            "korean_moods": ["긴장감 넘치는", "숨막히는"]
+        },
+        # 4막: 절정
+        {
+            "narrations": [
+                "그리고 드디어, 결정적인 순간이 찾아왔어요!",
+                "바로 이 순간, 모든 게 완전히 바뀌어버렸죠.",
+            ],
+            "moods": ["shocking", "dramatic"],
+            "cameras": ["tilt_up", "dramatic_zoom"],
+            "korean_moods": ["충격적인", "극적인"]
+        },
+        # 5막: 결말
+        {
+            "narrations": [
+                "그렇게 이야기는 마무리되었고, 모두가 깨달음을 얻었어요.",
+                "이 이야기의 진짜 의미는 여러분이 직접 느껴보시면 알 수 있을 거예요.",
+            ],
+            "moods": ["reflective", "peaceful"],
+            "cameras": ["zoom_out", "slow_zoom_out"],
+            "korean_moods": ["여운이 남는", "평화로운"]
+        }
+    ]
 
 def generate_custom_story(user_input: str, scenes_count: int, scene_duration: float) -> dict:
     """커스텀 스토리 생성 - 구어체 궁금증 유발형 (5막 구조) - 완전 고유 나레이션"""
