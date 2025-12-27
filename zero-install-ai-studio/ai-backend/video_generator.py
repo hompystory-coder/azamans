@@ -160,6 +160,27 @@ def create_video_from_images(images_data, output_path, fps=30):
             # ImageClip 생성 (duration 명시)
             clip = ImageClip(img_path, duration=duration)
             
+            # 오디오 추가 (audio_url이 있는 경우)
+            if 'audio_url' in img_data and img_data['audio_url']:
+                audio_url = img_data['audio_url']
+                # /audio/xxx.mp3 → 실제 파일 경로로 변환
+                if audio_url.startswith('/audio/'):
+                    audio_filename = audio_url.replace('/audio/', '')
+                    audio_path = os.path.join('/home/azamans/webapp/zero-install-ai-studio/public/audio', audio_filename)
+                    
+                    if os.path.exists(audio_path):
+                        try:
+                            audio_clip = AudioFileClip(audio_path)
+                            # 오디오 길이에 맞춰 비디오 길이 조정
+                            if audio_clip.duration > 0:
+                                clip = clip.set_duration(audio_clip.duration)
+                                clip = clip.with_audio(audio_clip)
+                                logger.info(f"  → Audio added: {audio_filename} ({audio_clip.duration:.1f}s)")
+                        except Exception as e:
+                            logger.warning(f"  → Failed to add audio: {e}")
+                    else:
+                        logger.warning(f"  → Audio file not found: {audio_path}")
+            
             clips.append(clip)
             logger.info(f"Processed scene {i+1}/{len(images_data)}")
         
@@ -270,8 +291,31 @@ def generate_video():
         filename = f"{safe_title}_{timestamp}.mp4"
         output_path = os.path.join(VIDEO_DIR, filename)
         
+        # scenes 데이터 변환 (image_url을 실제 파일 경로로)
+        processed_scenes = []
+        for scene in scenes:
+            scene_data = dict(scene)
+            
+            # image_url을 실제 파일 경로로 변환
+            if 'image_url' in scene_data:
+                image_url = scene_data['image_url']
+                # /generated/xxx.png → /home/azamans/webapp/zero-install-ai-studio/public/generated/xxx.png
+                if image_url.startswith('/generated/'):
+                    filename = image_url.replace('/generated/', '')
+                    scene_data['image_path'] = os.path.join(OUTPUT_DIR, filename)
+                elif image_url.startswith('/videos/'):
+                    filename = image_url.replace('/videos/', '')
+                    scene_data['image_path'] = os.path.join(VIDEO_DIR, filename)
+                else:
+                    # 절대 경로인 경우 그대로 사용
+                    scene_data['image_path'] = image_url
+                    
+                logger.info(f"Scene {len(processed_scenes)+1}: {scene_data.get('image_path', 'N/A')}")
+            
+            processed_scenes.append(scene_data)
+        
         # 비디오 생성
-        success = create_video_from_images(scenes, output_path, fps)
+        success = create_video_from_images(processed_scenes, output_path, fps)
         
         if not success:
             return jsonify({
