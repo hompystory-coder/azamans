@@ -127,6 +127,131 @@ def create_beautiful_image(prompt, width=1080, height=1920, style="traditional")
         draw.text((width//2 - 100, height//2), "Image Generation", fill=(255, 255, 255))
         return img
 
+def apply_camera_effect(clip, camera_movement, duration):
+    """
+    카메라 효과 적용
+    
+    지원 효과:
+    - zoom_in: 줌 인
+    - zoom_out: 줌 아웃
+    - pan_left: 왼쪽으로 패닝
+    - pan_right: 오른쪽으로 패닝
+    - dolly_forward: 전진 (줌 인과 유사)
+    - dolly_backward: 후진 (줌 아웃과 유사)
+    - tilt_up: 위로 틸트
+    - tilt_down: 아래로 틸트
+    - crane_up: 크레인 업
+    - crane_down: 크레인 다운
+    """
+    try:
+        w, h = clip.size
+        
+        # 줌 효과
+        if camera_movement in ['zoom_in', 'dolly_forward', 'push_in']:
+            def zoom_effect(get_frame, t):
+                frame = get_frame(t)
+                progress = t / duration
+                zoom_factor = 1.0 + (0.3 * progress)  # 1.0 → 1.3배 줌
+                
+                # 중앙을 기준으로 줌
+                new_w = int(w / zoom_factor)
+                new_h = int(h / zoom_factor)
+                x_offset = (w - new_w) // 2
+                y_offset = (h - new_h) // 2
+                
+                cropped = frame[y_offset:y_offset+new_h, x_offset:x_offset+new_w]
+                
+                # 원본 크기로 리사이즈
+                from PIL import Image
+                img = Image.fromarray(cropped)
+                img = img.resize((w, h), Image.Resampling.LANCZOS)
+                return np.array(img)
+            
+            return clip.transform(zoom_effect)
+        
+        elif camera_movement in ['zoom_out', 'dolly_backward', 'pull_back', 'slow_zoom_out']:
+            def zoom_out_effect(get_frame, t):
+                frame = get_frame(t)
+                progress = t / duration
+                zoom_factor = 1.3 - (0.3 * progress)  # 1.3배 → 1.0배 줌
+                
+                new_w = int(w / zoom_factor)
+                new_h = int(h / zoom_factor)
+                x_offset = (w - new_w) // 2
+                y_offset = (h - new_h) // 2
+                
+                cropped = frame[y_offset:y_offset+new_h, x_offset:x_offset+new_w]
+                
+                from PIL import Image
+                img = Image.fromarray(cropped)
+                img = img.resize((w, h), Image.Resampling.LANCZOS)
+                return np.array(img)
+            
+            return clip.transform(zoom_out_effect)
+        
+        # 패닝 효과
+        elif camera_movement in ['pan_left', 'dolly_left']:
+            def pan_left_effect(get_frame, t):
+                frame = get_frame(t)
+                progress = t / duration
+                x_shift = int(w * 0.2 * progress)  # 최대 20% 이동
+                
+                # 오른쪽에서 왼쪽으로 이동
+                result = np.zeros_like(frame)
+                if x_shift < w:
+                    result[:, :w-x_shift] = frame[:, x_shift:]
+                return result
+            
+            return clip.transform(pan_left_effect)
+        
+        elif camera_movement in ['pan_right', 'dolly_right', 'pan_right_smooth']:
+            def pan_right_effect(get_frame, t):
+                frame = get_frame(t)
+                progress = t / duration
+                x_shift = int(w * 0.2 * progress)
+                
+                result = np.zeros_like(frame)
+                if x_shift < w:
+                    result[:, x_shift:] = frame[:, :w-x_shift]
+                return result
+            
+            return clip.transform(pan_right_effect)
+        
+        # 틸트 효과
+        elif camera_movement in ['tilt_up', 'crane_up']:
+            def tilt_up_effect(get_frame, t):
+                frame = get_frame(t)
+                progress = t / duration
+                y_shift = int(h * 0.2 * progress)
+                
+                result = np.zeros_like(frame)
+                if y_shift < h:
+                    result[:h-y_shift, :] = frame[y_shift:, :]
+                return result
+            
+            return clip.transform(tilt_up_effect)
+        
+        elif camera_movement in ['tilt_down', 'crane_down']:
+            def tilt_down_effect(get_frame, t):
+                frame = get_frame(t)
+                progress = t / duration
+                y_shift = int(h * 0.2 * progress)
+                
+                result = np.zeros_like(frame)
+                if y_shift < h:
+                    result[y_shift:, :] = frame[:h-y_shift, :]
+                return result
+            
+            return clip.transform(tilt_down_effect)
+        
+        # 기본: 효과 없음
+        else:
+            return clip
+    
+    except Exception as e:
+        logger.warning(f"Failed to apply camera effect '{camera_movement}': {e}")
+        return clip
+
 def create_video_from_images(images_data, output_path, fps=30):
     """
     이미지들을 비디오로 변환 (트랜지션 효과 포함)
@@ -181,6 +306,12 @@ def create_video_from_images(images_data, output_path, fps=30):
             
             # ImageClip 생성 (duration 명시)
             clip = ImageClip(img_path, duration=duration)
+            
+            # 🆕 카메라 효과 적용
+            camera_movement = img_data.get('camera_movement', None)
+            if camera_movement:
+                logger.info(f"  → Applying camera effect: {camera_movement}")
+                clip = apply_camera_effect(clip, camera_movement, duration)
             
             # 오디오 추가
             if audio_clip is not None:
