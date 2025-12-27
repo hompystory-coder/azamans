@@ -509,23 +509,48 @@ def get_act_name(act_num: int) -> str:
 def create_detailed_scene_description(prompt: str, scene_num: int, korean_mood: str, act_num: int) -> str:
     """
     각 막의 특성에 맞는 상세한 장면 설명 생성
+    스토리 제목을 최우선으로 강조하고 각 막별 구체적인 행동 포함
     """
-    act_contexts = {
-        1: "introduction, establishing shot, setting the scene, calm before the storm",
-        2: "development, action begins, character movement, rising tension",
-        3: "conflict emerges, dramatic lighting, intense atmosphere, building suspense",
-        4: "peak moment, highest drama, explosive action, critical decision point",
-        5: "resolution, aftermath, emotional closure, peaceful ending"
+    # 각 막별로 구체적인 시각적 요소와 행동 정의
+    act_visual_details = {
+        1: {
+            "action": "character introduction, establishing the world",
+            "elements": "main character in their environment, peaceful beginning",
+            "composition": "wide establishing shot, character in setting"
+        },
+        2: {
+            "action": "character embarking on journey, first challenges appear",
+            "elements": "character in motion, obstacles emerging, path ahead",
+            "composition": "dynamic movement, character facing forward"
+        },
+        3: {
+            "action": "intense confrontation, major obstacle blocking the way",
+            "elements": "dramatic conflict, tension rising, difficult choice",
+            "composition": "close-up dramatic moment, high tension"
+        },
+        4: {
+            "action": "climactic battle or decisive moment, peak of the story",
+            "elements": "explosive action, transformation, breakthrough moment",
+            "composition": "epic wide shot, maximum drama and energy"
+        },
+        5: {
+            "action": "resolution and peace, character transformed and fulfilled",
+            "elements": "peaceful conclusion, achievement, new beginning",
+            "composition": "serene final shot, emotional closure"
+        }
     }
     
-    context = act_contexts.get(act_num, "dramatic scene")
+    details = act_visual_details.get(act_num, act_visual_details[1])
     
+    # 스토리 제목을 중심으로 각 막의 구체적인 장면 구성
     return (
-        f"{prompt}, scene {scene_num}, {context}, "
-        f"{korean_mood} atmosphere, cinematic lighting, "
-        f"highly detailed 1080x1920 vertical composition, "
-        f"professional photography, emotional depth, "
-        f"dramatic storytelling moment, 4K quality"
+        f"Scene {scene_num}: {prompt} - {details['action']}. "
+        f"Visual elements: {details['elements']}. "
+        f"The story is about: {prompt}. "
+        f"{details['composition']}, {korean_mood} mood. "
+        f"Cinematic lighting, 1080x1920 vertical composition, "
+        f"highly detailed, professional photography, "
+        f"emotional storytelling, 4K quality, masterpiece"
     )
 
 def generate_custom_story(user_input: str, scenes_count: int, scene_duration: float) -> dict:
