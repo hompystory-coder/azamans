@@ -126,6 +126,7 @@ class Admin extends Controller {
         // 검색 조건
         $search = cleanInput($this->get('search', ''));
         $status = cleanInput($this->get('status', ''));
+        $level = cleanInput($this->get('level', ''));
         
         $where = [];
         $params = [];
@@ -142,6 +143,11 @@ class Admin extends Controller {
             $params[] = $status;
         }
         
+        if (!empty($level)) {
+            $where[] = "level = ?";
+            $params[] = $level;
+        }
+        
         $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
         
         // 전체 개수
@@ -150,7 +156,7 @@ class Admin extends Controller {
         
         // 회원 목록
         $members = getDbArray("
-            SELECT uid, user_id, name, email, level, status, last_login, reg_date, post_count, comment_count
+            SELECT uid, user_id, name, email, level, point, post_count, comment_count, status, last_login, reg_date
             FROM member 
             {$whereClause}
             ORDER BY reg_date DESC 
@@ -164,7 +170,8 @@ class Admin extends Controller {
             'current_page' => $page,
             'total_pages' => $totalPages,
             'search' => $search,
-            'status' => $status
+            'status' => $status,
+            'level' => $level
         ];
         
         $this->view('admin/members', $data);
