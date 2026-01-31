@@ -332,3 +332,32 @@ function trackVisitor() {
         ]);
     }
 }
+
+/**
+ * 설정값 가져오기
+ */
+function getConfig($key, $default = '') {
+    $value = getUidData('admin_config', 'config_value', ['config_key' => $key]);
+    return $value ? $value : $default;
+}
+
+/**
+ * 설정값 저장하기
+ */
+function setConfig($key, $value, $group = 'general') {
+    $existing = getUidData('admin_config', 'uid', ['config_key' => $key]);
+    
+    if ($existing) {
+        return getDbUpdate('admin_config', [
+            'config_value' => $value,
+            'updated_at' => date('Y-m-d H:i:s')
+        ], $existing);
+    } else {
+        return getDbInsert('admin_config', [
+            'config_key' => $key,
+            'config_value' => $value,
+            'config_group' => $group,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+}

@@ -533,3 +533,369 @@ class Admin extends Controller {
         ]);
     }
 }
+    
+    /**
+     * 사이트 설정 - 파비콘
+     */
+    public function siteFavicon() {
+        $data = [
+            'title' => '파비콘 설정',
+            'favicon_url' => getConfig('favicon_url', '')
+        ];
+        $this->view('admin/site/favicon', $data);
+    }
+    
+    /**
+     * 사이트 설정 - 헤더 코드
+     */
+    public function siteHeader() {
+        $data = [
+            'title' => '헤더 코드',
+            'header_code' => getConfig('header_code', '')
+        ];
+        $this->view('admin/site/header', $data);
+    }
+    
+    /**
+     * 사이트 설정 - 푸터 코드
+     */
+    public function siteFooter() {
+        $data = [
+            'title' => '푸터 코드',
+            'footer_code' => getConfig('footer_code', '')
+        ];
+        $this->view('admin/site/footer', $data);
+    }
+    
+    /**
+     * 사이트 설정 - RSS
+     */
+    public function siteRss() {
+        $boards = getDbArray("SELECT board_id, board_name FROM bbs_list WHERE status = 'active' ORDER BY board_name");
+        $data = [
+            'title' => 'RSS 설정',
+            'boards' => $boards,
+            'rss_boards' => json_decode(getConfig('rss_boards', '[]'), true),
+            'rss_exclude' => json_decode(getConfig('rss_exclude', '[]'), true),
+            'rss_period' => getConfig('rss_period', '30')
+        ];
+        $this->view('admin/site/rss', $data);
+    }
+    
+    /**
+     * 사이트 설정 - 사이트맵
+     */
+    public function siteSitemap() {
+        $boards = getDbArray("SELECT board_id, board_name FROM bbs_list WHERE status = 'active' ORDER BY board_name");
+        $data = [
+            'title' => '사이트맵 설정',
+            'boards' => $boards,
+            'sitemap_exclude' => json_decode(getConfig('sitemap_exclude', '[]'), true)
+        ];
+        $this->view('admin/site/sitemap', $data);
+    }
+    
+    /**
+     * 회원가입 설정
+     */
+    public function memberJoinConfig() {
+        $data = [
+            'title' => '회원가입 설정',
+            'terms_of_service' => getConfig('terms_of_service', ''),
+            'privacy_policy' => getConfig('privacy_policy', ''),
+            'youth_protection' => getConfig('youth_protection', '')
+        ];
+        $this->view('admin/member/join_config', $data);
+    }
+    
+    /**
+     * 회원 등급 관리
+     */
+    public function memberLevels() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = $_POST['action'] ?? '';
+            
+            if ($action === 'create') {
+                $levelData = [
+                    'level' => (int)$_POST['level'],
+                    'level_name' => cleanInput($_POST['level_name']),
+                    'point_min' => (int)($_POST['point_min'] ?? 0),
+                    'point_max' => (int)($_POST['point_max'] ?? 0)
+                ];
+                $result = getDbInsert('member_level', $levelData);
+                $this->json(['success' => (bool)$result, 'message' => $result ? '등급이 추가되었습니다.' : '등급 추가 실패']);
+                return;
+            } elseif ($action === 'update') {
+                $uid = (int)$_POST['uid'];
+                $updateData = [
+                    'level_name' => cleanInput($_POST['level_name']),
+                    'point_min' => (int)($_POST['point_min'] ?? 0),
+                    'point_max' => (int)($_POST['point_max'] ?? 0)
+                ];
+                $result = getDbUpdate('member_level', $updateData, $uid);
+                $this->json(['success' => (bool)$result, 'message' => $result ? '등급이 수정되었습니다.' : '등급 수정 실패']);
+                return;
+            } elseif ($action === 'delete') {
+                $uid = (int)$_POST['uid'];
+                $result = getDbDelete('member_level', $uid);
+                $this->json(['success' => (bool)$result, 'message' => $result ? '등급이 삭제되었습니다.' : '등급 삭제 실패']);
+                return;
+            }
+        }
+        
+        $levels = getDbArray("SELECT * FROM member_level ORDER BY level ASC");
+        $data = [
+            'title' => '회원 등급 관리',
+            'levels' => $levels
+        ];
+        $this->view('admin/member/levels', $data);
+    }
+    
+    /**
+     * 회원 포인트 지급
+     */
+    public function memberPoints() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $memberUid = (int)$_POST['member_uid'];
+            $points = (int)$_POST['points'];
+            $reason = cleanInput($_POST['reason'] ?? '관리자 지급');
+            
+            // 포인트 지급
+            getDbUpdate('member', ['point' => "point + $points"], $memberUid);
+            
+            // 포인트 히스토리 기록
+            $historyData = [
+                'member_uid' => $memberUid,
+                'points' => $points,
+                'reason' => $reason,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            getDbInsert('point_history', $historyData);
+            
+            $this->json(['success' => true, 'message' => '포인트가 지급되었습니다.']);
+            return;
+        }
+        
+        $members = getDbArray("SELECT uid, user_id, name, point FROM member WHERE status = 'active' ORDER BY user_id ASC");
+        $data = [
+            'title' => '회원 포인트 지급',
+            'members' => $members
+        ];
+        $this->view('admin/member/points', $data);
+    }
+    
+    /**
+     * 게시물 리스트
+     */
+    public function boardPosts() {
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $perPage = 20;
+        $search = $_GET['search'] ?? '';
+        $boardId = $_GET['board_id'] ?? '';
+        
+        $where = "WHERE 1=1";
+        $params = [];
+        
+        if ($search) {
+            $where .= " AND (subject LIKE ? OR writer LIKE ?)";
+            $params[] = "%$search%";
+            $params[] = "%$search%";
+        }
+        
+        if ($boardId) {
+            $where .= " AND board_id = ?";
+            $params[] = $boardId;
+        }
+        
+        $total = getDbCnt("SELECT COUNT(*) FROM bbs_index $where", $params);
+        $totalPages = ceil($total / $perPage);
+        $offset = ($page - 1) * $perPage;
+        
+        $posts = getDbArray("
+            SELECT * FROM bbs_index 
+            $where
+            ORDER BY created_at DESC 
+            LIMIT $perPage OFFSET $offset
+        ", $params);
+        
+        $boards = getDbArray("SELECT board_id, board_name FROM bbs_list WHERE status = 'active' ORDER BY board_name");
+        
+        $data = [
+            'title' => '게시물 리스트',
+            'posts' => $posts,
+            'boards' => $boards,
+            'total' => $total,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'search' => $search,
+            'board_id' => $boardId
+        ];
+        
+        $this->view('admin/board/posts', $data);
+    }
+    
+    /**
+     * 댓글 리스트
+     */
+    public function boardComments() {
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $perPage = 20;
+        $search = $_GET['search'] ?? '';
+        
+        $where = "WHERE 1=1";
+        $params = [];
+        
+        if ($search) {
+            $where .= " AND (content LIKE ? OR writer LIKE ?)";
+            $params[] = "%$search%";
+            $params[] = "%$search%";
+        }
+        
+        $total = getDbCnt("SELECT COUNT(*) FROM bbs_comment $where", $params);
+        $totalPages = ceil($total / $perPage);
+        $offset = ($page - 1) * $perPage;
+        
+        $comments = getDbArray("
+            SELECT c.*, b.subject as post_subject, b.board_id
+            FROM bbs_comment c
+            LEFT JOIN bbs_index b ON c.post_uid = b.uid
+            $where
+            ORDER BY c.created_at DESC 
+            LIMIT $perPage OFFSET $offset
+        ", $params);
+        
+        $data = [
+            'title' => '댓글 리스트',
+            'comments' => $comments,
+            'total' => $total,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'search' => $search
+        ];
+        
+        $this->view('admin/board/comments', $data);
+    }
+    
+    /**
+     * 방문자 통계 (일별/월별)
+     */
+    public function statsVisitor() {
+        $type = $_GET['type'] ?? 'daily';
+        $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
+        $endDate = $_GET['end_date'] ?? date('Y-m-d');
+        
+        if ($type === 'daily') {
+            $stats = getDbArray("
+                SELECT DATE(visit_date) as date, COUNT(DISTINCT ip_address) as count
+                FROM visitor_stats
+                WHERE visit_date BETWEEN ? AND ?
+                GROUP BY DATE(visit_date)
+                ORDER BY date ASC
+            ", [$startDate, $endDate]);
+        } else {
+            $stats = getDbArray("
+                SELECT DATE_FORMAT(visit_date, '%Y-%m') as month, COUNT(DISTINCT ip_address) as count
+                FROM visitor_stats
+                WHERE visit_date BETWEEN ? AND ?
+                GROUP BY DATE_FORMAT(visit_date, '%Y-%m')
+                ORDER BY month ASC
+            ", [$startDate, $endDate]);
+        }
+        
+        $data = [
+            'title' => '방문자 통계',
+            'type' => $type,
+            'stats' => $stats,
+            'start_date' => $startDate,
+            'end_date' => $endDate
+        ];
+        
+        $this->view('admin/stats/visitor', $data);
+    }
+    
+    /**
+     * 방문자 추적
+     */
+    public function statsTracking() {
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $perPage = 50;
+        $search = $_GET['search'] ?? '';
+        
+        $where = "WHERE 1=1";
+        $params = [];
+        
+        if ($search) {
+            $where .= " AND (ip_address LIKE ? OR page_url LIKE ?)";
+            $params[] = "%$search%";
+            $params[] = "%$search%";
+        }
+        
+        $total = getDbCnt("SELECT COUNT(*) FROM visitor_stats $where", $params);
+        $totalPages = ceil($total / $perPage);
+        $offset = ($page - 1) * $perPage;
+        
+        $visitors = getDbArray("
+            SELECT * FROM visitor_stats 
+            $where
+            ORDER BY created_at DESC 
+            LIMIT $perPage OFFSET $offset
+        ", $params);
+        
+        $data = [
+            'title' => '방문자 추적',
+            'visitors' => $visitors,
+            'total' => $total,
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'search' => $search
+        ];
+        
+        $this->view('admin/stats/tracking', $data);
+    }
+    
+    /**
+     * 게시물 통계
+     */
+    public function statsPosts() {
+        $type = $_GET['type'] ?? 'daily';
+        $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
+        $endDate = $_GET['end_date'] ?? date('Y-m-d');
+        
+        if ($type === 'daily') {
+            $stats = getDbArray("
+                SELECT DATE(created_at) as date, COUNT(*) as count
+                FROM bbs_index
+                WHERE created_at BETWEEN ? AND ? AND status = 'active'
+                GROUP BY DATE(created_at)
+                ORDER BY date ASC
+            ", [$startDate, $endDate]);
+        } else {
+            $stats = getDbArray("
+                SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count
+                FROM bbs_index
+                WHERE created_at BETWEEN ? AND ? AND status = 'active'
+                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+                ORDER BY month ASC
+            ", [$startDate, $endDate]);
+        }
+        
+        $boardStats = getDbArray("
+            SELECT board_id, COUNT(*) as count
+            FROM bbs_index
+            WHERE created_at BETWEEN ? AND ? AND status = 'active'
+            GROUP BY board_id
+            ORDER BY count DESC
+        ", [$startDate, $endDate]);
+        
+        $data = [
+            'title' => '게시물 통계',
+            'type' => $type,
+            'stats' => $stats,
+            'board_stats' => $boardStats,
+            'start_date' => $startDate,
+            'end_date' => $endDate
+        ];
+        
+        $this->view('admin/stats/posts', $data);
+    }
+}
