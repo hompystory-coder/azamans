@@ -46,18 +46,19 @@
             <!-- 통계 카드 -->
             <div class="row g-4 mb-4">
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp h-100">
+                        <div class="card-body d-flex flex-column justify-content-between" style="min-height: 150px;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
                                     <h6 class="text-muted mb-2">전체 회원</h6>
-                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['total_members'] ?? 0); ?></h2>
-                                    <?php if (($stats['today_members'] ?? 0) > 0): ?>
-                                        <small class="text-success">
-                                            <i class="fas fa-arrow-up me-1"></i>
-                                            오늘 +<?php echo $stats['today_members']; ?>
-                                        </small>
-                                    <?php endif; ?>
+                                    <h2 class="mb-2 fw-bold"><?php echo number_format($stats['total_members'] ?? 0); ?></h2>
+                                    <small class="<?php echo ($stats['today_members'] ?? 0) > 0 ? 'text-success' : 'text-muted'; ?>">
+                                        <?php if (($stats['today_members'] ?? 0) > 0): ?>
+                                            <i class="fas fa-arrow-up me-1"></i>오늘 +<?php echo $stats['today_members']; ?>명
+                                        <?php else: ?>
+                                            신규회원이 없습니다
+                                        <?php endif; ?>
+                                    </small>
                                 </div>
                                 <div class="display-4 text-primary opacity-25">
                                     <i class="fas fa-users"></i>
@@ -68,18 +69,23 @@
                 </div>
                 
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp h-100" style="animation-delay: 0.1s;">
+                        <div class="card-body d-flex flex-column justify-content-between" style="min-height: 150px;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
                                     <h6 class="text-muted mb-2">전체 게시물</h6>
-                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['total_posts'] ?? 0); ?></h2>
-                                    <?php if (($stats['today_posts'] ?? 0) > 0): ?>
-                                        <small class="text-success">
-                                            <i class="fas fa-arrow-up me-1"></i>
-                                            오늘 +<?php echo $stats['today_posts']; ?>
-                                        </small>
-                                    <?php endif; ?>
+                                    <h2 class="mb-2 fw-bold"><?php echo number_format($stats['total_posts'] ?? 0); ?></h2>
+                                    <small class="<?php echo ($stats['total_posts'] ?? 0) > 0 ? 'text-success' : 'text-muted'; ?>">
+                                        <?php if (($stats['total_posts'] ?? 0) > 0): ?>
+                                            <?php if (($stats['today_posts'] ?? 0) > 0): ?>
+                                                <i class="fas fa-arrow-up me-1"></i>오늘 +<?php echo $stats['today_posts']; ?>개
+                                            <?php else: ?>
+                                                운영 중입니다
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            게시물이 없습니다
+                                        <?php endif; ?>
+                                    </small>
                                 </div>
                                 <div class="display-4 text-success opacity-25">
                                     <i class="fas fa-file-alt"></i>
@@ -90,18 +96,23 @@
                 </div>
                 
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp h-100" style="animation-delay: 0.2s;">
+                        <div class="card-body d-flex flex-column justify-content-between" style="min-height: 150px;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
                                     <h6 class="text-muted mb-2">전체 댓글</h6>
-                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['total_comments'] ?? 0); ?></h2>
-                                    <?php if (($stats['today_comments'] ?? 0) > 0): ?>
-                                        <small class="text-success">
-                                            <i class="fas fa-arrow-up me-1"></i>
-                                            오늘 +<?php echo $stats['today_comments']; ?>
-                                        </small>
-                                    <?php endif; ?>
+                                    <h2 class="mb-2 fw-bold"><?php echo number_format($stats['total_comments'] ?? 0); ?></h2>
+                                    <small class="<?php echo ($stats['total_comments'] ?? 0) > 0 && ($stats['total_posts'] ?? 0) > 0 ? 'text-success' : 'text-muted'; ?>">
+                                        <?php if (($stats['total_comments'] ?? 0) > 0 && ($stats['total_posts'] ?? 0) > 0): ?>
+                                            <?php if (($stats['today_comments'] ?? 0) > 0): ?>
+                                                <i class="fas fa-arrow-up me-1"></i>오늘 +<?php echo $stats['today_comments']; ?>개
+                                            <?php else: ?>
+                                                활발히 운영 중
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            댓글이 없습니다
+                                        <?php endif; ?>
+                                    </small>
                                 </div>
                                 <div class="display-4 text-warning opacity-25">
                                     <i class="fas fa-comments"></i>
@@ -112,13 +123,19 @@
                 </div>
                 
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp h-100" style="animation-delay: 0.3s;">
+                        <div class="card-body d-flex flex-column justify-content-between" style="min-height: 150px;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
                                     <h6 class="text-muted mb-2">오늘 신규</h6>
-                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['today_members'] ?? 0); ?></h2>
-                                    <small class="text-muted">신규 회원</small>
+                                    <h2 class="mb-2 fw-bold"><?php echo number_format($stats['today_members'] ?? 0); ?></h2>
+                                    <small class="<?php echo ($stats['today_members'] ?? 0) > 0 ? 'text-success' : 'text-muted'; ?>">
+                                        <?php if (($stats['today_members'] ?? 0) > 0): ?>
+                                            신규 회원
+                                        <?php else: ?>
+                                            신규회원이 없습니다
+                                        <?php endif; ?>
+                                    </small>
                                 </div>
                                 <div class="display-4 text-danger opacity-25">
                                     <i class="fas fa-user-plus"></i>
