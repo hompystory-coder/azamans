@@ -414,3 +414,136 @@ footer {
 .btn-small:hover {
     text-decoration: underline;
 }
+
+/* ========================================
+   Pagination Styles
+   ======================================== */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin: 30px 0;
+    padding: 20px 0;
+}
+
+.page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background-color: #3498db;
+    border-color: #3498db;
+    color: #fff;
+}
+
+.page-link.active {
+    background-color: #3498db;
+    border-color: #3498db;
+    color: #fff;
+    font-weight: bold;
+    cursor: default;
+}
+
+.page-link.page-first,
+.page-link.page-last {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+.page-link.page-prev,
+.page-link.page-next {
+    background-color: #f8f9fa;
+    font-weight: 500;
+    padding: 0 16px;
+}
+
+.pagination-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+    color: #666;
+}
+
+.pagination-info .page-number {
+    font-weight: 500;
+    color: #3498db;
+}
+
+/* Simple Pagination */
+.pagination.simple {
+    justify-content: space-between;
+    padding: 15px 0;
+}
+
+.btn-pagination {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-pagination:hover:not(.disabled) {
+    background-color: #3498db;
+    border-color: #3498db;
+    color: #fff;
+}
+
+.btn-pagination.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+}
+
+.pagination-current {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    
+    .page-link {
+        min-width: 32px;
+        height: 32px;
+        font-size: 13px;
+        padding: 0 8px;
+    }
+    
+    .page-link.page-first,
+    .page-link.page-last {
+        display: none;
+    }
+    
+    .pagination-info {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+}

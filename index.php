@@ -36,6 +36,7 @@ require_once APP_PATH . '/config/_db_info.php';
 require_once APP_PATH . '/config/_db_func.php';
 require_once APP_PATH . '/config/_sys.func.php';
 require_once APP_PATH . '/config/_security.func.php';
+require_once APP_PATH . '/config/_pagination.func.php';
 
 // MVC 라이브러리 로드
 require_once APP_PATH . '/libs/controller.php';

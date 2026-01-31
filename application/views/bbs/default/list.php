@@ -117,8 +117,14 @@
         <!-- 페이지네이션 -->
         <?php if ($total_pages > 1): ?>
             <div class="board-pagination">
-                <?php echo pagination($current_page, $total_pages, "/bbs/{$board['board_id']}/"); ?>
+                <?php 
+                $params = [];
+                if (!empty($category)) $params['category'] = $category;
+                if (!empty($search)) $params['search'] = $search;
+                echo renderPagination($current_page, $total_pages, "/bbs/{$board['board_id']}", $params); 
+                ?>
             </div>
+            <?php echo renderPaginationInfo($current_page, $total_pages, $total, $board['posts_per_page']); ?>
         <?php endif; ?>
         
         <!-- 하단 버튼 -->
