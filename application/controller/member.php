@@ -13,6 +13,13 @@ class Member extends Controller {
     }
     
     /**
+     * 기본 라우팅 (리다이렉트)
+     */
+    public function index() {
+        $this->redirect('/member/mypage');
+    }
+    
+    /**
      * 로그인 페이지
      */
     public function login() {

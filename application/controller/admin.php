@@ -182,13 +182,23 @@ class Admin extends Controller {
      */
     public function member($uid) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // JSON 요청 처리
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+            
             // 회원 정보 수정
             $updateData = [
-                'name' => cleanInput($this->post('name')),
-                'email' => cleanInput($this->post('email')),
-                'level' => (int)$this->post('level'),
-                'status' => cleanInput($this->post('status'))
+                'name' => cleanInput($data['name']),
+                'email' => cleanInput($data['email']),
+                'level' => (int)$data['level'],
+                'point' => (int)($data['point'] ?? 0),
+                'status' => cleanInput($data['status'])
             ];
+            
+            // 비밀번호 변경이 있으면
+            if (!empty($data['new_password'])) {
+                $updateData['password'] = hashPassword($data['new_password']);
+            }
             
             $result = getDbUpdate('member', $updateData, 'uid = ?', [$uid]);
             
@@ -203,6 +213,25 @@ class Admin extends Controller {
                     'message' => '수정 중 오류가 발생했습니다.'
                 ], 500);
             }
+            return;
+        }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            // 회원 삭제
+            $result = getDbUpdate('member', ['status' => 'withdrawn'], 'uid = ?', [$uid]);
+            
+            if ($result !== false) {
+                $this->json([
+                    'success' => true,
+                    'message' => '회원이 삭제(탈퇴처리)되었습니다.'
+                ]);
+            } else {
+                $this->json([
+                    'success' => false,
+                    'message' => '삭제 중 오류가 발생했습니다.'
+                ], 500);
+            }
+            return;
         }
         
         // 회원 정보 조회
@@ -225,17 +254,21 @@ class Admin extends Controller {
      */
     public function boards() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // JSON 요청 처리
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+            
             // 게시판 생성
             $boardData = [
-                'board_id' => cleanInput($this->post('board_id')),
-                'board_name' => cleanInput($this->post('board_name')),
-                'board_skin' => cleanInput($this->post('board_skin', 'default')),
-                'posts_per_page' => (int)$this->post('posts_per_page', 20),
-                'read_level' => (int)$this->post('read_level', 1),
-                'write_level' => (int)$this->post('write_level', 1),
-                'comment_level' => (int)$this->post('comment_level', 1),
-                'use_comment' => cleanInput($this->post('use_comment', 'Y')),
-                'use_category' => cleanInput($this->post('use_category', 'N')),
+                'board_id' => cleanInput($data['board_id']),
+                'board_name' => cleanInput($data['board_name']),
+                'board_skin' => cleanInput($data['board_skin'] ?? 'default'),
+                'posts_per_page' => (int)($data['posts_per_page'] ?? 20),
+                'read_level' => (int)($data['read_level'] ?? 1),
+                'write_level' => (int)($data['write_level'] ?? 1),
+                'comment_level' => (int)($data['comment_level'] ?? 1),
+                'use_comment' => cleanInput($data['use_comment'] ?? 'Y'),
+                'use_category' => cleanInput($data['use_category'] ?? 'N'),
                 'status' => 'active'
             ];
             
@@ -253,6 +286,7 @@ class Admin extends Controller {
                     'message' => '게시판 생성 중 오류가 발생했습니다.'
                 ], 500);
             }
+            return;
         }
         
         // 게시판 목록
@@ -260,6 +294,7 @@ class Admin extends Controller {
             SELECT b.*, 
                    (SELECT COUNT(*) FROM bbs_index WHERE board_id = b.board_id AND status = 'active') as post_count
             FROM bbs_list b
+            WHERE b.status != 'deleted'
             ORDER BY b.created_at DESC
         ");
         
@@ -276,16 +311,20 @@ class Admin extends Controller {
      */
     public function board($uid) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // JSON 요청 처리
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+            
             $updateData = [
-                'board_name' => cleanInput($this->post('board_name')),
-                'board_skin' => cleanInput($this->post('board_skin')),
-                'posts_per_page' => (int)$this->post('posts_per_page'),
-                'read_level' => (int)$this->post('read_level'),
-                'write_level' => (int)$this->post('write_level'),
-                'comment_level' => (int)$this->post('comment_level'),
-                'use_comment' => cleanInput($this->post('use_comment')),
-                'use_category' => cleanInput($this->post('use_category')),
-                'status' => cleanInput($this->post('status'))
+                'board_name' => cleanInput($data['board_name']),
+                'board_skin' => cleanInput($data['board_skin']),
+                'posts_per_page' => (int)$data['posts_per_page'],
+                'read_level' => (int)$data['read_level'],
+                'write_level' => (int)$data['write_level'],
+                'comment_level' => (int)$data['comment_level'],
+                'use_comment' => cleanInput($data['use_comment']),
+                'use_category' => cleanInput($data['use_category']),
+                'status' => cleanInput($data['status'])
             ];
             
             $result = getDbUpdate('bbs_list', $updateData, 'uid = ?', [$uid]);
@@ -301,6 +340,32 @@ class Admin extends Controller {
                     'message' => '수정 중 오류가 발생했습니다.'
                 ], 500);
             }
+            return;
+        }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            // 게시판 삭제
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+            
+            // 게시판의 모든 게시물도 삭제 (status 변경)
+            getDbUpdate('bbs_index', ['status' => 'deleted'], 'board_id IN (SELECT board_id FROM bbs_list WHERE uid = ?)', [$uid]);
+            
+            // 게시판 삭제
+            $result = getDbUpdate('bbs_list', ['status' => 'deleted'], 'uid = ?', [$uid]);
+            
+            if ($result !== false) {
+                $this->json([
+                    'success' => true,
+                    'message' => '게시판이 삭제되었습니다.'
+                ]);
+            } else {
+                $this->json([
+                    'success' => false,
+                    'message' => '삭제 중 오류가 발생했습니다.'
+                ], 500);
+            }
+            return;
         }
         
         $board = getUidData("SELECT * FROM bbs_list WHERE uid = ?", [$uid]);
@@ -327,23 +392,44 @@ class Admin extends Controller {
         $startDate = date('Y-m-d', strtotime("-{$period} days"));
         $endDate = date('Y-m-d');
         
+        // 오늘/어제 날짜
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+        $weekAgo = date('Y-m-d', strtotime('-7 days'));
+        $monthAgo = date('Y-m-d', strtotime('-30 days'));
+        
+        // 방문자 통계
+        $visitorStats = [
+            'today' => getDbCnt("SELECT COUNT(DISTINCT ip_address) FROM visitor_stats WHERE visit_date = ?", [$today]),
+            'yesterday' => getDbCnt("SELECT COUNT(DISTINCT ip_address) FROM visitor_stats WHERE visit_date = ?", [$yesterday]),
+            'week' => getDbCnt("SELECT COUNT(DISTINCT ip_address) FROM visitor_stats WHERE visit_date >= ?", [$weekAgo]),
+            'month' => getDbCnt("SELECT COUNT(DISTINCT ip_address) FROM visitor_stats WHERE visit_date >= ?", [$monthAgo]),
+            'total' => getDbCnt("SELECT COUNT(DISTINCT ip_address, visit_date) FROM visitor_stats")
+        ];
+        
+        // 게시물 통계
+        $postStats = [
+            'today' => getDbCnt("SELECT COUNT(*) FROM bbs_index WHERE DATE(created_at) = ? AND status = 'active'", [$today]),
+            'yesterday' => getDbCnt("SELECT COUNT(*) FROM bbs_index WHERE DATE(created_at) = ? AND status = 'active'", [$yesterday]),
+            'week' => getDbCnt("SELECT COUNT(*) FROM bbs_index WHERE DATE(created_at) >= ? AND status = 'active'", [$weekAgo]),
+            'month' => getDbCnt("SELECT COUNT(*) FROM bbs_index WHERE DATE(created_at) >= ? AND status = 'active'", [$monthAgo]),
+            'total' => getDbCnt("SELECT COUNT(*) FROM bbs_index WHERE status = 'active'")
+        ];
+        
+        // 회원 가입 통계
+        $memberStats = [
+            'today' => getDbCnt("SELECT COUNT(*) FROM member WHERE DATE(reg_date) = ?", [$today]),
+            'yesterday' => getDbCnt("SELECT COUNT(*) FROM member WHERE DATE(reg_date) = ?", [$yesterday]),
+            'week' => getDbCnt("SELECT COUNT(*) FROM member WHERE DATE(reg_date) >= ?", [$weekAgo]),
+            'month' => getDbCnt("SELECT COUNT(*) FROM member WHERE DATE(reg_date) >= ?", [$monthAgo]),
+            'total' => getDbCnt("SELECT COUNT(*) FROM member")
+        ];
+        
         // KPI 통계
         $stats = [
-            'total_visitors' => getDbCnt("
-                SELECT COUNT(DISTINCT ip_address) 
-                FROM bbs_index 
-                WHERE DATE(created_at) BETWEEN ? AND ?
-            ", [$startDate, $endDate]),
-            'new_members' => getDbCnt("
-                SELECT COUNT(*) 
-                FROM member 
-                WHERE DATE(reg_date) BETWEEN ? AND ?
-            ", [$startDate, $endDate]),
-            'new_posts' => getDbCnt("
-                SELECT COUNT(*) 
-                FROM bbs_index 
-                WHERE status = 'active' AND DATE(created_at) BETWEEN ? AND ?
-            ", [$startDate, $endDate]),
+            'total_visitors' => $visitorStats['total'],
+            'new_members' => $memberStats['month'],
+            'new_posts' => $postStats['month'],
             'active_users' => getDbCnt("
                 SELECT COUNT(DISTINCT uid) 
                 FROM member 
@@ -353,11 +439,11 @@ class Admin extends Controller {
         
         // 일별 방문자 추이
         $dailyVisits = getDbArray("
-            SELECT DATE(created_at) as date, COUNT(DISTINCT ip_address) as count
-            FROM bbs_index
-            WHERE DATE(created_at) BETWEEN ? AND ?
-            GROUP BY DATE(created_at)
-            ORDER BY date ASC
+            SELECT visit_date as date, COUNT(DISTINCT ip_address) as count
+            FROM visitor_stats
+            WHERE visit_date BETWEEN ? AND ?
+            GROUP BY visit_date
+            ORDER BY visit_date ASC
         ", [$startDate, $endDate]);
         
         // 회원 가입 추이
@@ -382,7 +468,8 @@ class Admin extends Controller {
         $postsByBoard = getDbArray("
             SELECT b.board_name, COUNT(p.uid) as count
             FROM bbs_list b
-            LEFT JOIN bbs_index p ON b.bbs_id = p.board_id AND p.status = 'active'
+            LEFT JOIN bbs_index p ON b.board_id = p.board_id AND p.status = 'active'
+            WHERE b.status != 'deleted'
             GROUP BY b.uid, b.board_name
             ORDER BY count DESC
             LIMIT 10
@@ -401,6 +488,9 @@ class Admin extends Controller {
             'title' => '통계',
             'period' => $period,
             'stats' => $stats,
+            'visitorStats' => $visitorStats,
+            'postStats' => $postStats,
+            'memberStats' => $memberStats,
             'dailyVisits' => $dailyVisits,
             'dailySignups' => $dailySignups,
             'dailyPosts' => $dailyPosts,

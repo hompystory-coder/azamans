@@ -310,3 +310,25 @@ function setConfig($key, $value) {
         ]) !== false;
     }
 }
+
+/**
+ * 방문자 기록
+ */
+function trackVisitor() {
+    $ip = getClientIP();
+    $today = date('Y-m-d');
+    
+    // 오늘 이미 기록된 IP인지 확인
+    $exists = getUidData("SELECT uid FROM visitor_stats WHERE visit_date = ? AND ip_address = ?", [$today, $ip]);
+    
+    if (!$exists) {
+        // 신규 방문자 기록
+        getDbInsert('visitor_stats', [
+            'visit_date' => $today,
+            'ip_address' => $ip,
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'referer' => $_SERVER['HTTP_REFERER'] ?? '',
+            'page_url' => $_SERVER['REQUEST_URI'] ?? ''
+        ]);
+    }
+}

@@ -42,5 +42,8 @@ require_once APP_PATH . '/config/_pagination.func.php';
 require_once APP_PATH . '/libs/controller.php';
 require_once APP_PATH . '/libs/application.php';
 
+// 방문자 추적
+trackVisitor();
+
 // 애플리케이션 시작
 $app = new Application();
