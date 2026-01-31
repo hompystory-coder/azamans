@@ -308,4 +308,77 @@ class Member extends Controller {
             $this->json(['success' => false, 'message' => '정보 수정 중 오류가 발생했습니다.'], 500);
         }
     }
+    
+    /**
+     * 최근 알림 조회 (AJAX)
+     */
+    public function notificationsRecent() {
+        $this->requireLogin();
+        
+        // 최근 10개 알림 조회
+        $notifications = getDbArray("
+            SELECT * FROM notifications 
+            WHERE user_uid = ?
+            ORDER BY created_at DESC
+            LIMIT 10
+        ", [$_SESSION['user_id']]);
+        
+        // 시간 포맷 처리
+        foreach ($notifications as &$notif) {
+            $notif['time_ago'] = timeAgo($notif['created_at']);
+        }
+        
+        $this->json([
+            'success' => true,
+            'notifications' => $notifications
+        ]);
+    }
+    
+    /**
+     * 모든 알림 읽음 처리
+     */
+    public function notificationsMarkAllRead() {
+        $this->requireLogin();
+        
+        $result = getDbUpdate('notifications', 
+            ['is_read' => 'Y'], 
+            'user_uid = ? AND is_read = ?', 
+            [$_SESSION['user_id'], 'N']
+        );
+        
+        $this->json([
+            'success' => true,
+            'message' => '모든 알림을 읽음 처리했습니다.'
+        ]);
+    }
+    
+    /**
+     * 전체 알림 페이지
+     */
+    public function notifications() {
+        $this->requireLogin();
+        
+        $page = $this->get('page') ?? 1;
+        $perPage = 20;
+        $offset = ($page - 1) * $perPage;
+        
+        $total = getDbCnt("SELECT COUNT(*) FROM notifications WHERE user_uid = ?", [$_SESSION['user_id']]);
+        
+        $notifications = getDbArray("
+            SELECT * FROM notifications 
+            WHERE user_uid = ?
+            ORDER BY created_at DESC
+            LIMIT {$perPage} OFFSET {$offset}
+        ", [$_SESSION['user_id']]);
+        
+        $data = [
+            'title' => '알림',
+            'notifications' => $notifications,
+            'total' => $total,
+            'current_page' => (int)$page,
+            'total_pages' => ceil($total / $perPage)
+        ];
+        
+        $this->view('member/notifications', $data);
+    }
 }
