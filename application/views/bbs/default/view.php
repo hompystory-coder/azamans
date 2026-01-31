@@ -121,17 +121,17 @@
                     <div class="comment-item" data-comment-id="<?php echo $comment['uid']; ?>">
                         <div class="comment-header">
                             <span class="comment-writer">
-                                <?php echo xssFilter($comment['writer']); ?>
-                                <?php if ($comment['writer_uid'] == $post['writer_uid']): ?>
+                                <?php echo xssFilter($comment['name']); ?>
+                                <?php if ($comment['member_uid'] == $post['writer_uid']): ?>
                                     <span class="badge-author">작성자</span>
                                 <?php endif; ?>
                             </span>
-                            <span class="comment-date"><?php echo timeAgo($comment['created_at']); ?></span>
+                            <span class="comment-date"><?php echo timeAgo($comment['reg_date']); ?></span>
                         </div>
                         <div class="comment-content">
                             <?php echo nl2br(xssFilter($comment['content'])); ?>
                         </div>
-                        <?php if (isLoggedIn() && (isset($_SESSION['user_id']) && $comment['writer_uid'] == $_SESSION['user_id']) || isAdmin()): ?>
+                        <?php if (isLoggedIn() && (isset($_SESSION['user_id']) && $comment['member_uid'] == $_SESSION['user_id']) || isAdmin()): ?>
                         <div class="comment-actions">
                             <button onclick="deleteComment(<?php echo $comment['uid']; ?>)" class="btn-comment-delete">삭제</button>
                         </div>

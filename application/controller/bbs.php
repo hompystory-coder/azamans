@@ -352,8 +352,8 @@ class Bbs extends Controller {
         // 게시판 정보
         $board = $this->boardModel->getBoardInfo($boardId);
         
-        if (!$board || $board['use_comment'] !== 'Y') {
-            $this->json(['success' => false, 'message' => '댓글을 사용할 수 없는 게시판입니다.'], 400);
+        if (!$board) {
+            $this->json(['success' => false, 'message' => '존재하지 않는 게시판입니다.'], 400);
         }
         
         // 권한 체크
@@ -368,6 +368,7 @@ class Bbs extends Controller {
         }
         
         $commentData = [
+            'board_id' => $boardId,
             'post_uid' => $postUid,
             'content' => $content,
             'writer' => $_SESSION['username'] ?? '비회원',

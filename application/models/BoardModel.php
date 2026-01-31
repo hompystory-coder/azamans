@@ -127,8 +127,8 @@ class BoardModel extends DBModel {
     public function getComments($postUid) {
         return getDbArray("
             SELECT * FROM bbs_comment 
-            WHERE post_uid = ? AND status = 'active'
-            ORDER BY created_at ASC
+            WHERE data_uid = ?
+            ORDER BY reg_date ASC
         ", [$postUid]);
     }
     
@@ -137,14 +137,15 @@ class BoardModel extends DBModel {
      */
     public function createComment($data) {
         $commentData = [
-            'post_uid' => $data['post_uid'],
-            'parent_uid' => $data['parent_uid'] ?? null,
+            'bbs_id' => $data['board_id'] ?? 'default',
+            'data_uid' => $data['post_uid'],
+            'parent_uid' => $data['parent_uid'] ?? 0,
+            'member_uid' => $data['writer_uid'] ?? 0,
+            'name' => $data['writer'],
             'content' => $data['content'],
-            'writer' => $data['writer'],
-            'writer_uid' => $data['writer_uid'] ?? null,
             'password' => isset($data['password']) ? hashPassword($data['password']) : null,
-            'ip_address' => getClientIP(),
-            'status' => 'active'
+            'is_secret' => $data['is_secret'] ?? 'N',
+            'ip_address' => getClientIP()
         ];
         
         $commentId = getDbInsert('bbs_comment', $commentData);
@@ -152,7 +153,7 @@ class BoardModel extends DBModel {
         if ($commentId) {
             // 게시물의 댓글 수 업데이트
             getDbUpdate('bbs_index', 
-                ['comments' => getDbCnt("SELECT COUNT(*) FROM bbs_comment WHERE post_uid = ? AND status = 'active'", [$data['post_uid']])],
+                ['comments' => getDbCnt("SELECT COUNT(*) FROM bbs_comment WHERE data_uid = ?", [$data['post_uid']])],
                 'uid = ?',
                 [$data['post_uid']]
             );
@@ -165,12 +166,13 @@ class BoardModel extends DBModel {
      * 댓글 삭제
      */
     public function deleteComment($uid, $postUid) {
-        $result = getDbUpdate('bbs_comment', ['status' => 'deleted'], 'uid = ?', [$uid]);
+        // 물리적 삭제
+        $result = getDbDelete('bbs_comment', 'uid = ?', [$uid]);
         
         if ($result) {
             // 게시물의 댓글 수 업데이트
             getDbUpdate('bbs_index', 
-                ['comments' => getDbCnt("SELECT COUNT(*) FROM bbs_comment WHERE post_uid = ? AND status = 'active'", [$postUid])],
+                ['comments' => getDbCnt("SELECT COUNT(*) FROM bbs_comment WHERE data_uid = ?", [$postUid])],
                 'uid = ?',
                 [$postUid]
             );
