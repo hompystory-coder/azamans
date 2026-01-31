@@ -1,111 +1,180 @@
-<header>
-    <nav>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo xssFilter($title ?? 'MVC Framework'); ?></title>
+    
+    <!-- Fonts -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css" />
+    <link href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+    
+    <!-- Bootstrap 6 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/public/css/style.css">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap 6 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <h1><a href="/"><?php echo getConfig('site_name', 'MVC Framework'); ?></a></h1>
-            <ul class="nav-menu">
-                <li><a href="/">홈</a></li>
-                <li><a href="/home/about">소개</a></li>
-                <?php if (isLoggedIn()): ?>
-                    <!-- 알림 -->
-                    <li class="nav-notification">
-                        <a href="#" onclick="toggleNotifications(event)" class="notification-toggle">
-                            <span class="icon">🔔</span>
-                            <span class="badge" id="notifCount">0</span>
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-cube me-2"></i>
+                <?php echo xssFilter(getConfig('site_name', 'MVC Framework')); ?>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i> 홈
                         </a>
-                        <div class="notification-dropdown" id="notificationDropdown" style="display:none;">
-                            <div class="notification-header">
-                                <h4>알림</h4>
-                                <button onclick="markAllAsRead()" class="btn-small">모두 읽음</button>
-                            </div>
-                            <div class="notification-list" id="notificationList">
-                                <p class="loading">로딩 중...</p>
-                            </div>
-                            <div class="notification-footer">
-                                <a href="/member/notifications">전체 알림 보기</a>
-                            </div>
-                        </div>
                     </li>
-                    <li><a href="/member/mypage">마이페이지</a></li>
-                    <li><a href="/member/logout">로그아웃</a></li>
-                    <?php if (isAdmin()): ?>
-                        <li><a href="/admin" class="admin-link">관리자</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/home/about">
+                            <i class="fas fa-info-circle me-1"></i> 소개
+                        </a>
+                    </li>
+                    
+                    <?php if (isLoggedIn()): ?>
+                        <!-- 로그인 상태 -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="/member/mypage">
+                                <i class="fas fa-user me-1"></i> 마이페이지
+                            </a>
+                        </li>
+                        
+                        <?php if (isAdmin()): ?>
+                        <li class="nav-item">
+                            <a class="nav-link text-primary fw-bold" href="/admin">
+                                <i class="fas fa-cog me-1"></i> 관리자
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        
+                        <!-- 알림 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-bell"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">
+                                    0
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
+                                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span>알림</span>
+                                    <a href="#" onclick="markAllAsRead(); return false;" class="text-muted small">모두 읽음</a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <div id="notificationList" style="max-height: 300px; overflow-y: auto;">
+                                    <li class="dropdown-item text-center text-muted">
+                                        <small>새로운 알림이 없습니다.</small>
+                                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link" href="/member/logout">
+                                <i class="fas fa-sign-out-alt me-1"></i> 로그아웃
+                            </a>
+                        </li>
+                    <?php else: ?>
+                        <!-- 비로그인 상태 -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="/member/login">
+                                <i class="fas fa-sign-in-alt me-1"></i> 로그인
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/member/register">
+                                <i class="fas fa-user-plus me-1"></i> 회원가입
+                            </a>
+                        </li>
                     <?php endif; ?>
-                <?php else: ?>
-                    <li><a href="/member/login">로그인</a></li>
-                    <li><a href="/member/register">회원가입</a></li>
-                <?php endif; ?>
-            </ul>
+                </ul>
+            </div>
         </div>
     </nav>
     
     <?php if (isLoggedIn()): ?>
     <script>
-    // 알림 토글
-    function toggleNotifications(e) {
-        e.preventDefault();
-        const dropdown = document.getElementById('notificationDropdown');
-        if (dropdown.style.display === 'none') {
-            dropdown.style.display = 'block';
-            loadNotifications();
-        } else {
-            dropdown.style.display = 'none';
-        }
-    }
-    
-    // 알림 로드
-    function loadNotifications() {
-        fetch('/member/notifications/recent')
+    // 알림 업데이트 함수
+    function updateNotifications() {
+        fetch('/member/getNotifications')
             .then(res => res.json())
             .then(data => {
-                const list = document.getElementById('notificationList');
-                if (data.success && data.notifications.length > 0) {
-                    list.innerHTML = data.notifications.map(notif => `
-                        <div class="notification-item ${notif.is_read === 'N' ? 'unread' : ''}">
-                            <div class="notif-content">
-                                <p>${notif.message}</p>
-                                <span class="notif-time">${notif.time_ago}</span>
-                            </div>
-                        </div>
-                    `).join('');
+                if (data.success && data.notifications) {
+                    const unreadCount = data.unread_count || 0;
+                    const badge = document.getElementById('notificationBadge');
+                    const list = document.getElementById('notificationList');
                     
-                    // 읽지 않은 알림 개수 업데이트
-                    const unreadCount = data.notifications.filter(n => n.is_read === 'N').length;
-                    document.getElementById('notifCount').textContent = unreadCount;
-                    document.getElementById('notifCount').style.display = unreadCount > 0 ? 'inline' : 'none';
-                } else {
-                    list.innerHTML = '<p class="no-data">새로운 알림이 없습니다.</p>';
+                    // 배지 업데이트
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // 알림 목록 업데이트
+                    if (data.notifications.length > 0) {
+                        list.innerHTML = data.notifications.map(noti => `
+                            <li>
+                                <a class="dropdown-item ${noti.is_read === 'N' ? 'bg-light' : ''}" href="${noti.link || '#'}">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-${noti.type === 'comment' ? 'comment' : 'bell'} text-primary me-2 mt-1"></i>
+                                        <div class="flex-grow-1">
+                                            <div class="small">${noti.message}</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">${noti.time_ago}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        `).join('');
+                    } else {
+                        list.innerHTML = '<li class="dropdown-item text-center text-muted"><small>새로운 알림이 없습니다.</small></li>';
+                    }
                 }
             })
-            .catch(err => {
-                console.error('알림 로드 실패:', err);
-            });
+            .catch(err => console.error('알림 로드 실패:', err));
     }
     
-    // 모두 읽음 처리
+    // 모든 알림 읽음 처리
     function markAllAsRead() {
-        fetch('/member/notifications/mark-all-read', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    loadNotifications();
-                }
-            });
+        fetch('/member/markAllNotificationsRead', {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateNotifications();
+            }
+        })
+        .catch(err => console.error('알림 읽음 처리 실패:', err));
     }
     
-    // 외부 클릭 시 드롭다운 닫기
-    document.addEventListener('click', function(e) {
-        const dropdown = document.getElementById('notificationDropdown');
-        const toggle = document.querySelector('.notification-toggle');
-        if (dropdown && !dropdown.contains(e.target) && !toggle.contains(e.target)) {
-            dropdown.style.display = 'none';
-        }
-    });
-    
-    // 주기적으로 알림 체크 (30초마다)
-    setInterval(loadNotifications, 30000);
-    
-    // 초기 로드
-    loadNotifications();
+    // 초기 로드 및 30초마다 업데이트
+    updateNotifications();
+    setInterval(updateNotifications, 30000);
     </script>
     <?php endif; ?>
-</header>
+</body>
+</html>
