@@ -24,11 +24,11 @@
             <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/site') !== false) ? 'show' : ''; ?>" id="siteMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/config" class="nav-link py-1 small <?php echo ($_SERVER['REQUEST_URI'] == '/admin/config') ? 'active' : ''; ?>">기본 설정</a></li>
-                    <li><a href="/admin/site/favicon" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/site/favicon') !== false) ? 'active' : ''; ?>">파비콘 설정</a></li>
-                    <li><a href="/admin/site/header" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/site/header') !== false) ? 'active' : ''; ?>">헤더 코드</a></li>
-                    <li><a href="/admin/site/footer" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/site/footer') !== false) ? 'active' : ''; ?>">푸터 코드</a></li>
-                    <li><a href="/admin/site/rss" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/site/rss') !== false) ? 'active' : ''; ?>">RSS 설정</a></li>
-                    <li><a href="/admin/site/sitemap" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/site/sitemap') !== false) ? 'active' : ''; ?>">사이트맵 설정</a></li>
+                    <li><a href="/admin/favicon" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false) ? 'active' : ''; ?>">파비콘 설정</a></li>
+                    <li><a href="/admin/headercode" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false) ? 'active' : ''; ?>">헤더 코드</a></li>
+                    <li><a href="/admin/footercode" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false) ? 'active' : ''; ?>">푸터 코드</a></li>
+                    <li><a href="/admin/rss" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false) ? 'active' : ''; ?>">RSS 설정</a></li>
+                    <li><a href="/admin/sitemap" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false) ? 'active' : ''; ?>">사이트맵 설정</a></li>
                 </ul>
             </div>
         </li>
@@ -43,10 +43,10 @@
             </a>
             <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member') !== false) ? 'show' : ''; ?>" id="memberMenu">
                 <ul class="nav flex-column ms-3">
-                    <li><a href="/admin/member/join-config" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member/join-config') !== false) ? 'active' : ''; ?>">회원가입 설정</a></li>
+                    <li><a href="/admin/joinconfig" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/joinconfig') !== false) ? 'active' : ''; ?>">회원가입 설정</a></li>
                     <li><a href="/admin/members" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/members') !== false || (strpos($_SERVER['REQUEST_URI'], '/admin/member/') !== false && strpos($_SERVER['REQUEST_URI'], '/admin/member/') === strrpos($_SERVER['REQUEST_URI'], '/admin/member/'))) ? 'active' : ''; ?>">회원 리스트</a></li>
-                    <li><a href="/admin/member/levels" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member/levels') !== false) ? 'active' : ''; ?>">회원 등급</a></li>
-                    <li><a href="/admin/member/points" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member/points') !== false) ? 'active' : ''; ?>">회원 포인트</a></li>
+                    <li><a href="/admin/levels" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/levels') !== false) ? 'active' : ''; ?>">회원 등급</a></li>
+                    <li><a href="/admin/points" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/points') !== false) ? 'active' : ''; ?>">회원 포인트</a></li>
                 </ul>
             </div>
         </li>
@@ -62,8 +62,8 @@
             <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/board') !== false) ? 'show' : ''; ?>" id="boardMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/boards" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/boards') !== false) ? 'active' : ''; ?>">게시판 관리</a></li>
-                    <li><a href="/admin/board/posts" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/board/posts') !== false) ? 'active' : ''; ?>">게시물 리스트</a></li>
-                    <li><a href="/admin/board/comments" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/board/comments') !== false) ? 'active' : ''; ?>">댓글 리스트</a></li>
+                    <li><a href="/admin/posts" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/posts') !== false) ? 'active' : ''; ?>">게시물 리스트</a></li>
+                    <li><a href="/admin/comments" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/comments') !== false) ? 'active' : ''; ?>">댓글 리스트</a></li>
                 </ul>
             </div>
         </li>
@@ -79,9 +79,9 @@
             <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/stat') !== false) ? 'show' : ''; ?>" id="statsMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/statistics" class="nav-link py-1 small <?php echo ($_SERVER['REQUEST_URI'] == '/admin/statistics') ? 'active' : ''; ?>">방문자 대시보드</a></li>
-                    <li><a href="/admin/stats/visitor" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/stats/visitor') !== false) ? 'active' : ''; ?>">방문자 통계</a></li>
-                    <li><a href="/admin/stats/tracking" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/stats/tracking') !== false) ? 'active' : ''; ?>">방문자 추적</a></li>
-                    <li><a href="/admin/stats/posts" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/stats/posts') !== false) ? 'active' : ''; ?>">게시물 통계</a></li>
+                    <li><a href="/admin/visitor" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/visitor') !== false) ? 'active' : ''; ?>">방문자 통계</a></li>
+                    <li><a href="/admin/tracking" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/tracking') !== false) ? 'active' : ''; ?>">방문자 추적</a></li>
+                    <li><a href="/admin/poststats" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/poststats') !== false) ? 'active' : ''; ?>">게시물 통계</a></li>
                 </ul>
             </div>
         </li>

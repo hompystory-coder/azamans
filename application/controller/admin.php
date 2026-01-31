@@ -537,40 +537,40 @@ class Admin extends Controller {
     /**
      * 사이트 설정 - 파비콘
      */
-    public function siteFavicon() {
+    public function favicon() {
         $data = [
             'title' => '파비콘 설정',
             'favicon_url' => getConfig('favicon_url', '')
         ];
-        $this->view('admin/site/favicon', $data);
+        $this->view('admin/favicon', $data);
     }
     
     /**
      * 사이트 설정 - 헤더 코드
      */
-    public function siteHeader() {
+    public function headercode() {
         $data = [
             'title' => '헤더 코드',
             'header_code' => getConfig('header_code', '')
         ];
-        $this->view('admin/site/header', $data);
+        $this->view('admin/header', $data);
     }
     
     /**
      * 사이트 설정 - 푸터 코드
      */
-    public function siteFooter() {
+    public function footercode() {
         $data = [
             'title' => '푸터 코드',
             'footer_code' => getConfig('footer_code', '')
         ];
-        $this->view('admin/site/footer', $data);
+        $this->view('admin/footer', $data);
     }
     
     /**
      * 사이트 설정 - RSS
      */
-    public function siteRss() {
+    public function rss() {
         $boards = getDbArray("SELECT board_id, board_name FROM bbs_list WHERE status = 'active' ORDER BY board_name");
         $data = [
             'title' => 'RSS 설정',
@@ -579,39 +579,39 @@ class Admin extends Controller {
             'rss_exclude' => json_decode(getConfig('rss_exclude', '[]'), true),
             'rss_period' => getConfig('rss_period', '30')
         ];
-        $this->view('admin/site/rss', $data);
+        $this->view('admin/rss', $data);
     }
     
     /**
      * 사이트 설정 - 사이트맵
      */
-    public function siteSitemap() {
+    public function sitemap() {
         $boards = getDbArray("SELECT board_id, board_name FROM bbs_list WHERE status = 'active' ORDER BY board_name");
         $data = [
             'title' => '사이트맵 설정',
             'boards' => $boards,
             'sitemap_exclude' => json_decode(getConfig('sitemap_exclude', '[]'), true)
         ];
-        $this->view('admin/site/sitemap', $data);
+        $this->view('admin/sitemap', $data);
     }
     
     /**
      * 회원가입 설정
      */
-    public function memberJoinConfig() {
+    public function joinconfig() {
         $data = [
             'title' => '회원가입 설정',
             'terms_of_service' => getConfig('terms_of_service', ''),
             'privacy_policy' => getConfig('privacy_policy', ''),
             'youth_protection' => getConfig('youth_protection', '')
         ];
-        $this->view('admin/member/join_config', $data);
+        $this->view('admin/join_config', $data);
     }
     
     /**
      * 회원 등급 관리
      */
-    public function memberLevels() {
+    public function levels() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
             
@@ -648,13 +648,13 @@ class Admin extends Controller {
             'title' => '회원 등급 관리',
             'levels' => $levels
         ];
-        $this->view('admin/member/levels', $data);
+        $this->view('admin/levels', $data);
     }
     
     /**
      * 회원 포인트 지급
      */
-    public function memberPoints() {
+    public function points() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $memberUid = (int)$_POST['member_uid'];
             $points = (int)$_POST['points'];
@@ -681,13 +681,13 @@ class Admin extends Controller {
             'title' => '회원 포인트 지급',
             'members' => $members
         ];
-        $this->view('admin/member/points', $data);
+        $this->view('admin/points', $data);
     }
     
     /**
      * 게시물 리스트
      */
-    public function boardPosts() {
+    public function posts() {
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $perPage = 20;
         $search = $_GET['search'] ?? '';
@@ -731,13 +731,13 @@ class Admin extends Controller {
             'board_id' => $boardId
         ];
         
-        $this->view('admin/board/posts', $data);
+        $this->view('admin/posts', $data);
     }
     
     /**
      * 댓글 리스트
      */
-    public function boardComments() {
+    public function comments() {
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $perPage = 20;
         $search = $_GET['search'] ?? '';
@@ -773,13 +773,13 @@ class Admin extends Controller {
             'search' => $search
         ];
         
-        $this->view('admin/board/comments', $data);
+        $this->view('admin/comments', $data);
     }
     
     /**
      * 방문자 통계 (일별/월별)
      */
-    public function statsVisitor() {
+    public function visitor() {
         $type = $_GET['type'] ?? 'daily';
         $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
         $endDate = $_GET['end_date'] ?? date('Y-m-d');
@@ -810,13 +810,13 @@ class Admin extends Controller {
             'end_date' => $endDate
         ];
         
-        $this->view('admin/stats/visitor', $data);
+        $this->view('admin/visitor', $data);
     }
     
     /**
      * 방문자 추적
      */
-    public function statsTracking() {
+    public function tracking() {
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $perPage = 50;
         $search = $_GET['search'] ?? '';
@@ -850,13 +850,13 @@ class Admin extends Controller {
             'search' => $search
         ];
         
-        $this->view('admin/stats/tracking', $data);
+        $this->view('admin/tracking', $data);
     }
     
     /**
      * 게시물 통계
      */
-    public function statsPosts() {
+    public function poststats() {
         $type = $_GET['type'] ?? 'daily';
         $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
         $endDate = $_GET['end_date'] ?? date('Y-m-d');
@@ -896,6 +896,6 @@ class Admin extends Controller {
             'end_date' => $endDate
         ];
         
-        $this->view('admin/stats/posts', $data);
+        $this->view('admin/posts', $data);
     }
 }
