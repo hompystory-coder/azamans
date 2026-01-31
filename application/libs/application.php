@@ -62,9 +62,43 @@ class Application {
      * @return array
      */
     protected function parseUrl() {
+        // 1. $_GET['url']이 있으면 사용 (Nginx rewrite로 전달된 경우)
         if (isset($_GET['url'])) {
-            $url = rtrim($_GET['url'], '/');
+            $url = trim($_GET['url'], '/');
             $url = filter_var($url, FILTER_SANITIZE_URL);
+            
+            // 빈 문자열이면 홈
+            if (empty($url)) {
+                return [];
+            }
+            
+            $url = explode('/', $url);
+            return $url;
+        }
+        
+        // 2. REQUEST_URI에서 직접 파싱 (Nginx rewrite가 없는 경우)
+        if (isset($_SERVER['REQUEST_URI'])) {
+            $requestUri = $_SERVER['REQUEST_URI'];
+            
+            // 쿼리스트링 제거
+            if (($pos = strpos($requestUri, '?')) !== false) {
+                $requestUri = substr($requestUri, 0, $pos);
+            }
+            
+            // 앞뒤 슬래시 제거
+            $requestUri = trim($requestUri, '/');
+            
+            // index.php 제거
+            $requestUri = str_replace('index.php', '', $requestUri);
+            $requestUri = trim($requestUri, '/');
+            
+            // 빈 문자열이면 홈
+            if (empty($requestUri)) {
+                return [];
+            }
+            
+            // URL을 배열로 변환
+            $url = filter_var($requestUri, FILTER_SANITIZE_URL);
             $url = explode('/', $url);
             return $url;
         }
