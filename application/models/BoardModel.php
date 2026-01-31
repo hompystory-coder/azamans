@@ -98,7 +98,16 @@ class BoardModel extends DBModel {
             'status' => 'active'
         ];
         
-        return getDbInsert('bbs_index', $postData);
+        $postId = getDbInsert('bbs_index', $postData);
+        
+        // 포인트 적립 (로그인 회원만)
+        if ($postId && !empty($data['writer_uid'])) {
+            require_once __DIR__ . '/PointModel.php';
+            $pointModel = new PointModel();
+            $pointModel->rewardPost($data['writer_uid'], $postId);
+        }
+        
+        return $postId;
     }
     
     /**
@@ -157,6 +166,13 @@ class BoardModel extends DBModel {
                 'uid = ?',
                 [$data['post_uid']]
             );
+            
+            // 포인트 적립 (로그인 회원만)
+            if (!empty($data['writer_uid'])) {
+                require_once __DIR__ . '/PointModel.php';
+                $pointModel = new PointModel();
+                $pointModel->rewardComment($data['writer_uid'], $commentId);
+            }
         }
         
         return $commentId;

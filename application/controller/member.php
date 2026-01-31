@@ -66,6 +66,11 @@ class Member extends Controller {
                 [$user['uid']]
             );
             
+            // 로그인 포인트 적립
+            require_once __DIR__ . '/../models/PointModel.php';
+            $pointModel = new PointModel();
+            $pointModel->rewardLogin($user['uid']);
+            
             $this->json([
                 'success' => true,
                 'message' => '로그인 성공',
