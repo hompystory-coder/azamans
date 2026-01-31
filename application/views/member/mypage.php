@@ -1,285 +1,269 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>마이페이지</title>
-    <link rel="stylesheet" href="/public/css/style.css">
-    <link rel="stylesheet" href="/public/css/mypage.css">
-</head>
-<body>
-    <?php include __DIR__ . '/_header.php'; ?>
-    
-    <main class="container mypage-container">
-        <h1>마이페이지</h1>
-        
-        <div class="mypage-grid">
-            <!-- 프로필 카드 -->
-            <div class="profile-card">
-                <div class="profile-image-wrapper">
-                    <img src="<?php echo $user['profile_image'] ?: '/public/images/default-avatar.png'; ?>" 
-                         alt="프로필 사진" class="profile-image" id="profileImg">
-                    <button type="button" class="btn-change-photo" onclick="document.getElementById('photoInput').click()">
-                        📷 사진 변경
-                    </button>
-                    <form id="photoForm" style="display: none;">
-                        <input type="file" id="photoInput" accept="image/*" onchange="uploadPhoto(event)">
-                    </form>
-                </div>
-                
-                <div class="profile-info">
-                    <h2><?php echo xssFilter($user['name'] ?? $user['user_id']); ?></h2>
-                    <p class="user-id">@<?php echo xssFilter($user['user_id']); ?></p>
-                    <p class="user-email"><?php echo xssFilter($user['email']); ?></p>
-                    
-                    <div class="user-badge">
-                        <span class="badge">Lv.<?php echo $user['level']; ?></span>
-                        <?php if ($user['level'] >= 9): ?>
-                            <span class="badge badge-admin">관리자</span>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <div class="user-stats">
-                        <div class="stat-item">
-                            <span class="stat-label">포인트</span>
-                            <span class="stat-value">💰 <?php echo number_format($user['point'] ?? 0); ?>P</span>
+<?php include __DIR__ . '/../_header.php'; ?>
+
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <!-- 프로필 카드 -->
+                <div class="card border-0 shadow-sm animate__animated animate__fadeInLeft">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-3 position-relative d-inline-block">
+                            <img src="<?php echo $user['profile_image'] ?? '/public/images/default-avatar.png'; ?>" 
+                                 alt="프로필" 
+                                 class="rounded-circle border border-3 border-main"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                            <button class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0" 
+                                    onclick="document.getElementById('profileImageInput').click()">
+                                <i class="fas fa-camera"></i>
+                            </button>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">게시물</span>
-                            <span class="stat-value"><?php echo number_format($user['post_count'] ?? 0); ?></span>
+                        
+                        <form id="photoForm" enctype="multipart/form-data" style="display: none;">
+                            <input type="file" id="profileImageInput" name="profile_image" 
+                                   accept="image/*" onchange="uploadPhoto()">
+                        </form>
+                        
+                        <h3 class="mb-1 fw-bold"><?php echo xssFilter($user['name']); ?></h3>
+                        <p class="text-muted mb-2">@<?php echo xssFilter($user['user_id']); ?></p>
+                        <p class="text-muted small mb-3"><?php echo xssFilter($user['email']); ?></p>
+                        
+                        <div class="d-flex justify-content-center gap-2 mb-3">
+                            <span class="badge bg-primary">Lv.<?php echo $user['level']; ?></span>
+                            <?php if ($user['level'] >= 9): ?>
+                                <span class="badge bg-danger">관리자</span>
+                            <?php endif; ?>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">댓글</span>
-                            <span class="stat-value"><?php echo number_format($user['comment_count'] ?? 0); ?></span>
+                        
+                        <hr>
+                        
+                        <div class="row text-center g-3">
+                            <div class="col-4">
+                                <div class="text-main fw-bold fs-4"><?php echo number_format($user['point'] ?? 0); ?></div>
+                                <div class="small text-muted">포인트</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-main fw-bold fs-4"><?php echo number_format($user['post_count'] ?? 0); ?></div>
+                                <div class="small text-muted">게시물</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-main fw-bold fs-4"><?php echo number_format($user['comment_count'] ?? 0); ?></div>
+                                <div class="small text-muted">댓글</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- 회원 정보 수정 -->
-            <div class="info-panel">
-                <h3>회원 정보</h3>
-                <form id="updateForm" onsubmit="updateProfile(event)">
-                    <div class="form-group">
-                        <label>아이디</label>
-                        <input type="text" value="<?php echo xssFilter($user['user_id']); ?>" disabled>
+            <div class="col-lg-8">
+                <!-- 프로필 수정 -->
+                <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInRight">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-user-edit text-main me-2"></i>프로필 수정
+                        </h5>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="name">이름</label>
-                        <input type="text" name="name" id="name" 
-                               value="<?php echo xssFilter($user['name']); ?>">
+                    <div class="card-body">
+                        <form id="profileForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">이름</label>
+                                    <input type="text" class="form-control" name="name" 
+                                           value="<?php echo xssFilter($user['name']); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">닉네임</label>
+                                    <input type="text" class="form-control" name="nickname" 
+                                           value="<?php echo xssFilter($user['nickname'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">이메일</label>
+                                    <input type="email" class="form-control" name="email" 
+                                           value="<?php echo xssFilter($user['email']); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">전화번호</label>
+                                    <input type="tel" class="form-control" name="phone" 
+                                           value="<?php echo xssFilter($user['phone'] ?? ''); ?>">
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>저장
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="nickname">닉네임</label>
-                        <input type="text" name="nickname" id="nickname" 
-                               value="<?php echo xssFilter($user['nickname'] ?? ''); ?>">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email">이메일</label>
-                        <input type="email" name="email" id="email" 
-                               value="<?php echo xssFilter($user['email']); ?>">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="phone">전화번호</label>
-                        <input type="tel" name="phone" id="phone" 
-                               value="<?php echo xssFilter($user['phone'] ?? ''); ?>">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">정보 수정</button>
-                </form>
-            </div>
-            
-            <!-- 비밀번호 변경 -->
-            <div class="info-panel">
-                <h3>비밀번호 변경</h3>
-                <form id="passwordForm" onsubmit="changePassword(event)">
-                    <div class="form-group">
-                        <label for="current_password">현재 비밀번호</label>
-                        <input type="password" name="current_password" id="current_password" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="new_password">새 비밀번호</label>
-                        <input type="password" name="new_password" id="new_password" 
-                               minlength="8" required>
-                        <p class="form-help">8자 이상 입력해주세요</p>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="new_password_confirm">새 비밀번호 확인</label>
-                        <input type="password" name="new_password_confirm" 
-                               id="new_password_confirm" required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">비밀번호 변경</button>
-                </form>
-            </div>
-            
-            <!-- 활동 내역 -->
-            <div class="activity-panel">
-                <h3>최근 활동</h3>
-                
-                <div class="activity-tabs">
-                    <button class="tab-btn active" onclick="showTab('posts')">내 게시물</button>
-                    <button class="tab-btn" onclick="showTab('comments')">내 댓글</button>
-                    <button class="tab-btn" onclick="showTab('points')">포인트 내역</button>
                 </div>
                 
-                <div id="posts" class="tab-content active">
-                    <p class="loading">게시물 로딩 중...</p>
+                <!-- 비밀번호 변경 -->
+                <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-lock text-main me-2"></i>비밀번호 변경
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="passwordForm">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">현재 비밀번호</label>
+                                    <input type="password" class="form-control" name="current_password" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">새 비밀번호</label>
+                                    <input type="password" class="form-control" name="new_password" 
+                                           minlength="8" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">비밀번호 확인</label>
+                                    <input type="password" class="form-control" name="new_password_confirm" 
+                                           minlength="8" required>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-key me-2"></i>비밀번호 변경
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
                 
-                <div id="comments" class="tab-content">
-                    <p class="loading">댓글 로딩 중...</p>
-                </div>
-                
-                <div id="points" class="tab-content">
-                    <p class="loading">포인트 내역 로딩 중...</p>
+                <!-- 활동 내역 -->
+                <div class="card border-0 shadow-sm animate__animated animate__fadeInRight" style="animation-delay: 0.2s;">
+                    <div class="card-header bg-white border-0 py-3">
+                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#posts" 
+                                        onclick="loadTabData('posts')" type="button">
+                                    <i class="fas fa-file-alt me-1"></i>내 게시물
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#comments" 
+                                        onclick="loadTabData('comments')" type="button">
+                                    <i class="fas fa-comment me-1"></i>내 댓글
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#points" 
+                                        onclick="loadTabData('points')" type="button">
+                                    <i class="fas fa-coins me-1"></i>포인트 내역
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="posts" role="tabpanel">
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-main" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="comments" role="tabpanel"></div>
+                            <div class="tab-pane fade" id="points" role="tabpanel"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+</main>
+
+<script>
+// 프로필 사진 업로드
+function uploadPhoto() {
+    const formData = new FormData(document.getElementById('photoForm'));
     
-    <?php include __DIR__ . '/_footer.php'; ?>
-    
-    <script>
-    // 프로필 사진 업로드
-    function uploadPhoto(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        // 파일 타입 체크
-        if (!file.type.startsWith('image/')) {
-            alert('이미지 파일만 업로드 가능합니다.');
-            return;
+    fetch('/member/uploadProfileImage', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('프로필 사진이 업데이트되었습니다.');
+            location.reload();
+        } else {
+            alert(data.message || '업로드 실패');
         }
-        
-        // 파일 크기 체크 (5MB)
-        if (file.size > 5242880) {
-            alert('파일 크기는 5MB 이하여야 합니다.');
-            return;
-        }
-        
-        const formData = new FormData();
-        formData.append('profile_image', file);
-        
-        fetch('/member/uploadProfileImage', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('profileImg').src = data.image_url;
-                alert(data.message);
-            } else {
-                alert(data.message || '프로필 사진 업로드에 실패했습니다.');
-            }
-        })
-        .catch(err => {
-            alert('사진 업로드 중 오류가 발생했습니다.');
-            console.error(err);
-        });
-    }
-    
-    // 회원 정보 수정
-    function updateProfile(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        
-        fetch('/member/updateProfile', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-            if (data.success) {
-                location.reload();
-            }
-        })
-        .catch(err => {
-            alert('정보 수정 중 오류가 발생했습니다.');
-            console.error(err);
-        });
-    }
-    
-    // 비밀번호 변경
-    function changePassword(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const newPassword = formData.get('new_password');
-        const confirmPassword = formData.get('new_password_confirm');
-        
-        if (newPassword !== confirmPassword) {
-            alert('새 비밀번호가 일치하지 않습니다.');
-            return;
-        }
-        
-        // updateProfile에 비밀번호 정보 추가
-        const profileData = new FormData();
-        profileData.append('current_password', formData.get('current_password'));
-        profileData.append('new_password', newPassword);
-        profileData.append('name', document.getElementById('name').value);
-        profileData.append('nickname', document.getElementById('nickname').value);
-        profileData.append('phone', document.getElementById('phone').value);
-        
-        fetch('/member/updateProfile', {
-            method: 'POST',
-            body: profileData
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-            if (data.success) {
-                e.target.reset();
-            }
-        })
-        .catch(err => {
-            alert('비밀번호 변경 중 오류가 발생했습니다.');
-            console.error(err);
-        });
-    }
-    
-    // 탭 전환
-    function showTab(tabName) {
-        // 탭 버튼 활성화
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        event.target.classList.add('active');
-        
-        // 탭 컨텐츠 표시
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        document.getElementById(tabName).classList.add('active');
-        
-        // 데이터 로드
-        loadTabData(tabName);
-    }
-    
-    // 탭 데이터 로드
-    function loadTabData(tabName) {
-        const container = document.getElementById(tabName);
-        container.innerHTML = '<p class="loading">로딩 중...</p>';
-        
-        // TODO: 실제 데이터 로드 구현
-        setTimeout(() => {
-            container.innerHTML = '<p class="no-data">데이터가 없습니다.</p>';
-        }, 500);
-    }
-    
-    // 초기 로드
-    window.addEventListener('load', function() {
-        loadTabData('posts');
+    })
+    .catch(err => {
+        console.error('Upload error:', err);
+        alert('업로드 중 오류가 발생했습니다.');
     });
-    </script>
-</body>
-</html>
+}
+
+// 프로필 수정
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    fetch('/member/updateProfile', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('프로필이 업데이트되었습니다.');
+            location.reload();
+        } else {
+            alert(data.message || '업데이트 실패');
+        }
+    });
+});
+
+// 비밀번호 변경
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    if (data.new_password !== data.new_password_confirm) {
+        alert('새 비밀번호가 일치하지 않습니다.');
+        return;
+    }
+    
+    fetch('/member/changePassword', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('비밀번호가 변경되었습니다.');
+            this.reset();
+        } else {
+            alert(data.message || '변경 실패');
+        }
+    });
+});
+
+// 탭 데이터 로드
+function loadTabData(tab) {
+    const container = document.getElementById(tab);
+    container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-main"></div></div>';
+    
+    fetch(`/member/activity/${tab}`)
+        .then(res => res.text())
+        .then(html => {
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="alert alert-danger">데이터 로드 실패</div>';
+        });
+}
+
+// 초기 로드
+loadTabData('posts');
+</script>
+
+<?php include __DIR__ . '/../_footer.php'; ?>
