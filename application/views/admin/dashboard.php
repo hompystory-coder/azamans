@@ -20,6 +20,7 @@
             <a href="/admin/config">⚙️ 사이트 설정</a>
             <a href="/admin/members">👥 회원 관리</a>
             <a href="/admin/boards">📝 게시판 관리</a>
+            <a href="/admin/statistics">📈 통계</a>
             <a href="/">🏠 사이트로 돌아가기</a>
             <a href="/member/logout">🚪 로그아웃</a>
         </nav>

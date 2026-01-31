@@ -64,36 +64,56 @@ class Admin extends Controller {
      * 사이트 설정
      */
     public function config() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // 설정 저장
-            $configs = [
-                'site_name' => cleanInput($this->post('site_name')),
-                'site_url' => cleanInput($this->post('site_url')),
-                'site_email' => cleanInput($this->post('site_email')),
-                'site_description' => cleanInput($this->post('site_description')),
-                'posts_per_page' => (int)$this->post('posts_per_page', 20),
-                'use_captcha' => $this->post('use_captcha', 'N')
-            ];
-            
-            foreach ($configs as $key => $value) {
-                setConfig($key, $value);
-            }
-            
-            $this->json([
-                'success' => true,
-                'message' => '설정이 저장되었습니다.'
-            ]);
-        }
-        
-        // 현재 설정 조회
-        $configs = getDbArray("SELECT config_key, config_value, description FROM admin_config");
-        
         $data = [
-            'title' => '사이트 설정',
-            'configs' => $configs
+            'title' => '사이트 설정'
         ];
         
         $this->view('admin/config', $data);
+    }
+    
+    /**
+     * 사이트 설정 저장
+     */
+    public function configSave() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+        }
+        
+        // 설정 항목들
+        $configs = [
+            'site_name' => cleanInput($this->post('site_name')),
+            'site_url' => cleanInput($this->post('site_url')),
+            'site_email' => cleanInput($this->post('site_email')),
+            'about_title' => cleanInput($this->post('about_title')),
+            'about_content' => $this->post('about_content') // HTML 허용
+        ];
+        
+        // 각 설정을 DB에 저장
+        foreach ($configs as $key => $value) {
+            // 설정이 이미 존재하는지 확인
+            $existing = getUidData("SELECT uid FROM admin_config WHERE config_key = ?", [$key]);
+            
+            if ($existing) {
+                // 업데이트
+                getDbUpdate('admin_config', 
+                    ['config_value' => $value], 
+                    'config_key = ?', 
+                    [$key]
+                );
+            } else {
+                // 신규 삽입
+                getDbInsert('admin_config', [
+                    'config_key' => $key,
+                    'config_value' => $value,
+                    'config_group' => 'general'
+                ]);
+            }
+        }
+        
+        $this->json([
+            'success' => true,
+            'message' => '설정이 저장되었습니다.'
+        ]);
     }
     
     /**

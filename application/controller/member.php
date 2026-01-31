@@ -49,12 +49,12 @@ class Member extends Controller {
         }
         
         // 사용자 조회
-        $user = getUidData("SELECT * FROM member WHERE username = ? AND status = 'active' LIMIT 1", [$username]);
+        $user = getUidData("SELECT * FROM member WHERE user_id = ? AND status = 'active' LIMIT 1", [$username]);
         
         if ($user && verifyPassword($password, $user['password'])) {
             // 로그인 성공
             $_SESSION['user_id'] = $user['uid'];
-            $_SESSION['username'] = $user['username'];
+            $_SESSION['username'] = $user['user_id'];
             $_SESSION['email'] = $user['email'];
             $_SESSION['level'] = $user['level'];
             $_SESSION['is_admin'] = ($user['level'] >= 9);
@@ -144,7 +144,7 @@ class Member extends Controller {
         }
         
         // 중복 체크
-        $existingUser = getUidData("SELECT uid FROM member WHERE username = ? OR email = ? LIMIT 1", [$username, $email]);
+        $existingUser = getUidData("SELECT uid FROM member WHERE user_id = ? OR email = ? LIMIT 1", [$username, $email]);
         if ($existingUser) {
             $errors[] = '이미 사용중인 아이디 또는 이메일입니다.';
         }
@@ -159,13 +159,14 @@ class Member extends Controller {
         // 회원 정보 저장
         $hashedPassword = hashPassword($password);
         $insertId = getDbInsert('member', [
-            'username' => $username,
+            'user_id' => $username,
             'password' => $hashedPassword,
             'email' => $email,
             'name' => $name,
+            'nickname' => $name,
             'level' => 1,
             'status' => 'active',
-            'created_at' => date('Y-m-d H:i:s')
+            'point' => 0
         ]);
         
         if ($insertId) {
