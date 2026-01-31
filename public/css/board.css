@@ -1,0 +1,382 @@
+/* 게시판 스타일 */
+
+.board-container {
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.board-header {
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #3498db;
+}
+
+.board-header h1 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+.board-desc {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+/* 검색 */
+.board-search {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.board-search form {
+    display: flex;
+    gap: 10px;
+}
+
+.search-select,
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.search-input {
+    width: 250px;
+}
+
+.btn-search {
+    padding: 8px 20px;
+    background: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-search:hover {
+    background: #2980b9;
+}
+
+/* 게시물 목록 */
+.board-list table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.board-list thead {
+    background: #f8f9fa;
+    border-top: 2px solid #2c3e50;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.board-list th {
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+}
+
+.board-list td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.board-list td.subject {
+    text-align: left;
+}
+
+.board-list td.subject a {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.board-list td.subject a:hover {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+.board-list tr:hover {
+    background: #f8f9fa;
+}
+
+.notice-row {
+    background: #fffacd !important;
+}
+
+.badge-notice {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-new {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.comment-count {
+    color: #e74c3c;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.no-posts {
+    padding: 60px 20px !important;
+    text-align: center;
+    color: #95a5a6;
+}
+
+/* 페이지네이션 */
+.board-pagination {
+    margin: 30px 0;
+}
+
+/* 하단 버튼 */
+.board-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* 게시물 상세 */
+.post-view {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.post-header {
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.post-title {
+    font-size: 24px;
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+}
+
+.post-meta {
+    display: flex;
+    gap: 20px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.post-content {
+    padding: 30px 20px;
+    min-height: 200px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.post-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* 이전/다음 글 */
+.post-nav {
+    margin-bottom: 30px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.post-nav-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    gap: 15px;
+}
+
+.post-nav-item:last-child {
+    border-bottom: none;
+}
+
+.post-nav-label {
+    font-weight: bold;
+    color: #6c757d;
+    min-width: 60px;
+}
+
+.post-nav-item a {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.post-nav-item a:hover {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+/* 댓글 */
+.comments-section {
+    margin-top: 40px;
+}
+
+.comments-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+}
+
+.comment-list {
+    margin-bottom: 30px;
+}
+
+.comment-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.comment-writer {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.comment-date {
+    color: #6c757d;
+}
+
+.comment-content {
+    color: #333;
+    line-height: 1.6;
+}
+
+.comment-actions {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.comment-actions button {
+    padding: 4px 10px;
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* 댓글 작성 폼 */
+.comment-form {
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.comment-form-footer {
+    margin-top: 10px;
+    text-align: right;
+}
+
+/* 글쓰기 폼 */
+.write-form {
+    background: #fff;
+    padding: 30px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.write-form .form-group {
+    margin-bottom: 20px;
+}
+
+.write-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.write-form input[type="text"],
+.write-form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.write-form textarea {
+    width: 100%;
+    min-height: 400px;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.write-form-footer {
+    margin-top: 30px;
+    text-align: center;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .board-search form {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    .board-list table {
+        font-size: 14px;
+    }
+    
+    .board-list th,
+    .board-list td {
+        padding: 8px 4px;
+    }
+    
+    .post-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+}

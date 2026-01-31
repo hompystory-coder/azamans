@@ -1,0 +1,76 @@
+# MVC Framework - URL Rewriting
+
+# Apache 모듈 활성화 체크
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # HTTPS 강제 리다이렉트 (선택사항)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    
+    # 실제 파일/디렉토리가 아닌 경우 index.php로 라우팅
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+</IfModule>
+
+# 디렉토리 리스팅 방지
+Options -Indexes
+
+# 기본 인덱스 파일
+DirectoryIndex index.php index.html
+
+# PHP 설정
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+
+# 보안 헤더
+<IfModule mod_headers.c>
+    # XSS 보호
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # MIME 타입 스니핑 방지
+    Header set X-Content-Type-Options "nosniff"
+    
+    # 클릭재킹 방지
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Referrer 정책
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# 민감한 파일 접근 차단
+<FilesMatch "^(_|\.)(env|config|db|sql|log)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# .htaccess와 .git 파일 접근 차단
+<FilesMatch "^\.(htaccess|htpasswd|git)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Gzip 압축
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json
+</IfModule>
+
+# 브라우저 캐싱
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/x-javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+</IfModule>
