@@ -1,0 +1,40 @@
+# Environment Configuration
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Upload Files
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Cache
+/cache/*
+!/cache/.gitkeep
+
+# Logs
+*.log
+/logs/*
+!/logs/.gitkeep
+
+# Temporary Files
+/tmp/*
+!/tmp/.gitkeep
+
+# Dependencies
+/vendor/
+node_modules/
+
+# Build
+/dist/
+/build/

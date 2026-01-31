@@ -4,22 +4,32 @@
  * 모든 요청의 진입점
  */
 
-// 에러 리포팅 설정 (개발 환경)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// 타임존 설정
-date_default_timezone_set('Asia/Seoul');
-
-// 세션 시작
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // 기본 경로 설정
 define('BASE_PATH', __DIR__);
 define('APP_PATH', BASE_PATH . '/application');
 define('PUBLIC_PATH', BASE_PATH . '/public');
+
+// 환경설정 로드
+require_once APP_PATH . '/config/_env.func.php';
+loadEnv(BASE_PATH . '/.env');
+
+// 에러 리포팅 설정
+if (isDebug()) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+}
+
+// 타임존 설정
+date_default_timezone_set(env('APP_TIMEZONE', 'Asia/Seoul'));
+
+// 세션 시작
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.gc_maxlifetime', env('SESSION_LIFETIME', 7200));
+    session_start();
+}
 
 // 설정 파일 로드
 require_once APP_PATH . '/config/_db_info.php';

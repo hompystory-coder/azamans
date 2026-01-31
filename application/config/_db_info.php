@@ -4,12 +4,12 @@
  * DB 접속 정보 설정 파일
  */
 
-// DB 접속 정보
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'mvc');
-define('DB_USER', 'root');
-define('DB_PASS', 'cnNbjf!%jd@&kVgD');
-define('DB_CHARSET', 'utf8mb4');
+// DB 접속 정보 (env 함수 사용)
+define('DB_HOST', env('DB_HOST', 'localhost'));
+define('DB_NAME', env('DB_NAME', 'mvc'));
+define('DB_USER', env('DB_USER', 'root'));
+define('DB_PASS', env('DB_PASS', ''));
+define('DB_CHARSET', env('DB_CHARSET', 'utf8mb4'));
 
 // PDO 옵션
 define('PDO_OPTIONS', [
@@ -31,7 +31,11 @@ function getDBConnection() {
             $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
             $pdo = new PDO($dsn, DB_USER, DB_PASS, PDO_OPTIONS);
         } catch (PDOException $e) {
-            die("데이터베이스 연결 실패: " . $e->getMessage());
+            if (isDebug()) {
+                die("데이터베이스 연결 실패: " . $e->getMessage());
+            } else {
+                die("서버 오류가 발생했습니다. 관리자에게 문의해주세요.");
+            }
         }
     }
     

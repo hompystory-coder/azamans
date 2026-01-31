@@ -122,14 +122,16 @@ class PointModel extends DBModel {
      * 포인트 정책 - 게시글 작성
      */
     public function rewardPost($memberUid, $postUid) {
-        return $this->addPoint($memberUid, 10, '게시글 작성');
+        $points = (int)env('POINT_POST_WRITE', 10);
+        return $this->addPoint($memberUid, $points, '게시글 작성');
     }
     
     /**
      * 포인트 정책 - 댓글 작성
      */
     public function rewardComment($memberUid, $commentUid) {
-        return $this->addPoint($memberUid, 5, '댓글 작성');
+        $points = (int)env('POINT_COMMENT_WRITE', 5);
+        return $this->addPoint($memberUid, $points, '댓글 작성');
     }
     
     /**
@@ -150,6 +152,7 @@ class PointModel extends DBModel {
             return false; // 이미 받음
         }
         
-        return $this->addPoint($memberUid, 2, '일일 로그인');
+        $points = (int)env('POINT_DAILY_LOGIN', 2);
+        return $this->addPoint($memberUid, $points, '일일 로그인');
     }
 }
