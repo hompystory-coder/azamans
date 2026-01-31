@@ -35,7 +35,7 @@ class Admin extends Controller {
         
         // 최근 회원 목록
         $recent_members = getDbArray("
-            SELECT user_id, name, email, level, reg_date 
+            SELECT uid, user_id, name, email, level, reg_date 
             FROM member 
             ORDER BY reg_date DESC 
             LIMIT 5
@@ -254,21 +254,17 @@ class Admin extends Controller {
      */
     public function boards() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // JSON 요청 처리
-            $json = file_get_contents('php://input');
-            $data = json_decode($json, true);
-            
-            // 게시판 생성
+            // FormData로 전송된 데이터 처리
             $boardData = [
-                'board_id' => cleanInput($data['board_id']),
-                'board_name' => cleanInput($data['board_name']),
-                'board_skin' => cleanInput($data['board_skin'] ?? 'default'),
-                'posts_per_page' => (int)($data['posts_per_page'] ?? 20),
-                'read_level' => (int)($data['read_level'] ?? 1),
-                'write_level' => (int)($data['write_level'] ?? 1),
-                'comment_level' => (int)($data['comment_level'] ?? 1),
-                'use_comment' => cleanInput($data['use_comment'] ?? 'Y'),
-                'use_category' => cleanInput($data['use_category'] ?? 'N'),
+                'board_id' => cleanInput($_POST['board_id']),
+                'board_name' => cleanInput($_POST['board_name']),
+                'board_skin' => cleanInput($_POST['board_skin'] ?? 'default'),
+                'posts_per_page' => (int)($_POST['posts_per_page'] ?? 20),
+                'read_level' => (int)($_POST['read_level'] ?? 1),
+                'write_level' => (int)($_POST['write_level'] ?? 1),
+                'comment_level' => (int)($_POST['comment_level'] ?? 1),
+                'use_comment' => cleanInput($_POST['use_comment'] ?? 'Y'),
+                'use_category' => cleanInput($_POST['use_category'] ?? 'N'),
                 'status' => 'active'
             ];
             
