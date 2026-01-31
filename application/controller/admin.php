@@ -289,4 +289,134 @@ class Admin extends Controller {
         
         $this->view('admin/board_detail', $data);
     }
+    
+    /**
+     * 통계 페이지
+     */
+    public function statistics() {
+        $period = $this->get('period', '30'); // 기본 30일
+        
+        // 기간 설정
+        $startDate = date('Y-m-d', strtotime("-{$period} days"));
+        $endDate = date('Y-m-d');
+        
+        // KPI 통계
+        $stats = [
+            'total_visitors' => getDbCnt("
+                SELECT COUNT(DISTINCT ip_address) 
+                FROM bbs_index 
+                WHERE DATE(created_at) BETWEEN ? AND ?
+            ", [$startDate, $endDate]),
+            'new_members' => getDbCnt("
+                SELECT COUNT(*) 
+                FROM member 
+                WHERE DATE(reg_date) BETWEEN ? AND ?
+            ", [$startDate, $endDate]),
+            'new_posts' => getDbCnt("
+                SELECT COUNT(*) 
+                FROM bbs_index 
+                WHERE status = 'active' AND DATE(created_at) BETWEEN ? AND ?
+            ", [$startDate, $endDate]),
+            'active_users' => getDbCnt("
+                SELECT COUNT(DISTINCT uid) 
+                FROM member 
+                WHERE last_login >= ?
+            ", [date('Y-m-d', strtotime('-7 days'))])
+        ];
+        
+        // 일별 방문자 추이
+        $dailyVisits = getDbArray("
+            SELECT DATE(created_at) as date, COUNT(DISTINCT ip_address) as count
+            FROM bbs_index
+            WHERE DATE(created_at) BETWEEN ? AND ?
+            GROUP BY DATE(created_at)
+            ORDER BY date ASC
+        ", [$startDate, $endDate]);
+        
+        // 회원 가입 추이
+        $dailySignups = getDbArray("
+            SELECT DATE(reg_date) as date, COUNT(*) as count
+            FROM member
+            WHERE DATE(reg_date) BETWEEN ? AND ?
+            GROUP BY DATE(reg_date)
+            ORDER BY date ASC
+        ", [$startDate, $endDate]);
+        
+        // 게시물 작성 추이
+        $dailyPosts = getDbArray("
+            SELECT DATE(created_at) as date, COUNT(*) as count
+            FROM bbs_index
+            WHERE status = 'active' AND DATE(created_at) BETWEEN ? AND ?
+            GROUP BY DATE(created_at)
+            ORDER BY date ASC
+        ", [$startDate, $endDate]);
+        
+        // 게시판별 게시물 수
+        $postsByBoard = getDbArray("
+            SELECT b.board_name, COUNT(p.uid) as count
+            FROM bbs_list b
+            LEFT JOIN bbs_index p ON b.bbs_id = p.board_id AND p.status = 'active'
+            GROUP BY b.uid, b.board_name
+            ORDER BY count DESC
+            LIMIT 10
+        ");
+        
+        // 인기 게시물 TOP 10
+        $topPosts = getDbArray("
+            SELECT uid, board_id, subject, writer, views, comments, created_at
+            FROM bbs_index
+            WHERE status = 'active' AND DATE(created_at) BETWEEN ? AND ?
+            ORDER BY views DESC
+            LIMIT 10
+        ", [$startDate, $endDate]);
+        
+        $data = [
+            'title' => '통계',
+            'period' => $period,
+            'stats' => $stats,
+            'dailyVisits' => $dailyVisits,
+            'dailySignups' => $dailySignups,
+            'dailyPosts' => $dailyPosts,
+            'postsByBoard' => $postsByBoard,
+            'topPosts' => $topPosts
+        ];
+        
+        $this->view('admin/statistics', $data);
+    }
+    
+    /**
+     * AJAX 통계 데이터
+     */
+    public function statisticsData() {
+        $period = $this->get('period', '30');
+        
+        $startDate = date('Y-m-d', strtotime("-{$period} days"));
+        $endDate = date('Y-m-d');
+        
+        // 일별 방문자 추이
+        $dailyVisits = getDbArray("
+            SELECT DATE(created_at) as date, COUNT(DISTINCT ip_address) as count
+            FROM bbs_index
+            WHERE DATE(created_at) BETWEEN ? AND ?
+            GROUP BY DATE(created_at)
+            ORDER BY date ASC
+        ", [$startDate, $endDate]);
+        
+        // 데이터 포맷 (Chart.js 형식)
+        $this->json([
+            'success' => true,
+            'data' => [
+                'labels' => array_column($dailyVisits, 'date'),
+                'datasets' => [
+                    [
+                        'label' => '일별 방문자',
+                        'data' => array_column($dailyVisits, 'count'),
+                        'backgroundColor' => 'rgba(52, 152, 219, 0.2)',
+                        'borderColor' => 'rgba(52, 152, 219, 1)',
+                        'borderWidth' => 2
+                    ]
+                ]
+            ]
+        ]);
+    }
 }
