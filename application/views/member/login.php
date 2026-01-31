@@ -139,12 +139,23 @@
         alertBox.style.display = 'block';
         alertBox.textContent = '로그인 중...';
         
+        console.log('로그인 시도:', {
+            username: formData.get('username'),
+            url: '/member/loginProcess'
+        });
+        
         fetch('/member/loginProcess', {
             method: 'POST',
             body: formData
         })
-        .then(res => res.json())
+        .then(res => {
+            console.log('Response status:', res.status);
+            console.log('Response headers:', res.headers);
+            return res.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
+            
             if (data.success) {
                 alertBox.className = 'alert success';
                 alertBox.textContent = data.message;
@@ -160,7 +171,7 @@
         .catch(err => {
             console.error('Login error:', err);
             alertBox.className = 'alert error';
-            alertBox.textContent = '로그인 처리 중 오류가 발생했습니다.';
+            alertBox.textContent = '로그인 처리 중 오류가 발생했습니다. 콘솔을 확인하세요.';
         });
     }
     </script>
