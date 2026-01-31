@@ -3,190 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $title; ?> - 관리자</title>
+    <title><?php echo xssFilter($title); ?> - 관리자</title>
+    
+    <!-- Fonts -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css" />
+    <link href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="/public/css/style.css">
-    <link rel="stylesheet" href="/public/css/admin.css">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body class="admin-body">
-    
-    <!-- 관리자 사이드바 -->
-    <aside class="admin-sidebar">
-        <div class="sidebar-header">
-            <h2>관리자</h2>
-            <p><?php echo $_SESSION['username']; ?></p>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="/admin" class="active">📊 대시보드</a>
-            <a href="/admin/config">⚙️ 사이트 설정</a>
-            <a href="/admin/members">👥 회원 관리</a>
-            <a href="/admin/boards">📝 게시판 관리</a>
-            <a href="/admin/statistics">📈 통계</a>
-            <a href="/">🏠 사이트로 돌아가기</a>
-            <a href="/member/logout">🚪 로그아웃</a>
-        </nav>
-    </aside>
-    
-    <!-- 관리자 메인 컨텐츠 -->
-    <main class="admin-main">
-        <div class="admin-header">
-            <h1><?php echo $title; ?></h1>
-            <p class="current-time"><?php echo date('Y년 m월 d일 H:i'); ?></p>
-        </div>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <?php include __DIR__ . '/_sidebar.php'; ?>
         
-        <!-- 통계 카드 -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-content">
-                    <h3>전체 회원</h3>
-                    <p class="stat-number"><?php echo number_format($stats['total_members']); ?></p>
-                    <span class="stat-sub">오늘: +<?php echo $stats['today_members']; ?></span>
+        <!-- Main Content -->
+        <main class="flex-grow-1 p-4" style="background-color: var(--main-bg);">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fw-bold mb-0">
+                    <i class="fas fa-tachometer-alt text-main me-2"></i>
+                    <?php echo xssFilter($title); ?>
+                </h1>
+                <div class="text-muted">
+                    <i class="far fa-clock me-1"></i>
+                    <?php echo date('Y년 m월 d일 H:i'); ?>
                 </div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon">📝</div>
-                <div class="stat-content">
-                    <h3>전체 게시물</h3>
-                    <p class="stat-number"><?php echo number_format($stats['total_posts']); ?></p>
-                    <span class="stat-sub">오늘: +<?php echo $stats['today_posts']; ?></span>
+            <!-- 통계 카드 -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-2">전체 회원</h6>
+                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['total_members'] ?? 0); ?></h2>
+                                    <?php if (($stats['today_members'] ?? 0) > 0): ?>
+                                        <small class="text-success">
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                            오늘 +<?php echo $stats['today_members']; ?>
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="display-4 text-primary opacity-25">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-2">전체 게시물</h6>
+                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['total_posts'] ?? 0); ?></h2>
+                                    <?php if (($stats['today_posts'] ?? 0) > 0): ?>
+                                        <small class="text-success">
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                            오늘 +<?php echo $stats['today_posts']; ?>
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="display-4 text-success opacity-25">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-2">전체 댓글</h6>
+                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['total_comments'] ?? 0); ?></h2>
+                                    <?php if (($stats['today_comments'] ?? 0) > 0): ?>
+                                        <small class="text-success">
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                            오늘 +<?php echo $stats['today_comments']; ?>
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="display-4 text-warning opacity-25">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-2">오늘 신규</h6>
+                                    <h2 class="mb-0 fw-bold"><?php echo number_format($stats['today_members'] ?? 0); ?></h2>
+                                    <small class="text-muted">신규 회원</small>
+                                </div>
+                                <div class="display-4 text-danger opacity-25">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon">💬</div>
-                <div class="stat-content">
-                    <h3>전체 댓글</h3>
-                    <p class="stat-number"><?php echo number_format($stats['total_comments']); ?></p>
-                    <span class="stat-sub">오늘: +<?php echo $stats['today_comments']; ?></span>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-content">
-                    <h3>시스템 상태</h3>
-                    <p class="stat-number">정상</p>
-                    <span class="stat-sub">서버: <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?></span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="admin-grid">
-            <!-- 최근 회원 -->
-            <div class="admin-panel">
-                <div class="panel-header">
-                    <h2>최근 가입 회원</h2>
-                    <a href="/admin/members" class="btn-small">전체보기</a>
-                </div>
-                <div class="panel-body">
-                    <?php if (!empty($recent_members)): ?>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>아이디</th>
-                                    <th>이름</th>
-                                    <th>레벨</th>
-                                    <th>가입일</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($recent_members as $member): ?>
-                                <tr>
-                                    <td>
-                                        <a href="/admin/member/<?php echo $member['uid']; ?>">
-                                            <?php echo xssFilter($member['user_id']); ?>
-                                        </a>
-                                    </td>
-                                    <td><?php echo xssFilter($member['name']); ?></td>
-                                    <td><span class="badge">Lv.<?php echo $member['level']; ?></span></td>
-                                    <td><?php echo timeAgo($member['reg_date']); ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    <?php else: ?>
-                        <p class="no-data">가입한 회원이 없습니다.</p>
-                    <?php endif; ?>
-                </div>
-            </div>
-            
-            <!-- 최근 게시물 -->
-            <div class="admin-panel">
-                <div class="panel-header">
-                    <h2>최근 게시물</h2>
-                    <a href="/admin/posts" class="btn-small">전체보기</a>
-                </div>
-                <div class="panel-body">
-                    <?php if (!empty($recent_posts)): ?>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>게시판</th>
-                                    <th>제목</th>
-                                    <th>작성자</th>
-                                    <th>조회</th>
-                                    <th>작성일</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($recent_posts as $post): ?>
-                                <tr>
-                                    <td><span class="badge-board"><?php echo xssFilter($post['board_id']); ?></span></td>
-                                    <td>
-                                        <a href="/bbs/<?php echo $post['board_id']; ?>/view/<?php echo $post['uid']; ?>">
-                                            <?php echo cutString(xssFilter($post['subject']), 30); ?>
-                                        </a>
-                                    </td>
-                                    <td><?php echo xssFilter($post['writer']); ?></td>
-                                    <td><?php echo $post['views']; ?></td>
-                                    <td><?php echo timeAgo($post['created_at']); ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    <?php else: ?>
-                        <p class="no-data">작성된 게시물이 없습니다.</p>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 시스템 정보 -->
-        <div class="admin-panel">
-            <div class="panel-header">
-                <h2>시스템 정보</h2>
-            </div>
-            <div class="panel-body">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <strong>PHP 버전:</strong>
-                        <span><?php echo PHP_VERSION; ?></span>
+            <div class="row g-4">
+                <!-- 최근 회원 -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100 animate__animated animate__fadeInLeft">
+                        <div class="card-header bg-white border-0 py-3">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-user-clock text-main me-2"></i>최근 가입 회원
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>아이디</th>
+                                            <th>이름</th>
+                                            <th>등급</th>
+                                            <th>가입일</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($recent_members)): ?>
+                                            <?php foreach ($recent_members as $member): ?>
+                                            <tr>
+                                                <td>
+                                                    <a href="/admin/member/<?php echo $member['uid']; ?>" class="text-decoration-none">
+                                                        <?php echo xssFilter($member['user_id']); ?>
+                                                    </a>
+                                                </td>
+                                                <td><?php echo xssFilter($member['name']); ?></td>
+                                                <td><span class="badge bg-primary">Lv.<?php echo $member['level']; ?></span></td>
+                                                <td class="text-muted small"><?php echo date('Y-m-d', strtotime($member['reg_date'])); ?></td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">데이터가 없습니다.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 py-2 text-center">
+                            <a href="/admin/members" class="text-main text-decoration-none small fw-bold">
+                                전체 보기 <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <strong>서버 OS:</strong>
-                        <span><?php echo PHP_OS; ?></span>
-                    </div>
-                    <div class="info-item">
-                        <strong>웹서버:</strong>
-                        <span><?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?></span>
-                    </div>
-                    <div class="info-item">
-                        <strong>DB 연결:</strong>
-                        <span class="status-ok">✓ 정상</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>현재 시간:</strong>
-                        <span><?php echo date('Y-m-d H:i:s'); ?></span>
-                    </div>
-                    <div class="info-item">
-                        <strong>타임존:</strong>
-                        <span><?php echo date_default_timezone_get(); ?></span>
+                </div>
+                
+                <!-- 최근 게시물 -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100 animate__animated animate__fadeInRight">
+                        <div class="card-header bg-white border-0 py-3">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-file-alt text-main me-2"></i>최근 게시물
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>게시판</th>
+                                            <th>제목</th>
+                                            <th>작성자</th>
+                                            <th>작성일</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($recent_posts)): ?>
+                                            <?php foreach ($recent_posts as $post): ?>
+                                            <tr>
+                                                <td><span class="badge bg-secondary"><?php echo xssFilter($post['board_id']); ?></span></td>
+                                                <td>
+                                                    <a href="/bbs/<?php echo $post['board_id']; ?>/view/<?php echo $post['uid']; ?>" 
+                                                       class="text-decoration-none" target="_blank">
+                                                        <?php echo xssFilter(mb_substr($post['subject'], 0, 20)) . (mb_strlen($post['subject']) > 20 ? '...' : ''); ?>
+                                                    </a>
+                                                </td>
+                                                <td><?php echo xssFilter($post['writer']); ?></td>
+                                                <td class="text-muted small"><?php echo date('Y-m-d', strtotime($post['created_at'])); ?></td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">데이터가 없습니다.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 py-2 text-center">
+                            <a href="/admin/boards" class="text-main text-decoration-none small fw-bold">
+                                전체 보기 <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-    
+        </main>
+    </div>
 </body>
 </html>
