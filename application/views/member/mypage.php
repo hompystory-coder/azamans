@@ -152,20 +152,32 @@
         const file = event.target.files[0];
         if (!file) return;
         
-        const formData = new FormData();
-        formData.append('photo', file);
+        // 파일 타입 체크
+        if (!file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드 가능합니다.');
+            return;
+        }
         
-        fetch('/member/upload-photo', {
+        // 파일 크기 체크 (5MB)
+        if (file.size > 5242880) {
+            alert('파일 크기는 5MB 이하여야 합니다.');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('profile_image', file);
+        
+        fetch('/member/uploadProfileImage', {
             method: 'POST',
             body: formData
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                document.getElementById('profileImg').src = data.url;
-                alert('프로필 사진이 변경되었습니다.');
-            } else {
+                document.getElementById('profileImg').src = data.image_url;
                 alert(data.message);
+            } else {
+                alert(data.message || '프로필 사진 업로드에 실패했습니다.');
             }
         })
         .catch(err => {
@@ -180,7 +192,7 @@
         
         const formData = new FormData(e.target);
         
-        fetch('/member/update-profile', {
+        fetch('/member/updateProfile', {
             method: 'POST',
             body: formData
         })
@@ -210,9 +222,17 @@
             return;
         }
         
-        fetch('/member/change-password', {
+        // updateProfile에 비밀번호 정보 추가
+        const profileData = new FormData();
+        profileData.append('current_password', formData.get('current_password'));
+        profileData.append('new_password', newPassword);
+        profileData.append('name', document.getElementById('name').value);
+        profileData.append('nickname', document.getElementById('nickname').value);
+        profileData.append('phone', document.getElementById('phone').value);
+        
+        fetch('/member/updateProfile', {
             method: 'POST',
-            body: formData
+            body: profileData
         })
         .then(res => res.json())
         .then(data => {
@@ -248,19 +268,12 @@
     // 탭 데이터 로드
     function loadTabData(tabName) {
         const container = document.getElementById(tabName);
+        container.innerHTML = '<p class="loading">로딩 중...</p>';
         
-        fetch('/member/activity/' + tabName)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    container.innerHTML = data.html;
-                } else {
-                    container.innerHTML = '<p class="no-data">데이터가 없습니다.</p>';
-                }
-            })
-            .catch(err => {
-                container.innerHTML = '<p class="error">데이터 로드 중 오류가 발생했습니다.</p>';
-            });
+        // TODO: 실제 데이터 로드 구현
+        setTimeout(() => {
+            container.innerHTML = '<p class="no-data">데이터가 없습니다.</p>';
+        }, 500);
     }
     
     // 초기 로드

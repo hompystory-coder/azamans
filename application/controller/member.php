@@ -192,4 +192,115 @@ class Member extends Controller {
         
         $this->view('member/mypage', $data);
     }
+    
+    /**
+     * 프로필 사진 업로드
+     */
+    public function uploadProfileImage() {
+        $this->requireLogin();
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_FILES['profile_image'])) {
+            $this->json(['success' => false, 'message' => '파일이 업로드되지 않았습니다.'], 400);
+        }
+        
+        $file = $_FILES['profile_image'];
+        
+        // 이미지 파일만 허용
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($file['type'], $allowedTypes)) {
+            $this->json(['success' => false, 'message' => '이미지 파일만 업로드 가능합니다.'], 400);
+        }
+        
+        // 파일 크기 제한 (5MB)
+        if ($file['size'] > 5242880) {
+            $this->json(['success' => false, 'message' => '파일 크기는 5MB 이하여야 합니다.'], 400);
+        }
+        
+        // 업로드 디렉토리
+        $uploadDir = PUBLIC_PATH . '/uploads/profiles/' . date('Y/m');
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        // 파일명 생성
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $fileName = 'profile_' . $_SESSION['user_id'] . '_' . time() . '.' . $ext;
+        $filePath = $uploadDir . '/' . $fileName;
+        $dbPath = '/uploads/profiles/' . date('Y/m') . '/' . $fileName;
+        
+        // 기존 프로필 이미지 삭제
+        $user = getUidData("SELECT profile_image FROM member WHERE uid = ?", [$_SESSION['user_id']]);
+        if ($user && !empty($user['profile_image']) && file_exists(PUBLIC_PATH . $user['profile_image'])) {
+            @unlink(PUBLIC_PATH . $user['profile_image']);
+        }
+        
+        // 파일 이동
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // DB 업데이트
+            $result = getDbUpdate('member', 
+                ['profile_image' => $dbPath], 
+                'uid = ?', 
+                [$_SESSION['user_id']]
+            );
+            
+            if ($result !== false) {
+                $this->json([
+                    'success' => true,
+                    'message' => '프로필 사진이 변경되었습니다.',
+                    'image_url' => $dbPath
+                ]);
+            } else {
+                @unlink($filePath);
+                $this->json(['success' => false, 'message' => 'DB 업데이트 중 오류가 발생했습니다.'], 500);
+            }
+        } else {
+            $this->json(['success' => false, 'message' => '파일 업로드 중 오류가 발생했습니다.'], 500);
+        }
+    }
+    
+    /**
+     * 회원 정보 수정
+     */
+    public function updateProfile() {
+        $this->requireLogin();
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/member/mypage');
+        }
+        
+        $name = cleanInput($this->post('name'));
+        $nickname = cleanInput($this->post('nickname'));
+        $phone = cleanInput($this->post('phone'));
+        
+        $updateData = [
+            'name' => $name,
+            'nickname' => $nickname,
+            'phone' => $phone
+        ];
+        
+        // 비밀번호 변경 요청이 있는 경우
+        $newPassword = $this->post('new_password');
+        if (!empty($newPassword)) {
+            $currentPassword = $this->post('current_password');
+            
+            // 현재 비밀번호 확인
+            $user = getUidData("SELECT password FROM member WHERE uid = ?", [$_SESSION['user_id']]);
+            if (!verifyPassword($currentPassword, $user['password'])) {
+                $this->json(['success' => false, 'message' => '현재 비밀번호가 일치하지 않습니다.'], 400);
+            }
+            
+            $updateData['password'] = hashPassword($newPassword);
+        }
+        
+        $result = getDbUpdate('member', $updateData, 'uid = ?', [$_SESSION['user_id']]);
+        
+        if ($result !== false) {
+            $this->json([
+                'success' => true,
+                'message' => '회원 정보가 수정되었습니다.'
+            ]);
+        } else {
+            $this->json(['success' => false, 'message' => '정보 수정 중 오류가 발생했습니다.'], 500);
+        }
+    }
 }
