@@ -1305,10 +1305,13 @@ class Admin extends Controller {
                 $maxOrder++;
                 error_log("Inserting menu: $name with order: $maxOrder");
                 
-                $result = setDbData("
-                    INSERT INTO header_menu (parent_id, menu_name, menu_type, menu_order, is_active)
-                    VALUES (0, ?, 'page', ?, 'Y')
-                ", [$name, $maxOrder]);
+                $result = getDbInsert('header_menu', [
+                    'parent_id' => 0,
+                    'menu_name' => $name,
+                    'menu_type' => 'page',
+                    'menu_order' => $maxOrder,
+                    'is_active' => 'Y'
+                ]);
                 
                 if ($result) {
                     $successCount++;
@@ -1339,7 +1342,7 @@ class Admin extends Controller {
             return;
         }
         
-        $result = setDbData("DELETE FROM header_menu WHERE id = ?", [$id]);
+        $result = getDbDelete('header_menu', 'id = ?', [$id]);
         
         if ($result) {
             $this->json(['success' => true, 'message' => '메뉴가 삭제되었습니다.']);
@@ -1366,7 +1369,7 @@ class Admin extends Controller {
         
         // 순서 업데이트
         foreach ($orders as $order => $id) {
-            setDbData("UPDATE header_menu SET menu_order = ? WHERE id = ?", [$order + 1, $id]);
+            getDbUpdate('header_menu', ['menu_order' => $order + 1], 'id = ?', [$id]);
         }
         
         $this->json(['success' => true, 'message' => '순서가 변경되었습니다.']);
@@ -1433,12 +1436,16 @@ class Admin extends Controller {
         }
         
         // 메뉴 업데이트
-        $result = setDbData("
-            UPDATE header_menu 
-            SET menu_name = ?, menu_type = ?, menu_target = ?, custom_url = ?, 
-                use_redirect = ?, target_window = ?, is_hidden = ?, is_blocked = ?
-            WHERE id = ?
-        ", [$menuName, $menuType, $menuTarget, $customUrl, $useRedirect, $targetWindow, $isHidden, $isBlocked, $id]);
+        $result = getDbUpdate('header_menu', [
+            'menu_name' => $menuName,
+            'menu_type' => $menuType,
+            'menu_target' => $menuTarget,
+            'custom_url' => $customUrl,
+            'use_redirect' => $useRedirect,
+            'target_window' => $targetWindow,
+            'is_hidden' => $isHidden,
+            'is_blocked' => $isBlocked
+        ], 'id = ?', [$id]);
         
         // 페이지 타입이면 콘텐츠 저장
         if ($menuType === 'page') {
@@ -1448,9 +1455,13 @@ class Admin extends Controller {
             $existingPage = getUidData("SELECT id FROM menu_pages WHERE menu_id = ?", [$id]);
             
             if ($existingPage) {
-                setDbData("UPDATE menu_pages SET content = ? WHERE menu_id = ?", [$pageContent, $id]);
+                getDbUpdate('menu_pages', ['content' => $pageContent], 'menu_id = ?', [$id]);
             } else {
-                setDbData("INSERT INTO menu_pages (menu_id, content) VALUES (?, ?)", [$id, $pageContent]);
+                getDbInsert('menu_pages', [
+                    'menu_id' => $id,
+                    'menu_table' => 'header',
+                    'content' => $pageContent
+                ]);
             }
         }
         
@@ -1485,10 +1496,13 @@ class Admin extends Controller {
         ", [$parentId])['max_order'] ?? 0;
         
         // 서브메뉴 추가
-        $result = setDbData("
-            INSERT INTO header_menu (parent_id, menu_name, menu_type, menu_order, is_active)
-            VALUES (?, ?, 'page', ?, 'Y')
-        ", [$parentId, $menuName, $maxOrder + 1]);
+        $result = getDbInsert('header_menu', [
+            'parent_id' => $parentId,
+            'menu_name' => $menuName,
+            'menu_type' => 'page',
+            'menu_order' => $maxOrder + 1,
+            'is_active' => 'Y'
+        ]);
         
         if ($result) {
             $this->json(['success' => true, 'message' => '서브메뉴가 추가되었습니다.']);
