@@ -532,7 +532,6 @@ class Admin extends Controller {
             ]
         ]);
     }
-}
     
     /**
      * 사이트 설정 - 파비콘
