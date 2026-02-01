@@ -22,6 +22,16 @@
                     <i class="fas fa-image me-2"></i>로고 설정
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="image-tab" data-bs-toggle="tab" data-bs-target="#image" type="button" role="tab">
+                    <i class="fas fa-photo-video me-2"></i>이미지 설정
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="watermark-tab" data-bs-toggle="tab" data-bs-target="#watermark" type="button" role="tab">
+                    <i class="fas fa-copyright me-2"></i>워터마크
+                </button>
+            </li>
         </ul>
         
         <!-- 탭 컨텐츠 -->
@@ -251,6 +261,215 @@
                 
             </div>
             
+            <!-- 이미지 설정 탭 -->
+            <div class="tab-pane fade" id="image" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-photo-video"></i> 이미지 업로드 및 썸네일 설정
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="imageSettingsForm">
+                            <!-- 이미지 업로드 설정 -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h6 class="mb-3"><i class="fas fa-upload"></i> 업로드 이미지 설정</h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">최대 가로폭 (px)</label>
+                                    <input type="number" class="form-control" name="image_max_width" 
+                                           value="<?= xssFilter($configs['image_max_width'] ?? '900') ?>" 
+                                           min="100" max="3000" step="10"
+                                           placeholder="900">
+                                    <small class="text-muted">업로드된 이미지가 이 가로폭을 초과하면 자동으로 리사이즈됩니다.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">이미지 품질 (%)</label>
+                                    <input type="number" class="form-control" name="image_quality" 
+                                           value="<?= xssFilter($configs['image_quality'] ?? '100') ?>" 
+                                           min="1" max="100" step="1"
+                                           placeholder="100">
+                                    <small class="text-muted">1~100 사이 값 (100 = 최고 품질)</small>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <!-- 썸네일 설정 -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h6 class="mb-3"><i class="fas fa-images"></i> 썸네일 크기 설정</h6>
+                                </div>
+                                
+                                <!-- 큰 썸네일 -->
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">큰 썸네일</h6>
+                                            <div class="mb-2">
+                                                <label class="form-label small">가로 (px)</label>
+                                                <input type="number" class="form-control form-control-sm" 
+                                                       name="thumb_big_width" 
+                                                       value="<?= xssFilter($configs['thumb_big_width'] ?? '800') ?>" 
+                                                       min="1" max="5000" step="1">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">세로 (px)</label>
+                                                <input type="number" class="form-control form-control-sm" 
+                                                       name="thumb_big_height" 
+                                                       value="<?= xssFilter($configs['thumb_big_height'] ?? '600') ?>" 
+                                                       min="1" max="5000" step="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 중간 썸네일 -->
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">중간 썸네일</h6>
+                                            <div class="mb-2">
+                                                <label class="form-label small">가로 (px)</label>
+                                                <input type="number" class="form-control form-control-sm" 
+                                                       name="thumb_middle_width" 
+                                                       value="<?= xssFilter($configs['thumb_middle_width'] ?? '400') ?>" 
+                                                       min="1" max="5000" step="1">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">세로 (px)</label>
+                                                <input type="number" class="form-control form-control-sm" 
+                                                       name="thumb_middle_height" 
+                                                       value="<?= xssFilter($configs['thumb_middle_height'] ?? '300') ?>" 
+                                                       min="1" max="5000" step="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 작은 썸네일 -->
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">작은 썸네일</h6>
+                                            <div class="mb-2">
+                                                <label class="form-label small">가로 (px)</label>
+                                                <input type="number" class="form-control form-control-sm" 
+                                                       name="thumb_small_width" 
+                                                       value="<?= xssFilter($configs['thumb_small_width'] ?? '200') ?>" 
+                                                       min="1" max="5000" step="1">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">세로 (px)</label>
+                                                <input type="number" class="form-control form-control-sm" 
+                                                       name="thumb_small_height" 
+                                                       value="<?= xssFilter($configs['thumb_small_height'] ?? '150') ?>" 
+                                                       min="1" max="5000" step="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">썸네일 해상도 (%)</label>
+                                    <input type="number" class="form-control" name="thumb_quality" 
+                                           value="<?= xssFilter($configs['thumb_quality'] ?? '100') ?>" 
+                                           min="1" max="100" step="1"
+                                           placeholder="100">
+                                    <small class="text-muted">숫자 100%만 허용 (1~100)</small>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary" onclick="saveImageSettings()">
+                                <i class="fas fa-save me-2"></i>저장
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 워터마크 설정 탭 -->
+            <div class="tab-pane fade" id="watermark" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-copyright"></i> 워터마크 설정
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="watermarkSettingsForm">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="watermark_enabled" 
+                                           name="watermark_enabled" value="Y"
+                                           <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="watermark_enabled">
+                                        워터마크 사용
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">워터마크 이미지</label>
+                                <input type="file" class="form-control" id="watermark_image_file" 
+                                       accept="image/png" onchange="handleWatermarkUpload(this)">
+                                <small class="text-muted">투명 배경의 PNG 파일만 사용 가능 (최대 2MB)</small>
+                                <?php if (!empty($configs['watermark_image'])): ?>
+                                <div class="mt-2">
+                                    <img src="<?= xssFilter($configs['watermark_image']) ?>" 
+                                         style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px; background: #f8f9fa;" 
+                                         id="watermark_preview">
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" 
+                                            onclick="deleteWatermark()">
+                                        <i class="fas fa-trash"></i> 삭제
+                                    </button>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">워터마크 위치</label>
+                                <select class="form-select" name="watermark_position">
+                                    <option value="1" <?= ($configs['watermark_position'] ?? '5') == '1' ? 'selected' : '' ?>>
+                                        왼쪽 상단
+                                    </option>
+                                    <option value="2" <?= ($configs['watermark_position'] ?? '5') == '2' ? 'selected' : '' ?>>
+                                        오른쪽 상단
+                                    </option>
+                                    <option value="3" <?= ($configs['watermark_position'] ?? '5') == '3' ? 'selected' : '' ?>>
+                                        중앙
+                                    </option>
+                                    <option value="4" <?= ($configs['watermark_position'] ?? '5') == '4' ? 'selected' : '' ?>>
+                                        왼쪽 하단
+                                    </option>
+                                    <option value="5" <?= ($configs['watermark_position'] ?? '5') == '5' ? 'selected' : '' ?>>
+                                        오른쪽 하단
+                                    </option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">워터마크 투명도 (%)</label>
+                                <input type="range" class="form-range" id="watermark_opacity" 
+                                       name="watermark_opacity" min="0" max="100" step="5"
+                                       value="<?= xssFilter($configs['watermark_opacity'] ?? '80') ?>"
+                                       oninput="document.getElementById('opacityValue').textContent = this.value + '%'">
+                                <div class="text-center mt-2">
+                                    <span id="opacityValue"><?= xssFilter($configs['watermark_opacity'] ?? '80') ?>%</span>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary" onclick="saveWatermarkSettings()">
+                                <i class="fas fa-save me-2"></i>저장
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
         </div>
         
     </main>
@@ -436,6 +655,114 @@ function saveBasicInfo() {
             alert('기본 정보가 저장되었습니다.');
         } else {
             alert(data.message || '저장에 실패했습니다.');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('네트워크 오류가 발생했습니다.');
+    });
+}
+
+function saveImageSettings() {
+    const form = document.getElementById('imageSettingsForm');
+    const formData = new FormData(form);
+    
+    fetch('/admin/config/saveImageSettings', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('이미지 설정이 저장되었습니다.');
+        } else {
+            alert(data.message || '저장에 실패했습니다.');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('네트워크 오류가 발생했습니다.');
+    });
+}
+
+function saveWatermarkSettings() {
+    const form = document.getElementById('watermarkSettingsForm');
+    const formData = new FormData(form);
+    
+    // 체크박스 값 처리
+    const enabled = document.getElementById('watermark_enabled').checked;
+    formData.set('watermark_enabled', enabled ? 'Y' : 'N');
+    
+    fetch('/admin/config/saveWatermarkSettings', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('워터마크 설정이 저장되었습니다.');
+        } else {
+            alert(data.message || '저장에 실패했습니다.');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('네트워크 오류가 발생했습니다.');
+    });
+}
+
+function handleWatermarkUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    if (file.type !== 'image/png') {
+        alert('PNG 파일만 업로드 가능합니다.');
+        input.value = '';
+        return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+        alert('파일 크기는 2MB를 초과할 수 없습니다.');
+        input.value = '';
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('watermark', file);
+    
+    fetch('/admin/config/uploadWatermark', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('워터마크가 업로드되었습니다.');
+            location.reload();
+        } else {
+            alert(data.message || '업로드에 실패했습니다.');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('네트워크 오류가 발생했습니다.');
+    });
+}
+
+function deleteWatermark() {
+    if (!confirm('정말 워터마크를 삭제하시겠습니까?')) return;
+    
+    fetch('/admin/config/deleteWatermark', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('워터마크가 삭제되었습니다.');
+            location.reload();
+        } else {
+            alert(data.message || '삭제에 실패했습니다.');
         }
     })
     .catch(err => {

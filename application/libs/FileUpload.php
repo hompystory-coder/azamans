@@ -103,22 +103,53 @@ class FileUpload {
         $fullPath = $this->uploadDir . '/' . $filepath;
         
         // 파일 이동
-        if (move_uploaded_file($file['tmp_name'], $fullPath)) {
-            return [
-                'success' => true,
-                'filename' => $filename,
-                'filepath' => $filepath,
-                'original_name' => $file['name'],
-                'size' => $file['size'],
-                'mime_type' => $mimeType,
-                'url' => '/public/uploads/' . $filepath
-            ];
-        } else {
+        if (!move_uploaded_file($file['tmp_name'], $fullPath)) {
             return [
                 'success' => false,
                 'message' => '파일 저장 중 오류가 발생했습니다.'
             ];
         }
+        
+        $result = [
+            'success' => true,
+            'filename' => $filename,
+            'filepath' => $filepath,
+            'original_name' => $file['name'],
+            'size' => $file['size'],
+            'mime_type' => $mimeType,
+            'url' => '/public/uploads/' . $filepath
+        ];
+        
+        // 이미지 파일인 경우 썸네일 생성 및 워터마크 적용
+        if (in_array($mimeType, ['image/jpeg', 'image/png', 'image/gif'])) {
+            try {
+                // ImageProcessor 로드
+                require_once __DIR__ . '/ImageProcessor.php';
+                $imageProcessor = new ImageProcessor();
+                
+                // 이미지 처리 (리사이즈, 썸네일 생성, 워터마크)
+                $processResult = $imageProcessor->processImage($fullPath, $filename);
+                
+                if ($processResult['success']) {
+                    $result['thumbnails'] = [
+                        'big' => $processResult['big'],
+                        'middle' => $processResult['middle'],
+                        'small' => $processResult['small']
+                    ];
+                    
+                    // 원본이 리사이즈되었다면 업데이트
+                    if ($processResult['original'] && $processResult['original'] !== $filename) {
+                        $result['filename'] = $processResult['original'];
+                        $result['filepath'] = date('Y/m') . '/' . $processResult['original'];
+                    }
+                }
+            } catch (Exception $e) {
+                // 이미지 처리 실패해도 원본 파일은 업로드 성공으로 처리
+                error_log('이미지 처리 실패: ' . $e->getMessage());
+            }
+        }
+        
+        return $result;
     }
     
     /**

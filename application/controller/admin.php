@@ -77,12 +77,29 @@ class Admin extends Controller {
         } elseif ($action === 'saveBasic') {
             $this->saveBasicConfig();
             return;
+        } elseif ($action === 'saveImageSettings') {
+            $this->saveImageSettings();
+            return;
+        } elseif ($action === 'saveWatermarkSettings') {
+            $this->saveWatermarkSettings();
+            return;
+        } elseif ($action === 'uploadWatermark') {
+            $this->uploadWatermark();
+            return;
+        } elseif ($action === 'deleteWatermark') {
+            $this->deleteWatermark();
+            return;
         }
         
-        // 모든 설정 로드
-        $configRows = getDbArray("SELECT config_key, config_value FROM admin_config");
+        // 모든 설정 로드 (admin_config와 site_config 모두)
+        $adminConfigRows = getDbArray("SELECT config_key, config_value FROM admin_config");
+        $siteConfigRows = getDbArray("SELECT config_key, config_value FROM site_config");
+        
         $configs = [];
-        foreach ($configRows as $row) {
+        foreach ($adminConfigRows as $row) {
+            $configs[$row['config_key']] = $row['config_value'];
+        }
+        foreach ($siteConfigRows as $row) {
             $configs[$row['config_key']] = $row['config_value'];
         }
         
@@ -1644,6 +1661,163 @@ class Admin extends Controller {
         } else {
             $this->json(['success' => false, 'message' => '서브메뉴 추가에 실패했습니다.']);
         }
+    }
+    
+    /**
+     * 이미지 설정 저장
+     */
+    private function saveImageSettings() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $settings = [
+            'image_max_width' => (int)($_POST['image_max_width'] ?? 900),
+            'image_quality' => (int)($_POST['image_quality'] ?? 100),
+            'thumb_big_width' => (int)($_POST['thumb_big_width'] ?? 800),
+            'thumb_big_height' => (int)($_POST['thumb_big_height'] ?? 600),
+            'thumb_middle_width' => (int)($_POST['thumb_middle_width'] ?? 400),
+            'thumb_middle_height' => (int)($_POST['thumb_middle_height'] ?? 300),
+            'thumb_small_width' => (int)($_POST['thumb_small_width'] ?? 200),
+            'thumb_small_height' => (int)($_POST['thumb_small_height'] ?? 150),
+            'thumb_quality' => (int)($_POST['thumb_quality'] ?? 100)
+        ];
+        
+        // 유효성 검사
+        if ($settings['image_quality'] < 1 || $settings['image_quality'] > 100) {
+            $this->json(['success' => false, 'message' => '이미지 품질은 1~100 사이여야 합니다.'], 400);
+            return;
+        }
+        
+        if ($settings['thumb_quality'] < 1 || $settings['thumb_quality'] > 100) {
+            $this->json(['success' => false, 'message' => '썸네일 해상도는 1~100 사이여야 합니다.'], 400);
+            return;
+        }
+        
+        // site_config 테이블에 저장
+        foreach ($settings as $key => $value) {
+            getDbUpdate('site_config', ['config_value' => $value], 'config_key = ?', [$key]);
+        }
+        
+        $this->json(['success' => true, 'message' => '이미지 설정이 저장되었습니다.']);
+    }
+    
+    /**
+     * 워터마크 설정 저장
+     */
+    private function saveWatermarkSettings() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $settings = [
+            'watermark_enabled' => cleanInput($_POST['watermark_enabled'] ?? 'N'),
+            'watermark_position' => (int)($_POST['watermark_position'] ?? 5),
+            'watermark_opacity' => (int)($_POST['watermark_opacity'] ?? 80)
+        ];
+        
+        // 유효성 검사
+        if (!in_array($settings['watermark_enabled'], ['Y', 'N'])) {
+            $settings['watermark_enabled'] = 'N';
+        }
+        
+        if ($settings['watermark_position'] < 1 || $settings['watermark_position'] > 5) {
+            $settings['watermark_position'] = 5;
+        }
+        
+        if ($settings['watermark_opacity'] < 0 || $settings['watermark_opacity'] > 100) {
+            $settings['watermark_opacity'] = 80;
+        }
+        
+        // site_config 테이블에 저장
+        foreach ($settings as $key => $value) {
+            getDbUpdate('site_config', ['config_value' => $value], 'config_key = ?', [$key]);
+        }
+        
+        $this->json(['success' => true, 'message' => '워터마크 설정이 저장되었습니다.']);
+    }
+    
+    /**
+     * 워터마크 이미지 업로드
+     */
+    private function uploadWatermark() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        if (!isset($_FILES['watermark']) || $_FILES['watermark']['error'] !== UPLOAD_ERR_OK) {
+            $this->json(['success' => false, 'message' => '파일 업로드 오류가 발생했습니다.'], 400);
+            return;
+        }
+        
+        $file = $_FILES['watermark'];
+        
+        // PNG 파일만 허용
+        if ($file['type'] !== 'image/png') {
+            $this->json(['success' => false, 'message' => 'PNG 파일만 업로드 가능합니다.'], 400);
+            return;
+        }
+        
+        // 파일 크기 체크 (2MB)
+        if ($file['size'] > 2 * 1024 * 1024) {
+            $this->json(['success' => false, 'message' => '파일 크기는 2MB를 초과할 수 없습니다.'], 400);
+            return;
+        }
+        
+        // 업로드 디렉토리
+        $uploadDir = __DIR__ . '/../../public/uploads/watermark';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        // 기존 워터마크 삭제
+        $oldWatermark = getUidData("SELECT config_value FROM site_config WHERE config_key = 'watermark_image'", [])['config_value'] ?? '';
+        if (!empty($oldWatermark) && file_exists(__DIR__ . '/../../public' . $oldWatermark)) {
+            @unlink(__DIR__ . '/../../public' . $oldWatermark);
+        }
+        
+        // 파일명 생성
+        $filename = 'watermark_' . time() . '.png';
+        $filepath = $uploadDir . '/' . $filename;
+        
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            $url = '/uploads/watermark/' . $filename;
+            
+            // DB에 저장
+            getDbUpdate('site_config', ['config_value' => $url], 'config_key = ?', ['watermark_image']);
+            
+            $this->json(['success' => true, 'url' => $url]);
+        } else {
+            $this->json(['success' => false, 'message' => '파일 업로드에 실패했습니다.'], 500);
+        }
+    }
+    
+    /**
+     * 워터마크 삭제
+     */
+    private function deleteWatermark() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        // DB에서 워터마크 경로 조회
+        $watermark = getUidData("SELECT config_value FROM site_config WHERE config_key = 'watermark_image'", [])['config_value'] ?? '';
+        
+        if (!empty($watermark)) {
+            $filepath = __DIR__ . '/../../public' . $watermark;
+            if (file_exists($filepath)) {
+                @unlink($filepath);
+            }
+            
+            // DB에서 삭제
+            getDbUpdate('site_config', ['config_value' => ''], 'config_key = ?', ['watermark_image']);
+        }
+        
+        $this->json(['success' => true, 'message' => '워터마크가 삭제되었습니다.']);
     }
 }
 
