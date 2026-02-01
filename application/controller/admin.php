@@ -63,22 +63,8 @@ class Admin extends Controller {
     /**
      * 사이트 설정
      */
-    public function config() {
-        // 모든 설정 로드
-        $configRows = getDbArray("SELECT config_key, config_value FROM admin_config");
-        $configs = [];
-        foreach ($configRows as $row) {
-            $configs[$row['config_key']] = $row['config_value'];
-        }
-        
-        $data = [
-            'title' => '사이트 설정',
-            'configs' => $configs
-        ];
-        
+    public function config($action = '') {
         // 하위 메서드 처리
-        $action = $this->segments[2] ?? '';
-        
         if ($action === 'uploadLogo') {
             $this->uploadLogo();
             return;
@@ -92,6 +78,18 @@ class Admin extends Controller {
             $this->saveBasicConfig();
             return;
         }
+        
+        // 모든 설정 로드
+        $configRows = getDbArray("SELECT config_key, config_value FROM admin_config");
+        $configs = [];
+        foreach ($configRows as $row) {
+            $configs[$row['config_key']] = $row['config_value'];
+        }
+        
+        $data = [
+            'title' => '사이트 설정',
+            'configs' => $configs
+        ];
         
         $this->view('admin/config', $data);
     }
@@ -330,10 +328,8 @@ class Admin extends Controller {
     /**
      * 회원 상세/수정
      */
-    public function member($uid) {
+    public function member($uid, $action = '') {
         // 하위 액션 처리
-        $action = $this->segments[3] ?? '';
-        
         if ($action === 'update') {
             $this->memberUpdate();
             return;
@@ -818,50 +814,11 @@ class Admin extends Controller {
     /**
      * 회원가입 설정
      */
-    public function joinconfig() {
-        // POST 요청: 가입 환경 설정 저장
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $configType = $_POST['config_type'] ?? '';
-            
-            if ($configType === 'join_env') {
-                $useJoin = $_POST['use_join'] ?? 'Y';
-                $approvalType = $_POST['approval_type'] ?? 'auto';
-                $requiredFields = json_decode($_POST['required_fields'] ?? '[]', true);
-                
-                // 기본 필수 항목 추가
-                if (!in_array('user_id', $requiredFields)) {
-                    $requiredFields[] = 'user_id';
-                }
-                if (!in_array('password', $requiredFields)) {
-                    $requiredFields[] = 'password';
-                }
-                
-                // 설정 배열 생성
-                $config = [
-                    'use_join' => $useJoin,
-                    'approval_type' => $approvalType,
-                    'required_fields' => $requiredFields
-                ];
-                
-                // var 파일로 저장
-                $varDir = __DIR__ . '/../config/var';
-                if (!is_dir($varDir)) {
-                    mkdir($varDir, 0755, true);
-                }
-                
-                $varFile = $varDir . '/member_join.var.php';
-                $varContent = "<?php\n";
-                $varContent .= "// 회원가입 설정\n";
-                $varContent .= "// 자동 생성 파일 - 수동으로 수정하지 마세요\n\n";
-                $varContent .= "\$join_config = " . var_export($config, true) . ";\n";
-                
-                if (file_put_contents($varFile, $varContent)) {
-                    $this->json(['success' => true, 'message' => '가입 환경 설정이 저장되었습니다.']);
-                } else {
-                    $this->json(['success' => false, 'message' => '파일 저장에 실패했습니다.']);
-                }
-                return;
-            }
+    public function joinconfig($action = '') {
+        // save 액션 처리
+        if ($action === 'save') {
+            $this->saveJoinConfig();
+            return;
         }
         
         // GET 요청: 설정 페이지 표시
@@ -881,6 +838,59 @@ class Admin extends Controller {
             'youth_protection' => getConfig('youth_protection', '')
         ];
         $this->view('admin/joinconfig', $data);
+    }
+    
+    /**
+     * 회원가입 설정 저장
+     */
+    private function saveJoinConfig() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $configType = $_POST['config_type'] ?? '';
+        
+        if ($configType === 'join_env') {
+            $useJoin = $_POST['use_join'] ?? 'Y';
+            $approvalType = $_POST['approval_type'] ?? 'auto';
+            $requiredFields = json_decode($_POST['required_fields'] ?? '[]', true);
+            
+            // 기본 필수 항목 추가
+            if (!in_array('user_id', $requiredFields)) {
+                $requiredFields[] = 'user_id';
+            }
+            if (!in_array('password', $requiredFields)) {
+                $requiredFields[] = 'password';
+            }
+            
+            // 설정 배열 생성
+            $config = [
+                'use_join' => $useJoin,
+                'approval_type' => $approvalType,
+                'required_fields' => $requiredFields
+            ];
+            
+            // var 파일로 저장
+            $varDir = __DIR__ . '/../config/var';
+            if (!is_dir($varDir)) {
+                mkdir($varDir, 0755, true);
+            }
+            
+            $varFile = $varDir . '/member_join.var.php';
+            $varContent = "<?php\n";
+            $varContent .= "// 회원가입 설정\n";
+            $varContent .= "// 자동 생성 파일 - 수동으로 수정하지 마세요\n\n";
+            $varContent .= "\$join_config = " . var_export($config, true) . ";\n";
+            
+            if (file_put_contents($varFile, $varContent)) {
+                $this->json(['success' => true, 'message' => '가입 환경 설정이 저장되었습니다.']);
+            } else {
+                $this->json(['success' => false, 'message' => '파일 저장에 실패했습니다.']);
+            }
+        } else {
+            $this->json(['success' => false, 'message' => '잘못된 설정 유형입니다.'], 400);
+        }
     }
     
     /**
