@@ -111,11 +111,9 @@
                     <?php endif; ?>
                 </ul>
             </div>
-        </div>
-        
-        <!-- 관리자 생성 메뉴 영역 (2단 메뉴) -->
-        <div class="admin-menu-area">
-            <div class="container">
+            
+            <!-- 관리자 생성 메뉴 영역 (2단 메뉴) -->
+            <div class="admin-menu-area w-100">
                 <ul class="nav justify-content-center">
                     <!-- 여기에 관리자가 생성한 메뉴가 표시됩니다 -->
                     <!-- TODO: 데이터베이스에서 메뉴 불러오기 -->
