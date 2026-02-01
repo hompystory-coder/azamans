@@ -133,7 +133,7 @@
                                            value="<?= xssFilter($user['address'] ?? '') ?>">
                                 </div>
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary" style="color: white;">
                                         <i class="fas fa-save me-2"></i>저장
                                     </button>
                                 </div>
@@ -164,7 +164,7 @@
                                            minlength="8" required>
                                 </div>
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-warning">
+                                    <button type="submit" class="btn btn-warning" style="color: white;">
                                         <i class="fas fa-key me-2"></i>비밀번호 변경
                                     </button>
                                 </div>
@@ -288,8 +288,30 @@ function uploadPhoto() {
 
 // 프로필 수정
 <?php if ($active_tab === 'profile'): ?>
+let isProfileSubmitting = false;
+
 document.getElementById('profileForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // 더블클릭 방지
+    if (isProfileSubmitting) {
+        return false;
+    }
+    
+    // 확인 메시지
+    if (!confirm('정말로 수정하시겠습니까?')) {
+        return false;
+    }
+    
+    // 제출 시작
+    isProfileSubmitting = true;
+    
+    // 버튼 비활성화
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>처리 중...';
+    }
     
     const formData = new FormData(this);
     
@@ -305,19 +327,40 @@ document.getElementById('profileForm').addEventListener('submit', function(e) {
             location.reload();
         } else {
             alert(data.message || '업데이트 실패');
+            
+            // 실패 시 버튼 복구
+            isProfileSubmitting = false;
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>저장';
+            }
         }
     })
     .catch(err => {
         console.error(err);
         alert('오류가 발생했습니다.');
+        
+        // 오류 시 버튼 복구
+        isProfileSubmitting = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>저장';
+        }
     });
 });
 <?php endif; ?>
 
 // 비밀번호 변경
 <?php if ($active_tab === 'password'): ?>
+let isPasswordSubmitting = false;
+
 document.getElementById('passwordForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // 더블클릭 방지
+    if (isPasswordSubmitting) {
+        return false;
+    }
     
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
@@ -325,6 +368,21 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
     if (data.new_password !== data.new_password_confirm) {
         alert('새 비밀번호가 일치하지 않습니다.');
         return;
+    }
+    
+    // 확인 메시지
+    if (!confirm('정말로 수정하시겠습니까?')) {
+        return false;
+    }
+    
+    // 제출 시작
+    isPasswordSubmitting = true;
+    
+    // 버튼 비활성화
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>처리 중...';
     }
     
     fetch('/member/changePassword', {
@@ -337,13 +395,34 @@ document.getElementById('passwordForm').addEventListener('submit', function(e) {
         if (data.success) {
             alert('비밀번호가 변경되었습니다.');
             this.reset();
+            
+            // 성공 시에도 버튼 복구
+            isPasswordSubmitting = false;
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-key me-2"></i>비밀번호 변경';
+            }
         } else {
             alert(data.message || '변경 실패');
+            
+            // 실패 시 버튼 복구
+            isPasswordSubmitting = false;
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-key me-2"></i>비밀번호 변경';
+            }
         }
     })
     .catch(err => {
         console.error(err);
         alert('오류가 발생했습니다.');
+        
+        // 오류 시 버튼 복구
+        isPasswordSubmitting = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-key me-2"></i>비밀번호 변경';
+        }
     });
 });
 <?php endif; ?>
