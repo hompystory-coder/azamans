@@ -66,6 +66,38 @@
                                     </label>
                                     <textarea class="form-control" name="page_content" id="page_content"><?php echo $pageContent; ?></textarea>
                                     <small class="text-muted">CKEditor를 통해 내용을 편집하세요.</small>
+                                    
+                                    <!-- 첨부파일 업로드 -->
+                                    <div class="mt-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-paperclip me-1"></i>첨부파일
+                                        </label>
+                                        <input type="file" class="form-control" name="page_files[]" id="page_files" multiple>
+                                        <small class="text-muted">여러 파일 선택 가능 (최대 10개, 각 10MB)</small>
+                                        
+                                        <!-- 기존 첨부파일 목록 -->
+                                        <?php if (!empty($pageFiles)): ?>
+                                        <div class="mt-3">
+                                            <strong>기존 첨부파일:</strong>
+                                            <ul class="list-group mt-2" id="existing-files-list">
+                                                <?php foreach ($pageFiles as $file): ?>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="file-<?php echo $file['id']; ?>">
+                                                    <div>
+                                                        <i class="fas fa-file me-2"></i>
+                                                        <a href="/page/download/<?php echo $file['id']; ?>" target="_blank">
+                                                            <?php echo xssFilter($file['original_name']); ?>
+                                                        </a>
+                                                        <small class="text-muted ms-2">(<?php echo number_format($file['file_size'] / 1024, 2); ?> KB)</small>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="deletePageFile(<?php echo $file['id']; ?>)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                                 
                                 <!-- 게시판 타입: 게시판 선택 -->
@@ -224,7 +256,9 @@ $(document).ready(function() {
         $.ajax({
             url: '/admin/updateMenu/' + menuId,
             method: 'POST',
-            data: Object.fromEntries(formData),
+            data: formData,
+            processData: false,  // 파일 업로드를 위해 필수
+            contentType: false,  // 파일 업로드를 위해 필수
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
@@ -241,6 +275,33 @@ $(document).ready(function() {
         });
     });
 });
+
+// 페이지 첨부파일 삭제
+function deletePageFile(fileId) {
+    if (!confirm('이 파일을 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '/admin/deletePageFile/' + fileId,
+        method: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert(response.message);
+                $('#file-' + fileId).fadeOut(300, function() {
+                    $(this).remove();
+                });
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function(xhr) {
+            console.error('Error:', xhr);
+            alert('파일 삭제 중 오류가 발생했습니다.');
+        }
+    });
+}
 </script>
 
 <!-- CKEditor 스크립트 로드 -->
