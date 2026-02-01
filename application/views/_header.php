@@ -125,39 +125,39 @@
                 
                 if (!empty($menus)):
                     // 메뉴가 있을 때
-                    foreach ($menus as $menu):
+                    foreach ($menus as $headerMenu):
                         // 숨김 메뉴는 표시하지 않음
-                        if ($menu['is_hidden'] === 'Y') continue;
+                        if ($headerMenu['is_hidden'] === 'Y') continue;
                         
                         // URL 생성
                         $menuUrl = '#';
                         
-                        if (!empty($menu['custom_url']) && $menu['use_redirect'] === 'Y') {
+                        if (!empty($headerMenu['custom_url']) && $headerMenu['use_redirect'] === 'Y') {
                             // 커스텀 URL 리다이렉트
-                            $menuUrl = xssFilter($menu['custom_url']);
+                            $menuUrl = xssFilter($headerMenu['custom_url']);
                         } else {
                             // 메뉴 타입에 따른 URL
-                            switch ($menu['menu_type']) {
+                            switch ($headerMenu['menu_type']) {
                                 case 'page':
-                                    $menuUrl = '/page/' . $menu['id'];
+                                    $menuUrl = '/page/' . $headerMenu['id'];
                                     break;
                                 case 'board':
                                     // menu_target이 있는 경우에만 게시판 링크 생성
-                                    if (!empty($menu['menu_target'])) {
-                                        $menuUrl = '/bbs/' . xssFilter($menu['menu_target']);
+                                    if (!empty($headerMenu['menu_target'])) {
+                                        $menuUrl = '/bbs/' . xssFilter($headerMenu['menu_target']);
                                     }
                                     break;
                                 case 'content':
-                                    $menuUrl = '/content/' . xssFilter($menu['menu_target']);
+                                    $menuUrl = '/content/' . xssFilter($headerMenu['menu_target']);
                                     break;
                             }
                         }
                         
                         // 타겟 윈도우
-                        $target = $menu['target_window'] === 'blank' ? ' target="_blank"' : '';
+                        $target = $headerMenu['target_window'] === 'blank' ? ' target="_blank"' : '';
                 ?>
                     <a class="nav-link" href="<?php echo $menuUrl; ?>"<?php echo $target; ?>>
-                        <?php echo xssFilter($menu['menu_name']); ?>
+                        <?php echo xssFilter($headerMenu['menu_name']); ?>
                     </a>
                 <?php 
                     endforeach;
