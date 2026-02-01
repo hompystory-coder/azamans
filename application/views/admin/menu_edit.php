@@ -186,10 +186,17 @@ $(document).ready(function() {
         formData.set('is_hidden', $('#is_hidden').is(':checked') ? 'Y' : 'N');
         formData.set('is_blocked', $('#is_blocked').is(':checked') ? 'Y' : 'N');
         
-        // 선택되지 않은 타입의 menu_target 제거
+        // 선택된 타입에 따라 menu_target 처리
         const selectedType = $('input[name="menu_type"]:checked').val();
         if (selectedType === 'page') {
             formData.delete('menu_target');
+            formData.set('menu_target', '');
+        } else if (selectedType === 'board') {
+            // 게시판 선택값만 사용
+            formData.set('menu_target', $('#board_select').val());
+        } else if (selectedType === 'content') {
+            // 콘텐츠 선택값만 사용
+            formData.set('menu_target', $('#content_select').val());
         }
         
         $.ajax({

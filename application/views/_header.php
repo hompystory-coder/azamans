@@ -142,7 +142,7 @@
                                     $menuUrl = '/page/' . $menu['id'];
                                     break;
                                 case 'board':
-                                    $menuUrl = '/bbs/' . xssFilter($menu['menu_target']);
+                                    $menuUrl = '/bbs/' . xssFilter($menu['menu_target']) . '/list';
                                     break;
                                 case 'content':
                                     $menuUrl = '/content/' . xssFilter($menu['menu_target']);

@@ -75,6 +75,11 @@
                                                     <div>
                                                         <strong><?php echo xssFilter($menu['menu_name']); ?></strong>
                                                         <span class="badge bg-info ms-2"><?php echo $menu['menu_type']; ?></span>
+                                                        <?php if ($menu['use_redirect'] === 'Y'): ?>
+                                                            <span class="badge bg-primary ms-1" title="리다이렉트 메뉴">
+                                                                <i class="fas fa-external-link-alt"></i> 리다이렉트
+                                                            </span>
+                                                        <?php endif; ?>
                                                         <?php if ($menu['is_hidden'] === 'Y'): ?>
                                                             <span class="badge bg-warning text-dark ms-1">숨김</span>
                                                         <?php endif; ?>
@@ -109,6 +114,11 @@
                                                                     <i class="fas fa-level-up-alt fa-rotate-90 text-muted me-2"></i>
                                                                     <?php echo xssFilter($sub['menu_name']); ?>
                                                                     <span class="badge bg-secondary ms-2"><?php echo $sub['menu_type']; ?></span>
+                                                                    <?php if ($sub['use_redirect'] === 'Y'): ?>
+                                                                        <span class="badge bg-primary ms-1" title="리다이렉트 메뉴">
+                                                                            <i class="fas fa-external-link-alt"></i> 리다이렉트
+                                                                        </span>
+                                                                    <?php endif; ?>
                                                                 </div>
                                                                 <div class="btn-group">
                                                                     <a href="/admin/editMenu/<?php echo $sub['id']; ?>" class="btn btn-sm btn-outline-success">
