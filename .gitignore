@@ -39,3 +39,4 @@ node_modules/
 /dist/
 /build/
 application/config/var/*.var.php
+public/plugins/editor/node_modules/
