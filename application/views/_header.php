@@ -116,19 +116,50 @@
             <div class="w-100"></div> <!-- 줄바꿈 -->
             <div class="header-bottom-menu-inner">
                 <?php
-                // TODO: 데이터베이스에서 메뉴 불러오기
-                $hasMenus = false; // 임시로 메뉴 없음 상태
+                // 데이터베이스에서 메뉴 불러오기
+                $menus = getDbArray("
+                    SELECT * FROM header_menu 
+                    WHERE is_active = 'Y' AND parent_id = 0 AND is_blocked = 'N'
+                    ORDER BY menu_order ASC, id ASC
+                ", []) ?? [];
                 
-                if ($hasMenus):
+                if (!empty($menus)):
                     // 메뉴가 있을 때
+                    foreach ($menus as $menu):
+                        // 숨김 메뉴는 표시하지 않음
+                        if ($menu['is_hidden'] === 'Y') continue;
+                        
+                        // URL 생성
+                        $menuUrl = '#';
+                        
+                        if (!empty($menu['custom_url']) && $menu['use_redirect'] === 'Y') {
+                            // 커스텀 URL 리다이렉트
+                            $menuUrl = xssFilter($menu['custom_url']);
+                        } else {
+                            // 메뉴 타입에 따른 URL
+                            switch ($menu['menu_type']) {
+                                case 'page':
+                                    $menuUrl = '/page/' . $menu['id'];
+                                    break;
+                                case 'board':
+                                    $menuUrl = '/bbs/' . xssFilter($menu['menu_target']);
+                                    break;
+                                case 'content':
+                                    $menuUrl = '/content/' . xssFilter($menu['menu_target']);
+                                    break;
+                            }
+                        }
+                        
+                        // 타겟 윈도우
+                        $target = $menu['target_window'] === 'blank' ? ' target="_blank"' : '';
                 ?>
-                    <a class="nav-link" href="#">메뉴1</a>
-                    <a class="nav-link" href="#">메뉴2</a>
-                    <a class="nav-link" href="#">메뉴3</a>
-                    <a class="nav-link" href="#">메뉴4</a>
-                    <a class="nav-link" href="#">메뉴5</a>
-                    <a class="nav-link" href="#">메뉴6</a>
-                <?php else: ?>
+                    <a class="nav-link" href="<?php echo $menuUrl; ?>"<?php echo $target; ?>>
+                        <?php echo xssFilter($menu['menu_name']); ?>
+                    </a>
+                <?php 
+                    endforeach;
+                else: 
+                ?>
                     <!-- 메뉴가 없을 때 -->
                     <?php if (isAdmin()): ?>
                         <!-- 관리자: 메뉴 생성 바로가기 -->
