@@ -1268,12 +1268,17 @@ class Admin extends Controller {
      * 헤더 메뉴 생성 (콤마로 여러 개 생성 가능)
      */
     public function createMenu() {
+        // 디버그 로그
+        error_log("createMenu called - REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
+        error_log("POST data: " . json_encode($_POST));
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->json(['success' => false, 'message' => 'Invalid request'], 400);
+            $this->json(['success' => false, 'message' => 'Invalid request method'], 400);
             return;
         }
         
-        $menuNames = trim($this->post('menu_name', ''));
+        $menuNames = trim($_POST['menu_name'] ?? '');
+        error_log("Menu names: " . $menuNames);
         
         if (empty($menuNames)) {
             $this->json(['success' => false, 'message' => '메뉴명을 입력해주세요.']);
@@ -1289,27 +1294,39 @@ class Admin extends Controller {
             return;
         }
         
-        // 현재 최대 순서 조회
-        $maxOrder = getUidData("SELECT MAX(menu_order) as max_order FROM header_menu")['max_order'] ?? 0;
-        
-        $successCount = 0;
-        foreach ($names as $name) {
-            $maxOrder++;
-            $result = setDbData("
-                INSERT INTO header_menu (parent_id, menu_name, menu_type, menu_order, is_active)
-                VALUES (0, ?, 'page', ?, 'Y')
-            ", [$name, $maxOrder]);
+        try {
+            // 현재 최대 순서 조회
+            $maxOrderResult = getUidData("SELECT COALESCE(MAX(menu_order), 0) as max_order FROM header_menu", []);
+            $maxOrder = $maxOrderResult['max_order'] ?? 0;
+            error_log("Max order: " . $maxOrder);
             
-            if ($result) {
-                $successCount++;
+            $successCount = 0;
+            foreach ($names as $name) {
+                $maxOrder++;
+                error_log("Inserting menu: $name with order: $maxOrder");
+                
+                $result = setDbData("
+                    INSERT INTO header_menu (parent_id, menu_name, menu_type, menu_order, is_active)
+                    VALUES (0, ?, 'page', ?, 'Y')
+                ", [$name, $maxOrder]);
+                
+                if ($result) {
+                    $successCount++;
+                    error_log("Menu inserted successfully: $name");
+                } else {
+                    error_log("Failed to insert menu: $name");
+                }
             }
-        }
-        
-        if ($successCount > 0) {
-            $message = $successCount === 1 ? '메뉴가 생성되었습니다.' : "{$successCount}개의 메뉴가 생성되었습니다.";
-            $this->json(['success' => true, 'message' => $message]);
-        } else {
-            $this->json(['success' => false, 'message' => '메뉴 생성에 실패했습니다.']);
+            
+            if ($successCount > 0) {
+                $message = $successCount === 1 ? '메뉴가 생성되었습니다.' : "{$successCount}개의 메뉴가 생성되었습니다.";
+                $this->json(['success' => true, 'message' => $message, 'count' => $successCount]);
+            } else {
+                $this->json(['success' => false, 'message' => '메뉴 생성에 실패했습니다.']);
+            }
+        } catch (Exception $e) {
+            error_log("Error in createMenu: " . $e->getMessage());
+            $this->json(['success' => false, 'message' => '오류: ' . $e->getMessage()]);
         }
     }
     
