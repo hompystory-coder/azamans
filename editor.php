@@ -16,29 +16,6 @@
  *    ]);
  */
 
-// 에디터 설정 기본값
-$editorDefaults = [
-    'height' => 500,
-    'minHeight' => 300,
-    'imageUploadUrl' => '/bbs/uploadImage',
-    'language' => 'ko',
-    'toolbar' => [
-        'findAndReplace', '|',
-        'heading', '|',
-        'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-        'bold', 'italic', 'underline', 'strikethrough', '|',
-        'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed', '|',
-        'alignment', '|',
-        'bulletedList', 'numberedList', 'todoList', '|',
-        'outdent', 'indent', '|',
-        'code', 'codeBlock', '|',
-        'highlight', 'removeFormat', '|',
-        'specialCharacters', 'horizontalLine', 'pageBreak', '|',
-        'htmlEmbed', 'sourceEditing', '|',
-        'undo', 'redo'
-    ]
-];
-
 /**
  * CKEditor 초기화 함수
  * 
@@ -47,7 +24,28 @@ $editorDefaults = [
  * @return void
  */
 function initCKEditor($textareaId = 'editor', $options = []) {
-    global $editorDefaults;
+    // 기본 설정
+    $editorDefaults = [
+        'height' => 500,
+        'minHeight' => 300,
+        'imageUploadUrl' => '/bbs/uploadImage',
+        'language' => 'ko',
+        'toolbar' => [
+            'findAndReplace', '|',
+            'heading', '|',
+            'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed', '|',
+            'alignment', '|',
+            'bulletedList', 'numberedList', 'todoList', '|',
+            'outdent', 'indent', '|',
+            'code', 'codeBlock', '|',
+            'highlight', 'removeFormat', '|',
+            'specialCharacters', 'horizontalLine', 'pageBreak', '|',
+            'htmlEmbed', 'sourceEditing', '|',
+            'undo', 'redo'
+        ]
+    ];
     
     // 옵션 병합
     $config = array_merge($editorDefaults, $options);
