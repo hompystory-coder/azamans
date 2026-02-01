@@ -240,3 +240,144 @@ function bbsGetMemberDailyCount($memberUid, $bbsId = null, $date = null) {
     
     return $result['cnt'] ?? 0;
 }
+
+/**
+ * 회원별 일별 게시물 수 조회
+ * 
+ * @param int $memberUid 회원 UID
+ * @param string $date 날짜 (Ymd) - 기본값: 오늘
+ * @param string|null $bbsId 게시판 ID (선택)
+ * @return int
+ */
+function bbsGetMemberDayPostCount($memberUid, $date = null, $bbsId = null) {
+    if ($date === null) {
+        $date = date('Ymd');
+    }
+    
+    $where = "member_uid = ? AND date = ?";
+    $params = [$memberUid, $date];
+    
+    if ($bbsId !== null) {
+        $where .= " AND bbs_id = ?";
+        $params[] = $bbsId;
+    }
+    
+    return getDbCnt("SELECT COUNT(*) FROM bbs_day WHERE {$where}", $params);
+}
+
+/**
+ * 회원별 월별 게시물 수 조회
+ * 
+ * @param int $memberUid 회원 UID
+ * @param string $month 월 (Ym) - 기본값: 이번 달
+ * @param string|null $bbsId 게시판 ID (선택)
+ * @return int
+ */
+function bbsGetMemberMonthPostCount($memberUid, $month = null, $bbsId = null) {
+    if ($month === null) {
+        $month = date('Ym');
+    }
+    
+    $where = "member_uid = ? AND date = ?";
+    $params = [$memberUid, $month];
+    
+    if ($bbsId !== null) {
+        $where .= " AND bbs_id = ?";
+        $params[] = $bbsId;
+    }
+    
+    return getDbCnt("SELECT COUNT(*) FROM bbs_month WHERE {$where}", $params);
+}
+
+/**
+ * 회원별 전체 게시물 수 조회 (bbs_index 사용)
+ * 
+ * @param int $memberUid 회원 UID
+ * @param string|null $bbsId 게시판 ID (선택)
+ * @return int
+ */
+function bbsGetMemberTotalPostCount($memberUid, $bbsId = null) {
+    $where = "member_uid = ?";
+    $params = [$memberUid];
+    
+    if ($bbsId !== null) {
+        $where .= " AND bbs_id = ?";
+        $params[] = $bbsId;
+    }
+    
+    return getDbCnt("SELECT COUNT(*) FROM bbs_index WHERE {$where}", $params);
+}
+
+/**
+ * 게시판별 일별 게시물 수 조회
+ * 
+ * @param string $bbsId 게시판 ID
+ * @param string $date 날짜 (Ymd) - 기본값: 오늘
+ * @return int
+ */
+function bbsGetBoardDayPostCount($bbsId, $date = null) {
+    if ($date === null) {
+        $date = date('Ymd');
+    }
+    
+    return getDbCnt("SELECT COUNT(*) FROM bbs_day WHERE bbs_id = ? AND date = ?", [$bbsId, $date]);
+}
+
+/**
+ * 게시판별 월별 게시물 수 조회
+ * 
+ * @param string $bbsId 게시판 ID
+ * @param string $month 월 (Ym) - 기본값: 이번 달
+ * @return int
+ */
+function bbsGetBoardMonthPostCount($bbsId, $month = null) {
+    if ($month === null) {
+        $month = date('Ym');
+    }
+    
+    return getDbCnt("SELECT COUNT(*) FROM bbs_month WHERE bbs_id = ? AND date = ?", [$bbsId, $month]);
+}
+
+/**
+ * 회원별 일별 게시물 목록 조회
+ * 
+ * @param int $memberUid 회원 UID
+ * @param string $date 날짜 (Ymd)
+ * @param int $page 페이지 번호
+ * @param int $perPage 페이지당 개수
+ * @return array
+ */
+function bbsGetMemberDayPosts($memberUid, $date, $page = 1, $perPage = 20) {
+    $offset = ($page - 1) * $perPage;
+    
+    return getDbArray("
+        SELECT d.*, bd.date, bd.bbs_id
+        FROM bbs_day bd
+        INNER JOIN bbs_data d ON bd.data_uid = d.uid
+        WHERE bd.member_uid = ? AND bd.date = ?
+        ORDER BY d.reg_date DESC
+        LIMIT {$perPage} OFFSET {$offset}
+    ", [$memberUid, $date]);
+}
+
+/**
+ * 회원별 월별 게시물 목록 조회
+ * 
+ * @param int $memberUid 회원 UID
+ * @param string $month 월 (Ym)
+ * @param int $page 페이지 번호
+ * @param int $perPage 페이지당 개수
+ * @return array
+ */
+function bbsGetMemberMonthPosts($memberUid, $month, $page = 1, $perPage = 20) {
+    $offset = ($page - 1) * $perPage;
+    
+    return getDbArray("
+        SELECT d.*, bm.date, bm.bbs_id
+        FROM bbs_month bm
+        INNER JOIN bbs_data d ON bm.data_uid = d.uid
+        WHERE bm.member_uid = ? AND bm.date = ?
+        ORDER BY d.reg_date DESC
+        LIMIT {$perPage} OFFSET {$offset}
+    ", [$memberUid, $month]);
+}
