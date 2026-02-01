@@ -33,6 +33,23 @@
             </div>
         </li>
         
+        <!-- 메뉴 관리 -->
+        <li>
+            <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
+               data-bs-toggle="collapse" data-bs-target="#menuManageMenu" 
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu') !== false) ? 'true' : 'false'; ?>">
+                <span><i class="fas fa-bars me-2"></i>메뉴 관리</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu') !== false) ? 'show' : ''; ?>" id="menuManageMenu">
+                <ul class="nav flex-column ms-3">
+                    <li><a href="/admin/menus" class="nav-link py-1 small <?php echo ($_SERVER['REQUEST_URI'] == '/admin/menus') ? 'active' : ''; ?>">메뉴 리스트</a></li>
+                    <li><a href="/admin/menu/add" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu/add') !== false) ? 'active' : ''; ?>">메뉴 추가</a></li>
+                    <li><a href="/admin/menu/order" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu/order') !== false) ? 'active' : ''; ?>">메뉴 순서</a></li>
+                </ul>
+            </div>
+        </li>
+        
         <!-- 회원 관리 -->
         <li>
             <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
