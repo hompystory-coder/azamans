@@ -1236,4 +1236,107 @@ class Admin extends Controller {
         
         $this->view('admin/poststats', $data);
     }
+    
+    /**
+     * 헤더 메뉴 관리
+     */
+    public function menu($action = 'header') {
+        if ($action === 'header') {
+            // 헤더 메뉴 목록 조회
+            $menus = getDbArray("
+                SELECT * FROM header_menus 
+                ORDER BY menu_order ASC, id ASC
+            ") ?? [];
+            
+            $data = [
+                'title' => '헤더 메뉴 관리',
+                'menus' => $menus
+            ];
+            
+            $this->view('admin/menu_header', $data);
+        } elseif ($action === 'footer') {
+            // 푸터 메뉴 (추후 구현)
+            $data = [
+                'title' => '푸터 메뉴 관리'
+            ];
+            
+            $this->view('admin/menu_footer', $data);
+        }
+    }
+    
+    /**
+     * 헤더 메뉴 생성
+     */
+    public function createMenu() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => 'Invalid request'], 400);
+            return;
+        }
+        
+        $menuName = trim($this->post('menu_name', ''));
+        $menuUrl = trim($this->post('menu_url', '/'));
+        
+        if (empty($menuName)) {
+            $this->json(['success' => false, 'message' => '메뉴명을 입력해주세요.']);
+            return;
+        }
+        
+        // 현재 최대 순서 조회
+        $maxOrder = getUidData("SELECT MAX(menu_order) as max_order FROM header_menus")['max_order'] ?? 0;
+        
+        // 메뉴 추가
+        $result = setDbData("
+            INSERT INTO header_menus (menu_name, menu_url, menu_order, is_active)
+            VALUES (?, ?, ?, 'Y')
+        ", [$menuName, $menuUrl, $maxOrder + 1]);
+        
+        if ($result) {
+            $this->json(['success' => true, 'message' => '메뉴가 생성되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '메뉴 생성에 실패했습니다.']);
+        }
+    }
+    
+    /**
+     * 헤더 메뉴 삭제
+     */
+    public function deleteMenu($id = null) {
+        if (!$id) {
+            $this->json(['success' => false, 'message' => 'Invalid menu ID'], 400);
+            return;
+        }
+        
+        $result = setDbData("DELETE FROM header_menus WHERE id = ?", [$id]);
+        
+        if ($result) {
+            $this->json(['success' => true, 'message' => '메뉴가 삭제되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '메뉴 삭제에 실패했습니다.']);
+        }
+    }
+    
+    /**
+     * 헤더 메뉴 순서 변경
+     */
+    public function updateMenuOrder() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => 'Invalid request'], 400);
+            return;
+        }
+        
+        $orders = $this->post('orders', []);
+        
+        if (empty($orders)) {
+            $this->json(['success' => false, 'message' => '순서 데이터가 없습니다.']);
+            return;
+        }
+        
+        // 순서 업데이트
+        foreach ($orders as $order => $id) {
+            setDbData("UPDATE header_menus SET menu_order = ? WHERE id = ?", [$order + 1, $id]);
+        }
+        
+        $this->json(['success' => true, 'message' => '순서가 변경되었습니다.']);
+    }
 }
+
