@@ -1,5 +1,13 @@
 <?php include __DIR__ . '/_admin_header.php'; ?>
 
+<style>
+/* CKEditor 높이 설정 */
+#page_content + .ck-editor .ck-editor__editable {
+    min-height: 600px !important;
+    max-height: 800px !important;
+}
+</style>
+
 <div class="d-flex">
     <?php include __DIR__ . '/_sidebar.php'; ?>
     
