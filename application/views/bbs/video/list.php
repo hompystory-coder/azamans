@@ -8,17 +8,17 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div>
                         <h2 class="mb-1 fw-bold">
-                            <i class="fas fa-images text-main me-2"></i>
+                            <i class="fas fa-play-circle text-main me-2"></i>
                             <?php echo xssFilter($board['bbs_name']); ?>
                         </h2>
                         <p class="text-muted mb-0">
-                            <i class="fas fa-photo-video me-1"></i>
-                            전체 이미지: <strong><?php echo number_format($total); ?></strong>개
+                            <i class="fas fa-video me-1"></i>
+                            전체 동영상: <strong><?php echo number_format($total); ?></strong>개
                         </p>
                     </div>
                     <?php if ($board['write_level'] <= ($_SESSION['level'] ?? 0)): ?>
                         <a href="/bbs/<?php echo $board['bbs_id']; ?>/write" class="btn btn-primary">
-                            <i class="fas fa-camera me-2"></i>이미지 업로드
+                            <i class="fas fa-video me-2"></i>동영상 올리기
                         </a>
                     <?php endif; ?>
                 </div>
@@ -43,36 +43,38 @@
             </div>
         </div>
         
-        <!-- 갤러리 그리드 -->
+        <!-- 동영상 그리드 -->
         <div class="row g-4 animate__animated animate__fadeInUp">
             <?php if (!empty($posts)): ?>
                 <?php foreach ($posts as $post): ?>
                     <?php
-                    // 첫 번째 이미지 파일 찾기
-                    $thumbnail = null;
-                    if (!empty($post['attachments'])) {
-                        $attachments = json_decode($post['attachments'], true);
-                        if (is_array($attachments)) {
-                            foreach ($attachments as $file) {
-                                if (isset($file['file_type']) && strpos($file['file_type'], 'image/') === 0) {
-                                    $thumbnail = $file['file_path'];
-                                    break;
-                                }
-                            }
-                        }
+                    // 유튜브 링크에서 비디오 ID 추출
+                    $videoId = null;
+                    $videoUrl = null;
+                    
+                    // content에서 유튜브 링크 찾기
+                    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i', $post['content'], $match)) {
+                        $videoId = $match[1];
+                        $videoUrl = "https://www.youtube.com/watch?v=" . $videoId;
                     }
+                    
+                    // 썸네일 URL
+                    $thumbnail = $videoId ? "https://img.youtube.com/vi/{$videoId}/mqdefault.jpg" : null;
                     ?>
-                    <div class="col-lg-3 col-md-4 col-sm-6">
-                        <div class="card border-0 shadow-sm h-100 gallery-item">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card border-0 shadow-sm h-100 video-item">
                             <a href="/bbs/<?php echo $board['bbs_id']; ?>/view/<?php echo $post['uid']; ?>" class="text-decoration-none">
-                                <div class="gallery-thumbnail">
+                                <div class="video-thumbnail position-relative">
                                     <?php if ($thumbnail): ?>
                                         <img src="<?php echo $thumbnail; ?>" alt="<?php echo xssFilter($post['title']); ?>" 
-                                             class="card-img-top" style="height: 200px; object-fit: cover;">
+                                             class="card-img-top" style="height: 220px; object-fit: cover;">
+                                        <div class="video-play-overlay">
+                                            <i class="fas fa-play-circle fa-3x text-white"></i>
+                                        </div>
                                     <?php else: ?>
-                                        <div class="bg-light d-flex align-items-center justify-content-center" 
-                                             style="height: 200px;">
-                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        <div class="bg-dark d-flex align-items-center justify-content-center" 
+                                             style="height: 220px;">
+                                            <i class="fas fa-video fa-3x text-white-50"></i>
                                         </div>
                                     <?php endif; ?>
                                     
@@ -93,7 +95,7 @@
                                 </div>
                                 
                                 <div class="card-body">
-                                    <h6 class="card-title text-dark mb-2 text-truncate">
+                                    <h6 class="card-title text-dark mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                         <?php echo xssFilter($post['title']); ?>
                                     </h6>
                                     
@@ -129,12 +131,12 @@
                 <div class="col-12">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body text-center py-5">
-                            <i class="fas fa-images fa-4x text-muted mb-3"></i>
-                            <p class="text-muted mb-0">등록된 이미지가 없습니다.</p>
+                            <i class="fas fa-video fa-4x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">등록된 동영상이 없습니다.</p>
                         </div>
                     </div>
                 </div>
-                            <?php endif; ?>
+            <?php endif; ?>
         </div>
         
         <!-- 페이징 -->
@@ -198,27 +200,43 @@
 </main>
 
 <style>
-.gallery-item {
+.video-item {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
 }
 
-.gallery-item:hover {
+.video-item:hover {
     transform: translateY(-5px);
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 
-.gallery-thumbnail {
+.video-thumbnail {
     position: relative;
     overflow: hidden;
+    background: #000;
 }
 
-.gallery-thumbnail img {
-    transition: transform 0.3s ease;
+.video-play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
 }
 
-.gallery-item:hover .gallery-thumbnail img {
-    transform: scale(1.1);
+.video-item:hover .video-play-overlay {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+.video-thumbnail img {
+    transition: opacity 0.3s ease;
+}
+
+.video-item:hover .video-thumbnail img {
+    opacity: 0.8;
 }
 </style>
 

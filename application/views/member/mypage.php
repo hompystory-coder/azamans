@@ -292,17 +292,16 @@ document.getElementById('profileForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
     
     fetch('/member/updateProfile', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
+        body: formData  // FormData 그대로 전송
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
             alert('프로필이 업데이트되었습니다.');
+            // 세션 업데이트를 위해 페이지 새로고침
             location.reload();
         } else {
             alert(data.message || '업데이트 실패');

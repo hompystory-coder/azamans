@@ -62,6 +62,8 @@ class Member extends Controller {
             // 로그인 성공
             $_SESSION['user_id'] = $user['uid'];
             $_SESSION['username'] = $user['user_id'];
+            $_SESSION['name'] = $user['name'];
+            $_SESSION['nickname'] = $user['nickname'];
             $_SESSION['email'] = $user['email'];
             $_SESSION['level'] = $user['level'];
             $_SESSION['is_admin'] = ($user['level'] >= 9);
@@ -373,12 +375,18 @@ class Member extends Controller {
         
         $name = cleanInput($this->post('name'));
         $nickname = cleanInput($this->post('nickname'));
+        $email = cleanInput($this->post('email'));
         $phone = cleanInput($this->post('phone'));
+        $tel = cleanInput($this->post('tel'));
+        $address = cleanInput($this->post('address'));
         
         $updateData = [
             'name' => $name,
             'nickname' => $nickname,
-            'phone' => $phone
+            'email' => $email,
+            'phone' => $phone,
+            'tel' => $tel,
+            'address' => $address
         ];
         
         // 비밀번호 변경 요청이 있는 경우
@@ -398,6 +406,11 @@ class Member extends Controller {
         $result = getDbUpdate('member', $updateData, 'uid = ?', [$_SESSION['user_id']]);
         
         if ($result !== false) {
+            // 세션 정보 업데이트
+            $_SESSION['name'] = $name;
+            $_SESSION['nickname'] = $nickname;
+            $_SESSION['email'] = $email;
+            
             $this->json([
                 'success' => true,
                 'message' => '회원 정보가 수정되었습니다.'

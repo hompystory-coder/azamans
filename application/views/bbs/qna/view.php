@@ -75,17 +75,11 @@
                     <?php if (isLoggedIn() && (isset($_SESSION['user_id']) && $post['member_uid'] == $_SESSION['user_id']) || isAdmin()): ?>
                         <a href="/bbs/<?php echo $board['bbs_id']; ?>/edit/<?php echo $post['uid']; ?>" class="btn">수정</a>
                         <button onclick="deletePost('<?php echo $board['bbs_id']; ?>', <?php echo $post['uid']; ?>)" class="btn btn-danger">삭제</button>
-                    
-                    <!-- 좋아요 버튼 -->
-                    <?php include __DIR__ . '/../_includes/like_button.php'; ?>
                     <?php endif; ?>
                 </div>
                 
-                <div class="post-likes">
-                    <button onclick="likePost()" class="btn-like <?php echo $user_liked ? 'liked' : ''; ?>" id="likeBtn">
-                        <span class="heart-icon"><?php echo $user_liked ? '❤️' : '🤍'; ?></span> 좋아요 <span id="likeCount"><?php echo $post['like_count'] ?? 0; ?></span>
-                    </button>
-                </div>
+                <!-- 좋아요 버튼 -->
+                <?php include __DIR__ . '/../_includes/like_button.php'; ?>
             </div>
         </article>
         
@@ -181,48 +175,6 @@
         })
         .catch(err => {
             alert('삭제 중 오류가 발생했습니다.');
-            console.error(err);
-        });
-    }
-    
-    // 좋아요 토글
-    function likePost() {
-        const likeBtn = document.getElementById('likeBtn');
-        const likeCount = document.getElementById('likeCount');
-        const heartIcon = likeBtn.querySelector('.heart-icon');
-        
-        fetch('/bbs/<?php echo $board['bbs_id']; ?>/like/<?php echo $post['uid']; ?>', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'}
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // 좋아요 수 업데이트
-                likeCount.textContent = data.like_count;
-                
-                // UI 업데이트
-                if (data.liked) {
-                    // 좋아요 추가됨
-                    likeBtn.classList.add('liked');
-                    heartIcon.textContent = '❤️';
-                } else {
-                    // 좋아요 취소됨
-                    likeBtn.classList.remove('liked');
-                    heartIcon.textContent = '🤍';
-                }
-            } else {
-                alert(data.message || '좋아요 처리 중 오류가 발생했습니다.');
-            }
-        })
-        .catch(err => {
-            console.error('Like error:', err);
-            alert('좋아요 처리 중 오류가 발생했습니다.');
-        });
-    }
-        })
-        .catch(err => {
-            alert('좋아요 처리 중 오류가 발생했습니다.');
             console.error(err);
         });
     }

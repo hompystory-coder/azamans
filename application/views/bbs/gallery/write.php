@@ -110,6 +110,30 @@
                 <p class="form-help">최대 10개, 각 파일 최대 10MB</p>
                 <div id="filePreview" class="file-preview"></div>
             </div>
+            
+            <?php if (isset($files) && !empty($files)): ?>
+            <div class="form-group">
+                <label>기존 첨부 파일</label>
+                <div class="existing-files">
+                    <?php foreach ($files as $file): ?>
+                    <div class="file-item" id="existing-file-<?php echo $file['uid']; ?>">
+                        <?php if (isset($file['mime_type']) && strpos($file['mime_type'], 'image/') === 0): ?>
+                            <?php 
+                            $imageUrl = '/public/uploads/' . $file['filepath'];
+                            ?>
+                            <img src="<?php echo xssFilter($imageUrl); ?>" alt="<?php echo xssFilter($file['original_name']); ?>" style="max-width: 100px; max-height: 100px;">
+                        <?php endif; ?>
+                        <span>
+                            📎 <?php echo xssFilter($file['original_name']); ?> 
+                            (<?php echo number_format($file['filesize']); ?> bytes)
+                        </span>
+                        <button type="button" class="btn-delete-file" onclick="deleteExistingFile(<?php echo $file['uid']; ?>)">삭제</button>
+                        <input type="hidden" name="delete_files[]" id="delete-file-<?php echo $file['uid']; ?>" value="">
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
             <?php endif; ?>
             
             <?php if (!isLoggedIn()): ?>
@@ -190,23 +214,6 @@
     }
     
     function removeFile(index) {
-    
-    // 기존 파일 삭제
-    function deleteExistingFile(index) {
-        if (!confirm("이 파일을 삭제하시겠습니까?")) {
-            return;
-        }
-        
-        // 삭제할 파일 인덱스 표시
-        document.getElementById("delete-file-" + index).value = "1";
-        
-        // UI에서 숨김
-        const fileItem = document.getElementById("existing-file-" + index);
-        if (fileItem) {
-            fileItem.style.opacity = "0.5";
-            fileItem.style.textDecoration = "line-through";
-        }
-    }
         const input = document.getElementById('files');
         const dt = new DataTransfer();
         const files = Array.from(input.files);
@@ -217,6 +224,23 @@
         
         input.files = dt.files;
         input.dispatchEvent(new Event('change'));
+    }
+    
+    // 기존 파일 삭제
+    function deleteExistingFile(fileUid) {
+        if (!confirm('이 파일을 삭제하시겠습니까?')) {
+            return;
+        }
+        
+        // 삭제할 파일 UID 표시
+        document.getElementById('delete-file-' + fileUid).value = fileUid;
+        
+        // UI에서 숨김
+        const fileItem = document.getElementById('existing-file-' + fileUid);
+        if (fileItem) {
+            fileItem.style.opacity = '0.5';
+            fileItem.style.textDecoration = 'line-through';
+        }
     }
     
     // 텍스트 삽입

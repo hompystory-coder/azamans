@@ -6,6 +6,36 @@
     <title><?php echo xssFilter($post['title']); ?> - <?php echo xssFilter($board['bbs_name']); ?></title>
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/board.css">
+    <style>
+        .btn-like {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .btn-like:hover {
+            border-color: #ff69b4;
+            background: #fff5f8;
+        }
+        .btn-like.liked {
+            border-color: #ff69b4;
+            background: #fff5f8;
+            color: #ff1493;
+        }
+        .btn-like .heart-icon {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+        .btn-like:active .heart-icon {
+            transform: scale(1.3);
+        }
+    </style>
     <link rel="stylesheet" href="/public/css/bbs_common.css">
 </head>
 <body>
@@ -74,10 +104,7 @@
                     
                     <?php if (isLoggedIn() && (isset($_SESSION['user_id']) && $post['member_uid'] == $_SESSION['user_id']) || isAdmin()): ?>
                         <a href="/bbs/<?php echo $board['bbs_id']; ?>/edit/<?php echo $post['uid']; ?>" class="btn">수정</a>
-                        <button onclick="deletePost('<?php echo $board['bbs_id']; ?>', <?php echo $post['uid']; ?>)" class="btn btn-danger">삭제</button>
-                    
-                    <!-- 좋아요 버튼 -->
-                    <?php include __DIR__ . '/../_includes/like_button.php'; ?>
+                        <button onclick="deletePost()" class="btn btn-danger">삭제</button>
                     <?php endif; ?>
                 </div>
                 
@@ -113,9 +140,62 @@
             </div>
         </nav>
         
-        <?php include __DIR__ . '/../_comment_section.php'; ?>
+        <!-- 댓글 섹션 -->
+        <?php if (true): ?>
+        <section class="comments-section">
+            <h3 class="comments-title">💬 댓글 <?php echo count($comments); ?>개</h3>
+            
+            <!-- 댓글 목록 -->
+            <div class="comment-list">
+                <?php if (!empty($comments)): ?>
+                    <?php foreach ($comments as $comment): ?>
+                    <div class="comment-item" data-comment-id="<?php echo $comment['uid']; ?>">
+                        <div class="comment-header">
+                            <span class="comment-writer">
+                                <?php echo xssFilter($comment['name']); ?>
+                                <?php if ($comment['member_uid'] == $post['member_uid']): ?>
+                                    <span class="badge-author">작성자</span>
+                                <?php endif; ?>
+                            </span>
+                            <span class="comment-date"><?php echo timeAgo($comment['reg_date']); ?></span>
+                        </div>
+                        <div class="comment-content">
+                            <?php echo nl2br(xssFilter($comment['content'])); ?>
+                        </div>
+                        <?php if (isLoggedIn() && (isset($_SESSION['user_id']) && $comment['member_uid'] == $_SESSION['user_id']) || isAdmin()): ?>
+                        <div class="comment-actions">
+                            <button onclick="deleteComment(<?php echo $comment['uid']; ?>)" class="btn-comment-delete">삭제</button>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="no-comments">첫 번째 댓글을 작성해보세요!</p>
+                <?php endif; ?>
+            </div>
+            
+            <!-- 댓글 작성 폼 -->
+            <?php if ($board['comment_level'] <= ($_SESSION['level'] ?? 0)): ?>
+            <div class="comment-form">
+                <h4>댓글 작성</h4>
+                <form id="commentForm" onsubmit="submitComment(event)">
+                    <textarea name="content" id="commentContent" placeholder="댓글을 입력하세요..." required></textarea>
+                    <div class="comment-form-footer">
+                        <button type="submit" class="btn btn-primary">댓글 등록</button>
+                    </div>
+                </form>
+            </div>
+            <?php else: ?>
+            <div class="comment-form">
+                <p class="login-required">댓글을 작성하려면 <a href="/member/login?redirect=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>">로그인</a>이 필요합니다.</p>
+            </div>
+            <?php endif; ?>
+        </section>
+        <?php endif; ?>
     </main>
     
+        <?php include __DIR__ . '/../_comment_section.php'; ?>
+
     <?php include __DIR__ . '/../../_footer.php'; ?>
     
     <script>

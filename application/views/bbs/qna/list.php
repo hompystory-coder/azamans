@@ -9,7 +9,7 @@
                     <div>
                         <h2 class="mb-1 fw-bold">
                             <i class="fas fa-list text-main me-2"></i>
-                            <?php echo xssFilter($board['board_name']); ?>
+                            <?php echo xssFilter($board['bbs_name']); ?>
                         </h2>
                         <p class="text-muted mb-0">
                             <i class="fas fa-file-alt me-1"></i>
@@ -17,7 +17,7 @@
                         </p>
                     </div>
                     <?php if ($board['write_level'] <= ($_SESSION['level'] ?? 0)): ?>
-                        <a href="/bbs/<?php echo $board['board_id']; ?>/write" class="btn btn-primary">
+                        <a href="/bbs/<?php echo $board['bbs_id']; ?>/write" class="btn btn-primary">
                             <i class="fas fa-pen me-2"></i>글쓰기
                         </a>
                     <?php endif; ?>
@@ -28,7 +28,7 @@
         <!-- 검색 폼 -->
         <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
             <div class="card-body">
-                <form method="get" action="/bbs/<?php echo $board['board_id']; ?>" class="row g-3">
+                <form method="get" action="/bbs/<?php echo $board['bbs_id']; ?>" class="row g-3">
                     <?php if (!empty($board['bbs_category']) && !empty($board['bbs_category'])): ?>
                         <div class="col-md-3">
                             <select name="category" class="form-select">
@@ -89,7 +89,7 @@
                                     </td>
                                 <?php endif; ?>
                                 <td>
-                                    <a href="/bbs/<?php echo $board['board_id']; ?>/view/<?php echo $notice['uid']; ?>" 
+                                    <a href="/bbs/<?php echo $board['bbs_id']; ?>/view/<?php echo $notice['uid']; ?>" 
                                        class="text-decoration-none text-dark fw-bold">
                                         <i class="fas fa-bullhorn text-danger me-1"></i>
                                         <?php echo xssFilter($notice['title']); ?>
@@ -108,7 +108,7 @@
                         <!-- 일반 게시물 -->
                         <?php if (!empty($posts)): ?>
                             <?php 
-                            $num = $total - (($current_page - 1) * $board['posts_per_page']);
+                            $num = $total - (($current_page - 1) * $board['page_rows']);
                             foreach ($posts as $post): 
                             ?>
                             <tr>
@@ -119,7 +119,7 @@
                                     </td>
                                 <?php endif; ?>
                                 <td>
-                                    <a href="/bbs/<?php echo $board['board_id']; ?>/view/<?php echo $post['uid']; ?>" 
+                                    <a href="/bbs/<?php echo $board['bbs_id']; ?>/view/<?php echo $post['uid']; ?>" 
                                        class="text-decoration-none text-dark">
                                         <?php echo xssFilter($post['title']); ?>
                                         <?php if ($post['comment_count'] > 0): ?>
@@ -196,8 +196,8 @@
                     <div class="text-center text-muted mt-3">
                         <small>
                             전체 <?php echo number_format($total); ?>개 중 
-                            <?php echo number_format(($current_page - 1) * $board['posts_per_page'] + 1); ?> - 
-                            <?php echo number_format(min($current_page * $board['posts_per_page'], $total)); ?>개 표시
+                            <?php echo number_format(($current_page - 1) * $board['page_rows'] + 1); ?> - 
+                            <?php echo number_format(min($current_page * $board['page_rows'], $total)); ?>개 표시
                         </small>
                     </div>
                 </div>
