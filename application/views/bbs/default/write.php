@@ -86,7 +86,7 @@
             
             <div class="form-group">
                 <label for="content">내용 <span class="required">*</span></label>
-                <textarea name="content" id="content" placeholder="내용을 입력하세요" required><?php echo isset($post) ? xssFilter($post['content']) : ''; ?></textarea>
+                <textarea name="content" id="content" placeholder="내용을 입력하세요"><?php echo isset($post) ? xssFilter($post['content']) : ''; ?></textarea>
                 <div class="editor-toolbar">
                     <button type="button" onclick="insertText('**굵게**')" title="굵게">
                         <strong>B</strong>
@@ -248,6 +248,17 @@
         // CKEditor 내용 textarea에 동기화
         if (window.editorcontent) {
             document.getElementById('content').value = window.editorcontent.getData();
+        }
+        
+        
+        // 내용 검증 (빈 값 체크)
+        const content = document.getElementById('content').value.trim();
+        if (!content || content === '') {
+            alert('내용을 입력해주세요.');
+            if (window.editorcontent) {
+                window.editorcontent.focus();
+            }
+            return false;
         }
         
         const formData = new FormData(e.target);
