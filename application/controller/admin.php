@@ -604,7 +604,7 @@ class Admin extends Controller {
             'privacy_policy' => getConfig('privacy_policy', ''),
             'youth_protection' => getConfig('youth_protection', '')
         ];
-        $this->view('admin/join_config', $data);
+        $this->view('admin/joinconfig', $data);
     }
     
     /**
@@ -642,7 +642,16 @@ class Admin extends Controller {
             }
         }
         
-        $levels = getDbArray("SELECT * FROM member_level ORDER BY level ASC");
+        // 등급 목록 조회 (회원 수 포함)
+        $levels = getDbArray("
+            SELECT l.*, 
+                   COUNT(m.uid) as member_count
+            FROM member_level l
+            LEFT JOIN member m ON m.level = l.level AND m.status = 'active'
+            GROUP BY l.uid, l.level, l.level_name, l.level_icon, l.point_min, l.point_max
+            ORDER BY l.level ASC
+        ");
+        
         $data = [
             'title' => '회원 등급 관리',
             'levels' => $levels
