@@ -1559,43 +1559,7 @@ class Admin extends Controller {
             if (file_put_contents($pageFilePath, $pageFileContent) === false) {
                 error_log("페이지 파일 저장 실패: " . $pageFilePath);
             } else {
-                chmod($pageFilePath, 0644); // 읽기 권한 설정
-            }
-            
-            // 3. 첨부파일 업로드 처리
-            if (!empty($_FILES['page_files']['name'][0])) {
-                $uploadDir = __DIR__ . '/../../public/uploads/page/files/';
-                if (!file_exists($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-                
-                foreach ($_FILES['page_files']['name'] as $key => $fileName) {
-                    if ($_FILES['page_files']['error'][$key] === UPLOAD_ERR_OK) {
-                        $tmpName = $_FILES['page_files']['tmp_name'][$key];
-                        $fileSize = $_FILES['page_files']['size'][$key];
-                        $fileType = $_FILES['page_files']['type'][$key];
-                        
-                        // 파일명 안전하게 처리
-                        $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-                        $savedName = uniqid() . '_' . time() . '.' . $ext;
-                        $filePath = $uploadDir . $savedName;
-                        
-                        // 파일 이동
-                        if (move_uploaded_file($tmpName, $filePath)) {
-                            chmod($filePath, 0644);
-                            
-                            // DB에 저장
-                            getDbInsert('page_files', [
-                                'menu_id' => $id,
-                                'original_name' => $fileName,
-                                'saved_name' => $savedName,
-                                'file_path' => '/public/uploads/page/files/' . $savedName,
-                                'file_size' => $fileSize,
-                                'file_type' => $fileType
-                            ]);
-                        }
-                    }
-                }
+                @chmod($pageFilePath, 0644); // 읽기 권한 설정
             }
         }
         
