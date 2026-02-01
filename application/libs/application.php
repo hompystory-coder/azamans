@@ -47,11 +47,8 @@ class Application {
             if (method_exists($this->controller, $url[1])) {
                 $this->method = $url[1];
                 unset($url[1]);
-            } else {
-                // 메서드가 존재하지 않으면 404
-                $this->show404();
-                return;
             }
+            // 메서드가 없으면 파라미터로 처리 (404 표시하지 않음)
         }
         
         // 기본 index 메서드가 없으면 404
