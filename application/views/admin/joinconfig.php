@@ -224,6 +224,68 @@
     </main>
 </div>
 
+<style>
+/* 라디오 버튼 커스텀 스타일 */
+.form-check-input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-radius: 50% !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-check-input[type="radio"]:hover {
+    border-color: #ffa50f;
+}
+
+.form-check-input[type="radio"]:checked {
+    background-color: #ffa50f;
+    border-color: #ffa50f;
+}
+
+.form-check-input[type="radio"]:focus {
+    border-color: #ffa50f;
+    box-shadow: 0 0 0 0.25rem rgba(255, 165, 15, 0.25);
+}
+
+/* 체크박스 커스텀 스타일 */
+.form-check-input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-check-input[type="checkbox"]:hover:not(:disabled) {
+    border-color: #ffa50f;
+}
+
+.form-check-input[type="checkbox"]:checked {
+    background-color: #ffa50f;
+    border-color: #ffa50f;
+}
+
+.form-check-input[type="checkbox"]:focus {
+    border-color: #ffa50f;
+    box-shadow: 0 0 0 0.25rem rgba(255, 165, 15, 0.25);
+}
+
+.form-check-input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 라벨 스타일 */
+.form-check-label {
+    font-size: 15px;
+    margin-left: 8px;
+    user-select: none;
+}
+</style>
+
 <script>
 function saveEnv() {
     const form = document.getElementById('envForm');
