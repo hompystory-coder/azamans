@@ -168,6 +168,16 @@ class BoardModel extends DBModel {
             'category' => $data['category'] ?? null
         ];
         
+        // 비밀글 업데이트
+        if (isset($data['is_secret'])) {
+            $updateData['is_secret'] = $data['is_secret'];
+        }
+        
+        // 공지사항 업데이트 (관리자만)
+        if (isset($data['is_notice'])) {
+            $updateData['is_notice'] = $data['is_notice'];
+        }
+        
         return getDbUpdate('bbs_data', $updateData, 'uid = ?', [$uid]);
     }
     

@@ -399,6 +399,9 @@ class Bbs extends Controller {
             'category' => cleanInput($this->post('category'))
         ];
         
+        // 비밀글 설정 (체크박스 체크 여부)
+        $updateData['is_secret'] = ($this->post('use_secret') === 'Y') ? 'Y' : 'N';
+        
         // 관리자인 경우 공지사항 설정 가능
         if (isAdmin()) {
             $updateData['is_notice'] = ($this->post('is_notice') === 'Y') ? 'Y' : 'N';
@@ -434,7 +437,7 @@ class Bbs extends Controller {
             $uid,
             $updateData['category'] ?? null,
             $updateData['is_notice'] ?? 'N',
-            $post['is_secret'] ?? 'N'
+            $updateData['is_secret'] ?? 'N'
         );
         
         $this->json([
