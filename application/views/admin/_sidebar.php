@@ -143,3 +143,44 @@
     color: var(--main-color1);
 }
 </style>
+
+<script>
+// 다른 메뉴 클릭 시 열린 서브메뉴 닫기
+document.addEventListener('DOMContentLoaded', function() {
+    // 모든 collapse 토글 버튼
+    const collapseToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
+    
+    collapseToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('data-bs-target');
+            
+            // 모든 collapse 메뉴 찾기
+            const allCollapses = document.querySelectorAll('.collapse.show');
+            
+            // 현재 클릭한 메뉴가 아닌 다른 열린 메뉴들 닫기
+            allCollapses.forEach(collapse => {
+                if ('#' + collapse.id !== targetId) {
+                    const bsCollapse = bootstrap.Collapse.getInstance(collapse);
+                    if (bsCollapse) {
+                        bsCollapse.hide();
+                    }
+                }
+            });
+        });
+    });
+    
+    // 대시보드 클릭 시 모든 서브메뉴 닫기
+    const dashboardLink = document.querySelector('a[href="/admin"]');
+    if (dashboardLink) {
+        dashboardLink.addEventListener('click', function() {
+            const allCollapses = document.querySelectorAll('.collapse.show');
+            allCollapses.forEach(collapse => {
+                const bsCollapse = bootstrap.Collapse.getInstance(collapse);
+                if (bsCollapse) {
+                    bsCollapse.hide();
+                }
+            });
+        });
+    }
+});
+</script>
