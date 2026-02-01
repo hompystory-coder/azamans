@@ -574,26 +574,32 @@ class Bbs extends Controller {
      * 파일 다운로드
      */
     public function download($fileUid) {
-        $file = getUidData("SELECT * FROM bbs_data WHERE uid = ?", [$fileUid]);
+        // bbs_upload 테이블에서 파일 정보 조회
+        $file = getUidData("SELECT * FROM bbs_upload WHERE uid = ?", [$fileUid]);
         
         if (!$file) {
             echo '파일을 찾을 수 없습니다.';
             exit;
         }
         
-        $filePath = PUBLIC_PATH . $file['file_path'];
+        // 실제 파일 경로
+        $filePath = __DIR__ . '/../../' . ltrim($file['filepath'], '/');
         
         if (!file_exists($filePath)) {
-            echo '파일이 존재하지 않습니다.';
+            echo '파일이 존재하지 않습니다: ' . $filePath;
             exit;
         }
         
         // 다운로드 횟수 증가
-        $this->boardModel->incrementDownload($fileUid);
+        getDbUpdate('bbs_upload', 
+            ['download_count' => $file['download_count'] + 1], 
+            'uid = ?', 
+            [$fileUid]
+        );
         
         // 파일 다운로드 헤더
         header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename="' . $file['file_name'] . '"');
+        header('Content-Disposition: attachment; filename="' . $file['original_name'] . '"');
         header('Content-Length: ' . filesize($filePath));
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
