@@ -598,8 +598,63 @@ class Admin extends Controller {
      * 회원가입 설정
      */
     public function joinconfig() {
+        // POST 요청: 가입 환경 설정 저장
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $configType = $_POST['config_type'] ?? '';
+            
+            if ($configType === 'join_env') {
+                $useJoin = $_POST['use_join'] ?? 'Y';
+                $approvalType = $_POST['approval_type'] ?? 'auto';
+                $requiredFields = json_decode($_POST['required_fields'] ?? '[]', true);
+                
+                // 기본 필수 항목 추가
+                if (!in_array('user_id', $requiredFields)) {
+                    $requiredFields[] = 'user_id';
+                }
+                if (!in_array('password', $requiredFields)) {
+                    $requiredFields[] = 'password';
+                }
+                
+                // 설정 배열 생성
+                $config = [
+                    'use_join' => $useJoin,
+                    'approval_type' => $approvalType,
+                    'required_fields' => $requiredFields
+                ];
+                
+                // var 파일로 저장
+                $varDir = __DIR__ . '/../config/var';
+                if (!is_dir($varDir)) {
+                    mkdir($varDir, 0755, true);
+                }
+                
+                $varFile = $varDir . '/member_join.var.php';
+                $varContent = "<?php\n";
+                $varContent .= "// 회원가입 설정\n";
+                $varContent .= "// 자동 생성 파일 - 수동으로 수정하지 마세요\n\n";
+                $varContent .= "\$join_config = " . var_export($config, true) . ";\n";
+                
+                if (file_put_contents($varFile, $varContent)) {
+                    $this->json(['success' => true, 'message' => '가입 환경 설정이 저장되었습니다.']);
+                } else {
+                    $this->json(['success' => false, 'message' => '파일 저장에 실패했습니다.']);
+                }
+                return;
+            }
+        }
+        
+        // GET 요청: 설정 페이지 표시
+        // var 파일에서 설정 로드
+        $varFile = __DIR__ . '/../config/var/member_join.var.php';
+        $joinConfig = [];
+        if (file_exists($varFile)) {
+            include $varFile;
+            $joinConfig = $join_config ?? [];
+        }
+        
         $data = [
             'title' => '회원가입 설정',
+            'join_config' => $joinConfig,
             'terms_of_service' => getConfig('terms_of_service', ''),
             'privacy_policy' => getConfig('privacy_policy', ''),
             'youth_protection' => getConfig('youth_protection', '')

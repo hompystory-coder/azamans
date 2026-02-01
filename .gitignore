@@ -38,3 +38,4 @@ node_modules/
 # Build
 /dist/
 /build/
+application/config/var/*.var.php
