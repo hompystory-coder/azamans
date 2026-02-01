@@ -1,24 +1,20 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo xssFilter($title); ?> - 관리자</title>
-    <link rel="stylesheet" href="/public/css/style.css">
-    <link rel="stylesheet" href="/public/css/admin.css">
-</head>
-<body class="admin-body">
+<?php include __DIR__ . '/_admin_header.php'; ?>
+<div class="d-flex">
     <?php include __DIR__ . '/_sidebar.php'; ?>
     
-    <main class="admin-main">
-        <header class="admin-header">
-            <h1><?php echo xssFilter($title); ?></h1>
-            <div class="breadcrumb">
-                <a href="/admin">대시보드</a> &gt; 
-                <a href="/admin/members">회원 관리</a> &gt; 
-                <span>회원 상세</span>
+    <main class="flex-grow-1 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1"><?php echo xssFilter($title); ?></h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="/admin">대시보드</a></li>
+                        <li class="breadcrumb-item"><a href="/admin/members">회원 관리</a></li>
+                        <li class="breadcrumb-item active">회원 상세</li>
+                    </ol>
+                </nav>
             </div>
-        </header>
+        </div>
         
         <?php if (!empty($member)): ?>
         <div class="detail-container">
@@ -211,5 +207,8 @@
         });
     }
     </script>
-</body>
-</html>
+    
+    </main>
+</div>
+
+<?php include __DIR__ . '/../_footer.php'; ?>

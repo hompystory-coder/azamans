@@ -17,11 +17,11 @@
         <li>
             <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
                data-bs-toggle="collapse" data-bs-target="#siteMenu" 
-               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/site') !== false) ? 'true' : 'false'; ?>">
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false) ? 'true' : 'false'; ?>">
                 <span><i class="fas fa-cogs me-2"></i>사이트 설정</span>
                 <i class="fas fa-chevron-down"></i>
             </a>
-            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/site') !== false) ? 'show' : ''; ?>" id="siteMenu">
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false) ? 'show' : ''; ?>" id="siteMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/config" class="nav-link py-1 small <?php echo ($_SERVER['REQUEST_URI'] == '/admin/config') ? 'active' : ''; ?>">기본 설정</a></li>
                     <li><a href="/admin/favicon" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false) ? 'active' : ''; ?>">파비콘 설정</a></li>
@@ -37,11 +37,11 @@
         <li>
             <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
                data-bs-toggle="collapse" data-bs-target="#memberMenu" 
-               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member') !== false) ? 'true' : 'false'; ?>">
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/joinconfig') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/levels') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/points') !== false) ? 'true' : 'false'; ?>">
                 <span><i class="fas fa-users me-2"></i>회원 관리</span>
                 <i class="fas fa-chevron-down"></i>
             </a>
-            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member') !== false) ? 'show' : ''; ?>" id="memberMenu">
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/member') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/joinconfig') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/levels') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/points') !== false) ? 'show' : ''; ?>" id="memberMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/joinconfig" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/joinconfig') !== false) ? 'active' : ''; ?>">회원가입 설정</a></li>
                     <li><a href="/admin/members" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/members') !== false || (strpos($_SERVER['REQUEST_URI'], '/admin/member/') !== false && strpos($_SERVER['REQUEST_URI'], '/admin/member/') === strrpos($_SERVER['REQUEST_URI'], '/admin/member/'))) ? 'active' : ''; ?>">회원 리스트</a></li>
@@ -55,11 +55,11 @@
         <li>
             <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
                data-bs-toggle="collapse" data-bs-target="#boardMenu" 
-               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/board') !== false) ? 'true' : 'false'; ?>">
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/board') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/posts') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/comments') !== false) ? 'true' : 'false'; ?>">
                 <span><i class="fas fa-list me-2"></i>게시판 관리</span>
                 <i class="fas fa-chevron-down"></i>
             </a>
-            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/board') !== false) ? 'show' : ''; ?>" id="boardMenu">
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/board') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/posts') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/comments') !== false) ? 'show' : ''; ?>" id="boardMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/boards" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/boards') !== false) ? 'active' : ''; ?>">게시판 관리</a></li>
                     <li><a href="/admin/posts" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/posts') !== false) ? 'active' : ''; ?>">게시물 리스트</a></li>
@@ -72,11 +72,11 @@
         <li>
             <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
                data-bs-toggle="collapse" data-bs-target="#statsMenu" 
-               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/stat') !== false) ? 'true' : 'false'; ?>">
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/statistics') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/visitor') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/tracking') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/poststats') !== false) ? 'true' : 'false'; ?>">
                 <span><i class="fas fa-chart-bar me-2"></i>통계</span>
                 <i class="fas fa-chevron-down"></i>
             </a>
-            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/stat') !== false) ? 'show' : ''; ?>" id="statsMenu">
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/statistics') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/visitor') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/tracking') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/poststats') !== false) ? 'show' : ''; ?>" id="statsMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/statistics" class="nav-link py-1 small <?php echo ($_SERVER['REQUEST_URI'] == '/admin/statistics') ? 'active' : ''; ?>">방문자 대시보드</a></li>
                     <li><a href="/admin/visitor" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/visitor') !== false) ? 'active' : ''; ?>">방문자 통계</a></li>
