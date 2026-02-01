@@ -1,5 +1,8 @@
 <?php include __DIR__ . '/../../_header.php'; ?>
 
+<!-- BBS 공통 CSS (체크박스 스타일) -->
+<link rel="stylesheet" href="/public/css/bbs_common.css">
+
 <main>
     <div class="container">
         <div class="row justify-content-center">
