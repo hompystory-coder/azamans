@@ -1028,28 +1028,35 @@ class Admin extends Controller {
         $params = [];
         
         if ($search) {
-            $where .= " AND (subject LIKE ? OR writer LIKE ?)";
+            $where .= " AND (d.title LIKE ? OR d.name LIKE ?)";
             $params[] = "%$search%";
             $params[] = "%$search%";
         }
         
         if ($boardId) {
-            $where .= " AND board_id = ?";
+            $where .= " AND i.bbs_id = ?";
             $params[] = $boardId;
         }
         
-        $total = getDbCnt("SELECT COUNT(*) FROM bbs_index $where", $params);
+        $total = getDbCnt("
+            SELECT COUNT(*) 
+            FROM bbs_index i
+            INNER JOIN bbs_data d ON i.data_uid = d.uid
+            $where
+        ", $params);
         $totalPages = ceil($total / $perPage);
         $offset = ($page - 1) * $perPage;
         
         $posts = getDbArray("
-            SELECT * FROM bbs_index 
+            SELECT d.*, i.bbs_id, i.category, i.is_notice, i.is_secret
+            FROM bbs_index i
+            INNER JOIN bbs_data d ON i.data_uid = d.uid
             $where
-            ORDER BY created_at DESC 
+            ORDER BY d.reg_date DESC 
             LIMIT $perPage OFFSET $offset
         ", $params);
         
-        $boards = getDbArray("SELECT board_id, board_name FROM bbs_list WHERE status = 'active' ORDER BY board_name");
+        $boards = getDbArray("SELECT bbs_id, bbs_name FROM bbs_list ORDER BY bbs_name");
         
         $data = [
             'title' => '게시물 리스트',

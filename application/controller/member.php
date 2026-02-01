@@ -487,12 +487,13 @@ class Member extends Controller {
         if ($type === 'posts') {
             // 내 게시물
             $posts = getDbArray("
-                SELECT b.uid, b.board_id, b.title, b.view, b.created_at,
-                       bo.board_name
-                FROM bbs_index b
-                LEFT JOIN board bo ON b.board_id = bo.board_id
-                WHERE b.member_uid = ? AND b.status = 'active'
-                ORDER BY b.created_at DESC
+                SELECT d.uid, d.title, d.view_count, d.reg_date,
+                       i.bbs_id, bl.bbs_name
+                FROM bbs_index i
+                INNER JOIN bbs_data d ON i.data_uid = d.uid
+                LEFT JOIN bbs_list bl ON i.bbs_id = bl.bbs_id
+                WHERE i.member_uid = ?
+                ORDER BY d.reg_date DESC
                 LIMIT 20
             ", [$uid]);
             
@@ -502,16 +503,16 @@ class Member extends Controller {
                 $html .= '<div class="list-group list-group-flush">';
                 foreach ($posts as $post) {
                     $html .= '
-                    <a href="/board/view/' . $post['board_id'] . '/' . $post['uid'] . '" class="list-group-item list-group-item-action">
+                    <a href="/bbs/' . $post['bbs_id'] . '/view/' . $post['uid'] . '" class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-1">' . xssFilter($post['title']) . '</h6>
                                 <p class="mb-1 small text-muted">
-                                    <span class="badge bg-secondary me-2">' . xssFilter($post['board_name']) . '</span>
-                                    <i class="fas fa-eye me-1"></i>' . number_format($post['view']) . '
+                                    <span class="badge bg-secondary me-2">' . xssFilter($post['bbs_name']) . '</span>
+                                    <i class="fas fa-eye me-1"></i>' . number_format($post['view_count']) . '
                                 </p>
                             </div>
-                            <small class="text-muted">' . date('Y-m-d', strtotime($post['created_at'])) . '</small>
+                            <small class="text-muted">' . date('Y-m-d', strtotime($post['reg_date'])) . '</small>
                         </div>
                     </a>';
                 }
@@ -520,12 +521,12 @@ class Member extends Controller {
         } elseif ($type === 'comments') {
             // 내 댓글
             $comments = getDbArray("
-                SELECT c.uid, c.parent_uid, c.content, c.created_at,
-                       b.title as post_title, b.board_id
+                SELECT c.uid, c.data_uid, c.content, c.reg_date, c.bbs_id,
+                       d.title as post_title
                 FROM bbs_comment c
-                LEFT JOIN bbs_index b ON c.parent_uid = b.uid
-                WHERE c.member_uid = ? AND c.status = 'active'
-                ORDER BY c.created_at DESC
+                LEFT JOIN bbs_data d ON c.data_uid = d.uid
+                WHERE c.member_uid = ?
+                ORDER BY c.reg_date DESC
                 LIMIT 20
             ", [$uid]);
             
@@ -535,13 +536,13 @@ class Member extends Controller {
                 $html .= '<div class="list-group list-group-flush">';
                 foreach ($comments as $comment) {
                     $html .= '
-                    <a href="/board/view/' . $comment['board_id'] . '/' . $comment['parent_uid'] . '#comment-' . $comment['uid'] . '" class="list-group-item list-group-item-action">
+                    <a href="/bbs/' . $comment['bbs_id'] . '/view/' . $comment['data_uid'] . '#comment-' . $comment['uid'] . '" class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-1 small text-muted">게시물: ' . xssFilter($comment['post_title']) . '</h6>
                                 <p class="mb-1">' . nl2br(xssFilter(mb_substr($comment['content'], 0, 100))) . (mb_strlen($comment['content']) > 100 ? '...' : '') . '</p>
                             </div>
-                            <small class="text-muted">' . date('Y-m-d', strtotime($comment['created_at'])) . '</small>
+                            <small class="text-muted">' . date('Y-m-d', strtotime($comment['reg_date'])) . '</small>
                         </div>
                     </a>';
                 }
