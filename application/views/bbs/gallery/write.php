@@ -86,21 +86,7 @@
             
             <div class="form-group">
                 <label for="content">내용 <span class="required">*</span></label>
-                <textarea name="content" id="content" placeholder="내용을 입력하세요" required><?php echo isset($post) ? xssFilter($post['content']) : ''; ?></textarea>
-                <div class="editor-toolbar">
-                    <button type="button" onclick="insertText('**굵게**')" title="굵게">
-                        <strong>B</strong>
-                    </button>
-                    <button type="button" onclick="insertText('_기울임_')" title="기울임">
-                        <em>I</em>
-                    </button>
-                    <button type="button" onclick="insertText('\n---\n')" title="구분선">
-                        ─
-                    </button>
-                    <button type="button" onclick="insertText('\n- 목록\n')" title="목록">
-                        ≡
-                    </button>
-                </div>
+                <textarea name="content" id="content" placeholder="내용을 입력하세요" required><?php echo isset($post) ? $post['content'] : ''; ?></textarea>
             </div>
             
             <?php if ($board['use_upload'] === 'Y'): ?>
@@ -110,30 +96,6 @@
                 <p class="form-help">최대 10개, 각 파일 최대 10MB</p>
                 <div id="filePreview" class="file-preview"></div>
             </div>
-            
-            <?php if (isset($files) && !empty($files)): ?>
-            <div class="form-group">
-                <label>기존 첨부 파일</label>
-                <div class="existing-files">
-                    <?php foreach ($files as $file): ?>
-                    <div class="file-item" id="existing-file-<?php echo $file['uid']; ?>">
-                        <?php if (isset($file['mime_type']) && strpos($file['mime_type'], 'image/') === 0): ?>
-                            <?php 
-                            $imageUrl = '/public/uploads/' . $file['filepath'];
-                            ?>
-                            <img src="<?php echo xssFilter($imageUrl); ?>" alt="<?php echo xssFilter($file['original_name']); ?>" style="max-width: 100px; max-height: 100px;">
-                        <?php endif; ?>
-                        <span>
-                            📎 <?php echo xssFilter($file['original_name']); ?> 
-                            (<?php echo number_format($file['filesize']); ?> bytes)
-                        </span>
-                        <button type="button" class="btn-delete-file" onclick="deleteExistingFile(<?php echo $file['uid']; ?>)">삭제</button>
-                        <input type="hidden" name="delete_files[]" id="delete-file-<?php echo $file['uid']; ?>" value="">
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            <?php endif; ?>
             <?php endif; ?>
             
             <?php if (!isLoggedIn()): ?>
@@ -173,6 +135,15 @@
     </main>
     
     <?php include __DIR__ . '/../../_footer.php'; ?>
+    
+    <?php 
+    // CKEditor 로드
+    require_once __DIR__ . '/../../../editor.php';
+    initCKEditor('content', [
+        'imageUploadUrl' => '/upload/bbs/image',
+        'height' => 500
+    ]);
+    ?>
     
     <script>
     // 파일 미리보기
@@ -214,6 +185,23 @@
     }
     
     function removeFile(index) {
+    
+    // 기존 파일 삭제
+    function deleteExistingFile(index) {
+        if (!confirm("이 파일을 삭제하시겠습니까?")) {
+            return;
+        }
+        
+        // 삭제할 파일 인덱스 표시
+        document.getElementById("delete-file-" + index).value = "1";
+        
+        // UI에서 숨김
+        const fileItem = document.getElementById("existing-file-" + index);
+        if (fileItem) {
+            fileItem.style.opacity = "0.5";
+            fileItem.style.textDecoration = "line-through";
+        }
+    }
         const input = document.getElementById('files');
         const dt = new DataTransfer();
         const files = Array.from(input.files);
@@ -226,39 +214,14 @@
         input.dispatchEvent(new Event('change'));
     }
     
-    // 기존 파일 삭제
-    function deleteExistingFile(fileUid) {
-        if (!confirm('이 파일을 삭제하시겠습니까?')) {
-            return;
-        }
-        
-        // 삭제할 파일 UID 표시
-        document.getElementById('delete-file-' + fileUid).value = fileUid;
-        
-        // UI에서 숨김
-        const fileItem = document.getElementById('existing-file-' + fileUid);
-        if (fileItem) {
-            fileItem.style.opacity = '0.5';
-            fileItem.style.textDecoration = 'line-through';
-        }
-    }
-    
-    // 텍스트 삽입
-    function insertText(text) {
-        const textarea = document.getElementById('content');
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const before = textarea.value.substring(0, start);
-        const after = textarea.value.substring(end);
-        
-        textarea.value = before + text + after;
-        textarea.focus();
-        textarea.setSelectionRange(start + text.length, start + text.length);
-    }
-    
     // 폼 제출
     function submitPost(e) {
         e.preventDefault();
+        
+        // CKEditor 내용 textarea에 동기화
+        if (window.editorcontent) {
+            document.getElementById('content').value = window.editorcontent.getData();
+        }
         
         const formData = new FormData(e.target);
         const url = <?php echo $mode === 'write' 

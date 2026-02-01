@@ -54,10 +54,10 @@
                                 <!-- 페이지 타입: 직접 편집 -->
                                 <div class="mb-3 type-option" id="option_page" style="display: none;">
                                     <label class="form-label">
-                                        <i class="fas fa-edit me-1"></i>페이지 내용 (HTML 직접 편집)
+                                        <i class="fas fa-edit me-1"></i>페이지 내용 (HTML 편집)
                                     </label>
-                                    <textarea class="form-control font-monospace" name="page_content" id="page_content" rows="15" style="font-size: 0.9rem;"><?php echo htmlspecialchars($pageContent); ?></textarea>
-                                    <small class="text-muted">HTML 태그 사용 가능합니다.</small>
+                                    <textarea class="form-control" name="page_content" id="page_content"><?php echo $pageContent; ?></textarea>
+                                    <small class="text-muted">CKEditor를 통해 내용을 편집하세요.</small>
                                 </div>
                                 
                                 <!-- 게시판 타입: 게시판 선택 -->
@@ -178,6 +178,11 @@ $(document).ready(function() {
     $('#menuEditForm').on('submit', function(e) {
         e.preventDefault();
         
+        // CKEditor 내용 동기화
+        if (window.editorpage_content) {
+            document.getElementById('page_content').value = window.editorpage_content.getData();
+        }
+        
         const formData = new FormData(this);
         const menuId = <?php echo $menu['id']; ?>;
         
@@ -220,5 +225,14 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<?php 
+// CKEditor 로드
+require_once __DIR__ . '/../../editor.php';
+initCKEditor('page_content', [
+    'imageUploadUrl' => '/upload/page/image',
+    'height' => 500
+]);
+?>
 
 <?php include __DIR__ . '/../_footer.php'; ?>

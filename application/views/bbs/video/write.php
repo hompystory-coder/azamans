@@ -1,163 +1,249 @@
-<?php include __DIR__ . '/../../_header.php'; ?>
-
-<!-- BBS 공통 CSS (체크박스 스타일) -->
-<link rel="stylesheet" href="/public/css/bbs_common.css">
-
-<main>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <!-- 제목 -->
-                <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
-                    <div class="card-body">
-                        <h2 class="mb-0 fw-bold">
-                            <i class="fas fa-video me-2"></i>
-                            <?php echo isset($mode) && $mode === 'edit' ? '동영상 수정' : '동영상 올리기'; ?>
-                        </h2>
-                    </div>
-                </div>
-                
-                <!-- 작성 폼 -->
-                <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
-                    <div class="card-body p-4">
-                        <form id="writeForm" enctype="multipart/form-data">
-                            <!-- 제목 -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">
-                                    제목 <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" name="subject" class="form-control form-control-lg" 
-                                       placeholder="제목을 입력하세요" 
-                                       value="<?php echo isset($post) ? xssFilter($post['title']) : ''; ?>" required>
-                            </div>
-                            
-                            <!-- 유튜브 URL -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">
-                                    유튜브 URL <span class="text-danger">*</span>
-                                </label>
-                                <input type="url" id="youtube_url" class="form-control" 
-                                       placeholder="https://www.youtube.com/watch?v=..." 
-                                       value="<?php 
-                                       if (isset($post)) {
-                                           if (preg_match('/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i', $post['content'], $match)) {
-                                               echo 'https://www.youtube.com/watch?v=' . $match[1];
-                                           }
-                                       }
-                                       ?>" required>
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    유튜브 영상 URL을 입력하세요. (예: https://www.youtube.com/watch?v=xxxxx 또는 https://youtu.be/xxxxx)
-                                </div>
-                                <!-- 미리보기 -->
-                                <div id="video_preview" class="mt-3" style="display:none;">
-                                    <label class="form-label fw-bold">미리보기</label>
-                                    <div class="ratio ratio-16x9 border rounded">
-                                        <iframe id="preview_iframe" frameborder="0" allowfullscreen></iframe>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 설명 -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">
-                                    설명
-                                </label>
-                                <textarea name="content" id="content" class="form-control" rows="8" 
-                                          placeholder="동영상에 대한 설명을 입력하세요">
-<?php 
-if (isset($post)) {
-    $content = $post['content'];
-    $content = preg_replace('/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i', '', $content);
-    echo xssFilter(trim($content));
-}
-?></textarea>
-                            </div>
-                            
-                            <!-- 공지사항 설정 (관리자만) -->
-                            <?php if (isAdmin()): ?>
-                            <div class="form-group form-checkbox is-notice">
-                                <input type="checkbox" name="is_notice" value="Y" id="is_notice"
-                                    <?php echo (isset($post) && $post['is_notice'] === 'Y') ? 'checked' : ''; ?>>
-                                <label for="is_notice">공지사항으로 등록</label>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <!-- 버튼 -->
-                            <div class="d-flex gap-2 justify-content-end">
-                                <a href="/bbs/<?php echo $board['bbs_id']; ?><?php echo isset($post) ? '/view/' . $post['uid'] : ''; ?>" 
-                                   class="btn btn-outline-secondary">
-                                    <i class="fas fa-times me-1"></i>취소
-                                </a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i>
-                                    <?php echo isset($mode) && $mode === 'edit' ? '수정' : '등록'; ?>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
-
-<script>
-// 유튜브 URL 미리보기
-document.getElementById('youtube_url').addEventListener('input', function(e) {
-    const url = e.target.value;
-    const preview = document.getElementById('video_preview');
-    const iframe = document.getElementById('preview_iframe');
-    
-    // 유튜브 비디오 ID 추출
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i);
-    
-    if (match && match[1]) {
-        const videoId = match[1];
-        iframe.src = `https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0`;
-        preview.style.display = 'block';
-    } else {
-        preview.style.display = 'none';
-        iframe.src = '';
-    }
-});
-
-// 폼 제출
-document.getElementById('writeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const youtubeUrl = document.getElementById('youtube_url').value;
-    const content = document.getElementById('content').value;
-    
-    // 유튜브 URL을 content에 추가
-    document.getElementById('content').value = youtubeUrl + '\n\n' + content;
-    
-    const formData = new FormData(this);
-    const url = '<?php echo isset($mode) && $mode === "edit" ? "/bbs/" . $board["bbs_id"] . "/edit/" . $post["uid"] . "/process" : "/bbs/" . $board["bbs_id"] . "/write/process"; ?>';
-    
-    fetch(url, {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        if (data.success && data.redirect) {
-            location.href = data.redirect;
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $mode === 'write' ? '글쓰기' : '글수정'; ?> - <?php echo xssFilter($board['bbs_name']); ?></title>
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/board.css">
+    <link rel="stylesheet" href="/public/css/bbs_common.css">
+    <style>
+        .existing-files {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
         }
-    })
-    .catch(err => {
-        alert('오류가 발생했습니다: ' + err.message);
+        .existing-files .file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        .existing-files .file-item img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .existing-files .file-item span {
+            flex: 1;
+        }
+        .btn-delete-file {
+            padding: 5px 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-delete-file:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <?php include __DIR__ . '/../../_header.php'; ?>
+    
+    <main class="container board-container">
+        <div class="board-header">
+            <h1><?php echo $mode === 'write' ? '글쓰기' : '글수정'; ?></h1>
+            <p class="board-desc"><?php echo xssFilter($board['bbs_name']); ?></p>
+        </div>
+        
+        <form id="writeForm" class="write-form" onsubmit="submitPost(event)">
+            <?php if (!empty($board['bbs_category']) && !empty($board['bbs_category'])): ?>
+            <div class="form-group">
+                <label for="category">카테고리</label>
+                <select name="category" id="category">
+                    <option value="">선택하세요</option>
+                    <?php 
+                    $categories = json_decode($board['bbs_category'], true);
+                    if (is_array($categories)):
+                        foreach ($categories as $cat):
+                    ?>
+                        <option value="<?php echo xssFilter($cat); ?>" 
+                            <?php echo (isset($post) && $post['category'] === $cat) ? 'selected' : ''; ?>>
+                            <?php echo xssFilter($cat); ?>
+                        </option>
+                    <?php 
+                        endforeach;
+                    endif;
+                    ?>
+                </select>
+            </div>
+            <?php endif; ?>
+            
+            <div class="form-group">
+                <label for="subject">제목 <span class="required">*</span></label>
+                <input type="text" name="subject" id="subject" 
+                       value="<?php echo isset($post) ? xssFilter($post['title']) : ''; ?>" 
+                       placeholder="제목을 입력하세요" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">내용 <span class="required">*</span></label>
+                <textarea name="content" id="content" placeholder="내용을 입력하세요" required><?php echo isset($post) ? $post['content'] : ''; ?></textarea>
+            </div>
+            
+            <?php if ($board['use_upload'] === 'Y'): ?>
+            <div class="form-group">
+                <label for="files">파일 첨부</label>
+                <input type="file" name="files[]" id="files" multiple accept="image/*,.pdf,.zip,.doc,.docx">
+                <p class="form-help">최대 10개, 각 파일 최대 10MB</p>
+                <div id="filePreview" class="file-preview"></div>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (!isLoggedIn()): ?>
+            <div class="form-group">
+                <label for="writer">작성자 <span class="required">*</span></label>
+                <input type="text" name="writer" id="writer" placeholder="작성자명" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">비밀번호 <span class="required">*</span></label>
+                <input type="password" name="password" id="password" placeholder="비밀번호" required>
+                <p class="form-help">게시물 수정/삭제 시 필요합니다</p>
+            </div>
+            <?php endif; ?>
+            
+            <div class="form-group form-checkbox is-secret">
+                <input type="checkbox" name="use_secret" value="Y" id="use_secret"
+                    <?php echo (isset($post) && $post['is_secret'] === 'Y') ? 'checked' : ''; ?>>
+                <label for="use_secret">비밀글로 작성</label>
+            </div>
+            
+            <?php if (isAdmin()): ?>
+            <div class="form-group form-checkbox is-notice">
+                <input type="checkbox" name="is_notice" value="Y" id="is_notice"
+                    <?php echo (isset($post) && $post['is_notice'] === 'Y') ? 'checked' : ''; ?>>
+                <label for="is_notice">공지사항으로 등록</label>
+            </div>
+            <?php endif; ?>
+            
+            <div class="write-form-footer">
+                <a href="/bbs/<?php echo $board['bbs_id']; ?>" class="btn">취소</a>
+                <button type="submit" class="btn btn-primary">
+                    <?php echo $mode === 'write' ? '등록' : '수정'; ?>
+                </button>
+            </div>
+        </form>
+    </main>
+    
+    <?php include __DIR__ . '/../../_footer.php'; ?>
+    
+    <?php 
+    // CKEditor 로드
+    require_once __DIR__ . '/../../../editor.php';
+    initCKEditor('content', [
+        'imageUploadUrl' => '/upload/bbs/image',
+        'height' => 500
+    ]);
+    ?>
+    
+    <script>
+    // 파일 미리보기
+    document.getElementById('files')?.addEventListener('change', function(e) {
+        const preview = document.getElementById('filePreview');
+        preview.innerHTML = '';
+        
+        Array.from(e.target.files).forEach((file, index) => {
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    item.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}">
+                        <span>${file.name} (${formatFileSize(file.size)})</span>
+                        <button type="button" onclick="removeFile(${index})">×</button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                item.innerHTML = `
+                    <span>📎 ${file.name} (${formatFileSize(file.size)})</span>
+                    <button type="button" onclick="removeFile(${index})">×</button>
+                `;
+            }
+            
+            preview.appendChild(item);
+        });
     });
-});
-
-// 페이지 로드 시 미리보기
-window.addEventListener('load', function() {
-    const urlInput = document.getElementById('youtube_url');
-    if (urlInput.value) {
-        urlInput.dispatchEvent(new Event('input'));
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     }
-});
-</script>
-
-<?php include __DIR__ . '/../../_footer.php'; ?>
+    
+    function removeFile(index) {
+    
+    // 기존 파일 삭제
+    function deleteExistingFile(index) {
+        if (!confirm("이 파일을 삭제하시겠습니까?")) {
+            return;
+        }
+        
+        // 삭제할 파일 인덱스 표시
+        document.getElementById("delete-file-" + index).value = "1";
+        
+        // UI에서 숨김
+        const fileItem = document.getElementById("existing-file-" + index);
+        if (fileItem) {
+            fileItem.style.opacity = "0.5";
+            fileItem.style.textDecoration = "line-through";
+        }
+    }
+        const input = document.getElementById('files');
+        const dt = new DataTransfer();
+        const files = Array.from(input.files);
+        
+        files.forEach((file, i) => {
+            if (i !== index) dt.items.add(file);
+        });
+        
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change'));
+    }
+    
+    // 폼 제출
+    function submitPost(e) {
+        e.preventDefault();
+        
+        // CKEditor 내용 textarea에 동기화
+        if (window.editorcontent) {
+            document.getElementById('content').value = window.editorcontent.getData();
+        }
+        
+        const formData = new FormData(e.target);
+        const url = <?php echo $mode === 'write' 
+            ? "'/bbs/{$board['bbs_id']}/write-process'" 
+            : "'/bbs/{$board['bbs_id']}/edit-process/{$post['uid']}'"; ?>;
+        
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) {
+                location.href = data.redirect;
+            }
+        })
+        .catch(err => {
+            alert('처리 중 오류가 발생했습니다.');
+            console.error(err);
+        });
+    }
+    </script>
+</body>
+</html>

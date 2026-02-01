@@ -86,21 +86,7 @@
             
             <div class="form-group">
                 <label for="content">내용 <span class="required">*</span></label>
-                <textarea name="content" id="content" placeholder="내용을 입력하세요" required><?php echo isset($post) ? xssFilter($post['content']) : ''; ?></textarea>
-                <div class="editor-toolbar">
-                    <button type="button" onclick="insertText('**굵게**')" title="굵게">
-                        <strong>B</strong>
-                    </button>
-                    <button type="button" onclick="insertText('_기울임_')" title="기울임">
-                        <em>I</em>
-                    </button>
-                    <button type="button" onclick="insertText('\n---\n')" title="구분선">
-                        ─
-                    </button>
-                    <button type="button" onclick="insertText('\n- 목록\n')" title="목록">
-                        ≡
-                    </button>
-                </div>
+                <textarea name="content" id="content" placeholder="내용을 입력하세요" required><?php echo isset($post) ? $post['content'] : ''; ?></textarea>
             </div>
             
             <?php if ($board['use_upload'] === 'Y'): ?>
@@ -149,6 +135,15 @@
     </main>
     
     <?php include __DIR__ . '/../../_footer.php'; ?>
+    
+    <?php 
+    // CKEditor 로드
+    require_once __DIR__ . '/../../../editor.php';
+    initCKEditor('content', [
+        'imageUploadUrl' => '/upload/bbs/image',
+        'height' => 500
+    ]);
+    ?>
     
     <script>
     // 파일 미리보기
@@ -219,22 +214,14 @@
         input.dispatchEvent(new Event('change'));
     }
     
-    // 텍스트 삽입
-    function insertText(text) {
-        const textarea = document.getElementById('content');
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const before = textarea.value.substring(0, start);
-        const after = textarea.value.substring(end);
-        
-        textarea.value = before + text + after;
-        textarea.focus();
-        textarea.setSelectionRange(start + text.length, start + text.length);
-    }
-    
     // 폼 제출
     function submitPost(e) {
         e.preventDefault();
+        
+        // CKEditor 내용 textarea에 동기화
+        if (window.editorcontent) {
+            document.getElementById('content').value = window.editorcontent.getData();
+        }
         
         const formData = new FormData(e.target);
         const url = <?php echo $mode === 'write' 
