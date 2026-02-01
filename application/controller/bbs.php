@@ -201,18 +201,16 @@ class Bbs extends Controller {
     public function write($boardId = null) {
         // boardId가 없으면 404
         if (!$boardId) {
-            http_response_code(404);
-            echo '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 - 페이지를 찾을 수 없습니다</h1><p>잘못된 URL입니다. <a href="/">홈으로 이동</a></p></body></html>';
-            exit;
+            $this->show404();
+            return;
         }
         
         // 게시판 정보
         $board = $this->boardModel->getBoardInfo($boardId);
         
         if (!$board) {
-            http_response_code(404);
-            echo '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 - 페이지를 찾을 수 없습니다</h1><p>게시판을 찾을 수 없습니다. <a href="/">홈으로 이동</a></p></body></html>';
-            exit;
+            $this->show404();
+            return;
         }
         
         // 권한 체크

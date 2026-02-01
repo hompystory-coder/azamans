@@ -47,7 +47,17 @@ class Application {
             if (method_exists($this->controller, $url[1])) {
                 $this->method = $url[1];
                 unset($url[1]);
+            } else {
+                // 메서드가 존재하지 않으면 404
+                $this->show404();
+                return;
             }
+        }
+        
+        // 기본 index 메서드가 없으면 404
+        if (!method_exists($this->controller, $this->method)) {
+            $this->show404();
+            return;
         }
         
         // 3. 파라미터 추출

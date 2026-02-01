@@ -101,4 +101,20 @@ class Controller {
             $this->redirect($redirectUrl);
         }
     }
+    
+    /**
+     * 404 페이지 표시
+     */
+    protected function show404() {
+        http_response_code(404);
+        $viewFile = __DIR__ . '/../views/errors/404.php';
+        
+        if (file_exists($viewFile)) {
+            require_once $viewFile;
+        } else {
+            echo '<h1>404 - 페이지를 찾을 수 없습니다</h1>';
+            echo '<p>요청하신 페이지가 존재하지 않습니다.</p>';
+        }
+        exit;
+    }
 }
