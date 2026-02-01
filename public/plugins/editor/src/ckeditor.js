@@ -40,123 +40,127 @@ import { WordCount } from '@ckeditor/ckeditor5-word-count';
 import { Autosave } from '@ckeditor/ckeditor5-autosave';
 import { CKFinderUploadAdapter } from '@ckeditor/ckeditor5-adapter-ckfinder';
 
-export default class ClassicEditor extends ClassicEditorBase {}
+// 한국어 번역 import
+import coreTranslations from 'ckeditor5/translations/ko.js';
 
-// Plugins to include in the build.
-ClassicEditor.builtinPlugins = [
-	Essentials,
-	Autoformat,
-	Bold,
-	Italic,
-	Underline,
-	Strikethrough,
-	Code,
-	Subscript,
-	Superscript,
-	BlockQuote,
-	CodeBlock,
-	Heading,
-	Image,
-	ImageCaption,
-	ImageStyle,
-	ImageToolbar,
-	ImageUpload,
-	ImageResize,
-	ImageInsert,
-	PictureEditing,
-	Indent,
-	IndentBlock,
-	Link,
-	AutoLink,
-	LinkImage,
-	List,
-	ListProperties,
-	TodoList,
-	MediaEmbed,
-	Paragraph,
-	PasteFromOffice,
-	Table,
-	TableToolbar,
-	TableProperties,
-	TableCellProperties,
-	TableCaption,
-	TableColumnResize,
-	TextTransformation,
-	Alignment,
-	Font,
-	Highlight,
-	HorizontalLine,
-	HtmlEmbed,
-	GeneralHtmlSupport,
-	PageBreak,
-	RemoveFormat,
-	SelectAll,
-	ShowBlocks,
-	SourceEditing,
-	SpecialCharacters,
-	SpecialCharactersEssentials,
-	Style,
-	FindAndReplace,
-	Mention,
-	WordCount,
-	Autosave,
-	CKFinderUploadAdapter
-];
+export default class ClassicEditor extends ClassicEditorBase {
+	static builtinPlugins = [
+		Essentials,
+		Autoformat,
+		Bold,
+		Italic,
+		Underline,
+		Strikethrough,
+		Code,
+		Subscript,
+		Superscript,
+		BlockQuote,
+		CodeBlock,
+		Heading,
+		Image,
+		ImageCaption,
+		ImageStyle,
+		ImageToolbar,
+		ImageUpload,
+		ImageResize,
+		ImageInsert,
+		PictureEditing,
+		Indent,
+		IndentBlock,
+		Link,
+		AutoLink,
+		LinkImage,
+		List,
+		ListProperties,
+		TodoList,
+		MediaEmbed,
+		Paragraph,
+		PasteFromOffice,
+		Table,
+		TableToolbar,
+		TableProperties,
+		TableCellProperties,
+		TableCaption,
+		TableColumnResize,
+		TextTransformation,
+		Alignment,
+		Font,
+		Highlight,
+		HorizontalLine,
+		HtmlEmbed,
+		GeneralHtmlSupport,
+		PageBreak,
+		RemoveFormat,
+		SelectAll,
+		ShowBlocks,
+		SourceEditing,
+		SpecialCharacters,
+		SpecialCharactersEssentials,
+		Style,
+		FindAndReplace,
+		Mention,
+		WordCount,
+		Autosave,
+		CKFinderUploadAdapter
+	];
+	
+	static defaultConfig = {
+		toolbar: {
+			items: [
+				'undo', 'redo',
+				'|',
+				'heading',
+				'|',
+				'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor',
+				'|',
+				'bold', 'italic', 'underline', 'strikethrough',
+				'|',
+				'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed',
+				'|',
+				'alignment',
+				'|',
+				'bulletedList', 'numberedList', 'todoList',
+				'|',
+				'outdent', 'indent',
+				'|',
+				'code', 'codeBlock',
+				'|',
+				'highlight', 'removeFormat',
+				'|',
+				'specialCharacters', 'horizontalLine', 'pageBreak',
+				'|',
+				'findAndReplace',
+				'|',
+				'htmlEmbed', 'sourceEditing'
+			],
+			shouldNotGroupWhenFull: false
+		},
+		language: 'ko',
+		translations: [coreTranslations],
+		image: {
+			toolbar: [
+				'imageTextAlternative',
+				'toggleImageCaption',
+				'|',
+				'imageStyle:inline',
+				'imageStyle:wrapText',
+				'imageStyle:breakText',
+				'|',
+				'resizeImage',
+				'|',
+				'linkImage'
+			]
+		},
+		table: {
+			contentToolbar: [
+				'tableColumn',
+				'tableRow',
+				'mergeTableCells',
+				'tableCellProperties',
+				'tableProperties'
+			]
+		}
+	};
+}
 
-// Editor configuration.
-ClassicEditor.defaultConfig = {
-	toolbar: {
-		items: [
-			'undo', 'redo',
-			'|',
-			'heading',
-			'|',
-			'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor',
-			'|',
-			'bold', 'italic', 'underline', 'strikethrough',
-			'|',
-			'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed',
-			'|',
-			'alignment',
-			'|',
-			'bulletedList', 'numberedList', 'todoList',
-			'|',
-			'outdent', 'indent',
-			'|',
-			'code', 'codeBlock',
-			'|',
-			'highlight', 'removeFormat',
-			'|',
-			'specialCharacters', 'horizontalLine', 'pageBreak',
-			'|',
-			'findAndReplace',
-			'|',
-			'htmlEmbed', 'sourceEditing'
-		],
-		shouldNotGroupWhenFull: false
-	},
-	language: 'ko',
-	image: {
-		toolbar: [
-			'imageTextAlternative',
-			'toggleImageCaption',
-			'|',
-			'imageStyle:inline',
-			'imageStyle:wrapText',
-			'imageStyle:breakText',
-			'|',
-			'resizeImage',
-			'|',
-			'linkImage'
-		]
-	},
-	table: {
-		contentToolbar: [
-			'tableColumn',
-			'tableRow',
-			'mergeTableCells',
-			'tableCellProperties',
-			'tableProperties'
-		]
-	}
-};
+
