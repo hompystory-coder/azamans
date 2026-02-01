@@ -1,4 +1,48 @@
 <?php include __DIR__ . '/_admin_header.php'; ?>
+<style>
+/* 커스텀 체크박스 & 라디오 스타일 */
+.custom-checkbox-wrapper,
+.custom-radio-wrapper {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 12px;
+}
+
+.custom-checkbox-wrapper label,
+.custom-radio-wrapper label {
+    cursor: pointer;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.custom-checkbox-wrapper label:hover,
+.custom-radio-wrapper label:hover {
+    background-color: #e9ecef;
+}
+
+.custom-checkbox-wrapper input[type="checkbox"],
+.custom-radio-wrapper input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.custom-radio-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.custom-radio-horizontal label {
+    flex: 0 0 auto;
+}
+</style>
 <div class="d-flex">
     <?php include __DIR__ . '/_sidebar.php'; ?>
     
@@ -393,20 +437,18 @@
                                 
                                 <div class="col-md-6">
                                     <label class="form-label d-block mb-2">원본 이미지 처리</label>
-                                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                    <div class="custom-radio-wrapper">
                                         <div style="margin-bottom: 8px;">
-                                            <label style="cursor: pointer; margin: 0;">
+                                            <label>
                                                 <input type="radio" name="thumbnail_delete_original" value="N"
-                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'N' ? 'checked' : '' ?>
-                                                       style="cursor: pointer; margin-right: 8px;">
+                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'N' ? 'checked' : '' ?>>
                                                 원본 보관
                                             </label>
                                         </div>
-                                        <div style="margin-bottom: 0;">
-                                            <label style="cursor: pointer; margin: 0;">
+                                        <div>
+                                            <label>
                                                 <input type="radio" name="thumbnail_delete_original" value="Y"
-                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'Y' ? 'checked' : '' ?>
-                                                       style="cursor: pointer; margin-right: 8px;">
+                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
                                                 원본 삭제
                                             </label>
                                         </div>
@@ -416,20 +458,18 @@
                                 
                                 <div class="col-md-6">
                                     <label class="form-label d-block mb-2">투명 배경 처리</label>
-                                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                    <div class="custom-radio-wrapper">
                                         <div style="margin-bottom: 8px;">
-                                            <label style="cursor: pointer; margin: 0;">
+                                            <label>
                                                 <input type="radio" name="thumbnail_transparent_bg" value="white"
-                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'white' ? 'checked' : '' ?>
-                                                       style="cursor: pointer; margin-right: 8px;">
+                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'white' ? 'checked' : '' ?>>
                                                 흰색 배경
                                             </label>
                                         </div>
-                                        <div style="margin-bottom: 0;">
-                                            <label style="cursor: pointer; margin: 0;">
+                                        <div>
+                                            <label>
                                                 <input type="radio" name="thumbnail_transparent_bg" value="black"
-                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'black' ? 'checked' : '' ?>
-                                                       style="cursor: pointer; margin-right: 8px;">
+                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'black' ? 'checked' : '' ?>>
                                                 검정 배경
                                             </label>
                                         </div>
@@ -458,12 +498,11 @@
                         <form id="watermarkSettingsForm">
                             <div class="mb-3">
                                 <label class="form-label d-block mb-2">워터마크 사용</label>
-                                <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
-                                    <label style="cursor: pointer; margin: 0;">
+                                <div class="custom-checkbox-wrapper">
+                                    <label>
                                         <input type="checkbox" id="watermark_enabled" 
                                                name="watermark_enabled" value="Y"
-                                               <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>
-                                               style="cursor: pointer; margin-right: 8px;">
+                                               <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
                                         워터마크 사용
                                     </label>
                                 </div>
@@ -471,20 +510,18 @@
                             
                             <div class="mb-3">
                                 <label class="form-label d-block mb-2">워터마크 적용 대상</label>
-                                <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                <div class="custom-checkbox-wrapper">
                                     <div style="margin-bottom: 8px;">
-                                        <label style="cursor: pointer; margin: 0;">
+                                        <label>
                                             <input type="checkbox" name="watermark_target_board" value="Y"
-                                                   <?= ($configs['watermark_target_board'] ?? 'Y') === 'Y' ? 'checked' : '' ?>
-                                                   style="cursor: pointer; margin-right: 8px;">
+                                                   <?= ($configs['watermark_target_board'] ?? 'Y') === 'Y' ? 'checked' : '' ?>>
                                             게시판
                                         </label>
                                     </div>
-                                    <div style="margin-bottom: 0;">
-                                        <label style="cursor: pointer; margin: 0;">
+                                    <div>
+                                        <label>
                                             <input type="checkbox" name="watermark_target_page" value="Y"
-                                                   <?= ($configs['watermark_target_page'] ?? 'Y') === 'Y' ? 'checked' : '' ?>
-                                                   style="cursor: pointer; margin-right: 8px;">
+                                                   <?= ($configs['watermark_target_page'] ?? 'Y') === 'Y' ? 'checked' : '' ?>>
                                             페이지
                                         </label>
                                     </div>
@@ -516,52 +553,37 @@
                             
                             <div class="mb-3">
                                 <label class="form-label d-block mb-2">워터마크 위치</label>
-                                <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
-                                    <div style="margin-bottom: 8px;">
-                                        <label style="cursor: pointer; margin: 0;">
-                                            <input type="radio" name="watermark_position" 
-                                                   id="position_1" value="1"
-                                                   <?= ($configs['watermark_position'] ?? '5') == '1' ? 'checked' : '' ?>
-                                                   style="cursor: pointer; margin-right: 8px;">
-                                            왼쪽 상단
-                                        </label>
-                                    </div>
-                                    <div style="margin-bottom: 8px;">
-                                        <label style="cursor: pointer; margin: 0;">
-                                            <input type="radio" name="watermark_position" 
-                                                   id="position_2" value="2"
-                                                   <?= ($configs['watermark_position'] ?? '5') == '2' ? 'checked' : '' ?>
-                                                   style="cursor: pointer; margin-right: 8px;">
-                                            오른쪽 상단
-                                        </label>
-                                    </div>
-                                    <div style="margin-bottom: 8px;">
-                                        <label style="cursor: pointer; margin: 0;">
-                                            <input type="radio" name="watermark_position" 
-                                                   id="position_3" value="3"
-                                                   <?= ($configs['watermark_position'] ?? '5') == '3' ? 'checked' : '' ?>
-                                                   style="cursor: pointer; margin-right: 8px;">
-                                            중앙
-                                        </label>
-                                    </div>
-                                    <div style="margin-bottom: 8px;">
-                                        <label style="cursor: pointer; margin: 0;">
-                                            <input type="radio" name="watermark_position" 
-                                                   id="position_4" value="4"
-                                                   <?= ($configs['watermark_position'] ?? '5') == '4' ? 'checked' : '' ?>
-                                                   style="cursor: pointer; margin-right: 8px;">
-                                            왼쪽 하단
-                                        </label>
-                                    </div>
-                                    <div style="margin-bottom: 0;">
-                                        <label style="cursor: pointer; margin: 0;">
-                                            <input type="radio" name="watermark_position" 
-                                                   id="position_5" value="5"
-                                                   <?= ($configs['watermark_position'] ?? '5') == '5' ? 'checked' : '' ?>
-                                                   style="cursor: pointer; margin-right: 8px;">
-                                            오른쪽 하단
-                                        </label>
-                                    </div>
+                                <div class="custom-radio-wrapper custom-radio-horizontal">
+                                    <label>
+                                        <input type="radio" name="watermark_position" 
+                                               id="position_1" value="1"
+                                               <?= ($configs['watermark_position'] ?? '5') == '1' ? 'checked' : '' ?>>
+                                        왼쪽 상단
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="watermark_position" 
+                                               id="position_2" value="2"
+                                               <?= ($configs['watermark_position'] ?? '5') == '2' ? 'checked' : '' ?>>
+                                        오른쪽 상단
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="watermark_position" 
+                                               id="position_3" value="3"
+                                               <?= ($configs['watermark_position'] ?? '5') == '3' ? 'checked' : '' ?>>
+                                        중앙
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="watermark_position" 
+                                               id="position_4" value="4"
+                                               <?= ($configs['watermark_position'] ?? '5') == '4' ? 'checked' : '' ?>>
+                                        왼쪽 하단
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="watermark_position" 
+                                               id="position_5" value="5"
+                                               <?= ($configs['watermark_position'] ?? '5') == '5' ? 'checked' : '' ?>>
+                                        오른쪽 하단
+                                    </label>
                                 </div>
                             </div>
                             
