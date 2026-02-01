@@ -93,7 +93,9 @@ main {
 ********************************************************/
 .navbar {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 10px 0 !important; /* 상단 10px */
+    min-height: 180px !important; /* 높이만 3배로 증가 */
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
 }
 
 .navbar-brand {
@@ -103,27 +105,6 @@ main {
 
 .nav-link:hover {
     color: var(--main-color1) !important;
-}
-
-/* 관리자 메뉴 영역 (헤더 하단) */
-.admin-menu-area {
-    margin-top: 50px; /* 상단 메뉴와의 간격 */
-    padding: 15px 0;
-    background-color: #f8f9fa;
-    border-top: 1px solid #dee2e6;
-}
-
-.admin-menu-area .nav-link {
-    color: #333 !important;
-    font-size: 0.95rem;
-    padding: 8px 15px !important;
-    transition: all 0.3s ease;
-}
-
-.admin-menu-area .nav-link:hover {
-    color: var(--main-color1) !important;
-    background-color: rgba(var(--main-color1-rgb), 0.1);
-    border-radius: 4px;
 }
 
 /********************************************************
