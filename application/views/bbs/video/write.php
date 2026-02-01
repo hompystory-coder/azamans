@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/board.css">
     <link rel="stylesheet" href="/public/css/bbs_common.css">
+    <script src="/public/js/bbs_write.js"></script>
     <style>
         .existing-files {
             display: flex;
@@ -54,7 +55,12 @@
             <p class="board-desc"><?php echo xssFilter($board['bbs_name']); ?></p>
         </div>
         
-        <form id="writeForm" class="write-form" onsubmit="submitPost(event)">
+        <form id="writeForm" class="write-form" 
+              onsubmit="return submitPost(event)" 
+              data-mode="<?php echo $mode; ?>"
+              data-action-url="<?php echo $mode === 'write' 
+                  ? '/bbs/' . $board['bbs_id'] . '/write-process' 
+                  : '/bbs/' . $board['bbs_id'] . '/edit-process/' . $post['uid']; ?>">
             <?php if (!empty($board['bbs_category']) && !empty($board['bbs_category'])): ?>
             <div class="form-group">
                 <label for="category">카테고리</label>
@@ -136,11 +142,6 @@
     
     <?php include __DIR__ . '/../../_footer.php'; ?>
     
-    <script>
-    console.log('🔍 페이지 로드 시작');
-    console.log('🔍 Textarea ID: content');
-    console.log('🔍 Textarea 존재:', document.getElementById('content') ? '✅' : '❌');
-    </script>
     
     <?php 
     // CKEditor 로드
@@ -151,121 +152,7 @@
     ]);
     ?>
     
-    <script>
-    console.log('🔍 CKEditor 스크립트 로드 완료');
-    console.log('🔍 ClassicEditor 존재:', typeof ClassicEditor !== 'undefined' ? '✅' : '❌');
-    console.log('🔍 window.editorcontent 존재:', window.editorcontent ? '✅' : '❌');
-    </script>
     
-    <script>
-    // 파일 미리보기
-    document.getElementById('files')?.addEventListener('change', function(e) {
-        const preview = document.getElementById('filePreview');
-        preview.innerHTML = '';
-        
-        Array.from(e.target.files).forEach((file, index) => {
-            const item = document.createElement('div');
-            item.className = 'file-item';
-            
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    item.innerHTML = `
-                        <img src="${e.target.result}" alt="${file.name}">
-                        <span>${file.name} (${formatFileSize(file.size)})</span>
-                        <button type="button" onclick="removeFile(${index})">×</button>
-                    `;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                item.innerHTML = `
-                    <span>📎 ${file.name} (${formatFileSize(file.size)})</span>
-                    <button type="button" onclick="removeFile(${index})">×</button>
-                `;
-            }
-            
-            preview.appendChild(item);
-        });
-    });
-    
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    }
-    
-    function removeFile(index) {
-        const input = document.getElementById('files');
-        const dt = new DataTransfer();
-        const files = Array.from(input.files);
-        
-        files.forEach((file, i) => {
-            if (i !== index) dt.items.add(file);
-        });
-        
-        input.files = dt.files;
-        input.dispatchEvent(new Event('change'));
-    }
-    
-    // 기존 파일 삭제
-    function deleteExistingFile(index) {
-        if (!confirm("이 파일을 삭제하시겠습니까?")) {
-            return;
-        }
-        
-        // 삭제할 파일 인덱스 표시
-        document.getElementById("delete-file-" + index).value = "1";
-        
-        // UI에서 숨김
-        const fileItem = document.getElementById("existing-file-" + index);
-        if (fileItem) {
-            fileItem.style.opacity = "0.5";
-            fileItem.style.textDecoration = "line-through";
-        }
-    }
-    
-    // 폼 제출
-    function submitPost(e) {
-        e.preventDefault();
-        
-        // CKEditor 내용 textarea에 동기화
-        if (window.editorcontent) {
-            document.getElementById('content').value = window.editorcontent.getData();
-        }
-        
-        // 내용 검증 (빈 값 체크)
-        const content = document.getElementById('content').value.trim();
-        if (!content || content === '') {
-            alert('내용을 입력해주세요.');
-            if (window.editorcontent) {
-                window.editorcontent.focus();
-            }
-            return false;
-        }
-        
-        const formData = new FormData(e.target);
-        const url = <?php echo $mode === 'write' 
-            ? "'/bbs/{$board['bbs_id']}/write-process'" 
-            : "'/bbs/{$board['bbs_id']}/edit-process/{$post['uid']}'"; ?>;
-        
-        fetch(url, {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-            if (data.success) {
-                location.href = data.redirect;
-            }
-        })
-        .catch(err => {
-            alert('처리 중 오류가 발생했습니다.');
-            console.error(err);
-        });
-    }
-    </script>
+
 </body>
 </html>
