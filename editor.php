@@ -68,7 +68,7 @@ function initCKEditor($textareaId = 'editor', $options = []) {
     }
     </style>
     
-    <script src="/plugins/editor/build/ckeditor.js"></script>
+    <script src="/public/plugins/editor/build/ckeditor.js"></script>
     <script>
     (function() {
         // 커스텀 업로드 어댑터
