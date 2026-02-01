@@ -1,6 +1,6 @@
 <?php include __DIR__ . '/_admin_header.php'; ?>
 <style>
-/* 커스텀 체크박스 & 라디오 스타일 */
+/* 커스텀 체크박스 & 라디오 스타일 - 이미지와 동일하게 */
 .custom-checkbox-wrapper,
 .custom-radio-wrapper {
     background: #f8f9fa;
@@ -18,6 +18,8 @@
     transition: background-color 0.2s;
     display: inline-flex;
     align-items: center;
+    position: relative;
+    user-select: none;
 }
 
 .custom-checkbox-wrapper label:hover,
@@ -25,14 +27,60 @@
     background-color: #e9ecef;
 }
 
+/* 기본 체크박스/라디오 숨기기 */
 .custom-checkbox-wrapper input[type="checkbox"],
 .custom-radio-wrapper input[type="radio"] {
-    width: 18px;
-    height: 18px;
+    position: absolute;
+    opacity: 0;
     cursor: pointer;
-    margin-right: 8px;
+    height: 0;
+    width: 0;
 }
 
+/* 커스텀 체크박스 디자인 */
+.custom-checkbox-wrapper label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 2px solid #6c757d;
+    border-radius: 4px;
+    background-color: #fff;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.custom-checkbox-wrapper input[type="checkbox"]:checked + label::before {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100%;
+}
+
+/* 커스텀 라디오 디자인 */
+.custom-radio-wrapper label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 2px solid #6c757d;
+    border-radius: 50%;
+    background-color: #fff;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.custom-radio-wrapper input[type="radio"]:checked + label::before {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    box-shadow: inset 0 0 0 3px #fff;
+}
+
+/* 가로 배치 */
 .custom-radio-horizontal {
     display: flex;
     flex-wrap: wrap;
@@ -439,16 +487,18 @@
                                     <label class="form-label d-block mb-2">원본 이미지 처리</label>
                                     <div class="custom-radio-wrapper">
                                         <div style="margin-bottom: 8px;">
-                                            <label>
-                                                <input type="radio" name="thumbnail_delete_original" value="N"
-                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'N' ? 'checked' : '' ?>>
+                                            <input type="radio" id="delete_original_n" 
+                                                   name="thumbnail_delete_original" value="N"
+                                                   <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'N' ? 'checked' : '' ?>>
+                                            <label for="delete_original_n">
                                                 원본 보관
                                             </label>
                                         </div>
                                         <div>
-                                            <label>
-                                                <input type="radio" name="thumbnail_delete_original" value="Y"
-                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
+                                            <input type="radio" id="delete_original_y" 
+                                                   name="thumbnail_delete_original" value="Y"
+                                                   <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
+                                            <label for="delete_original_y">
                                                 원본 삭제
                                             </label>
                                         </div>
@@ -460,16 +510,18 @@
                                     <label class="form-label d-block mb-2">투명 배경 처리</label>
                                     <div class="custom-radio-wrapper">
                                         <div style="margin-bottom: 8px;">
-                                            <label>
-                                                <input type="radio" name="thumbnail_transparent_bg" value="white"
-                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'white' ? 'checked' : '' ?>>
+                                            <input type="radio" id="transparent_bg_white" 
+                                                   name="thumbnail_transparent_bg" value="white"
+                                                   <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'white' ? 'checked' : '' ?>>
+                                            <label for="transparent_bg_white">
                                                 흰색 배경
                                             </label>
                                         </div>
                                         <div>
-                                            <label>
-                                                <input type="radio" name="thumbnail_transparent_bg" value="black"
-                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'black' ? 'checked' : '' ?>>
+                                            <input type="radio" id="transparent_bg_black" 
+                                                   name="thumbnail_transparent_bg" value="black"
+                                                   <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'black' ? 'checked' : '' ?>>
+                                            <label for="transparent_bg_black">
                                                 검정 배경
                                             </label>
                                         </div>
@@ -499,10 +551,10 @@
                             <div class="mb-3">
                                 <label class="form-label d-block mb-2">워터마크 사용</label>
                                 <div class="custom-checkbox-wrapper">
-                                    <label>
-                                        <input type="checkbox" id="watermark_enabled" 
-                                               name="watermark_enabled" value="Y"
-                                               <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
+                                    <input type="checkbox" id="watermark_enabled" 
+                                           name="watermark_enabled" value="Y"
+                                           <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
+                                    <label for="watermark_enabled">
                                         워터마크 사용
                                     </label>
                                 </div>
@@ -510,18 +562,20 @@
                             
                             <div class="mb-3">
                                 <label class="form-label d-block mb-2">워터마크 적용 대상</label>
-                                <div class="custom-checkbox-wrapper">
-                                    <div style="margin-bottom: 8px;">
-                                        <label>
-                                            <input type="checkbox" name="watermark_target_board" value="Y"
-                                                   <?= ($configs['watermark_target_board'] ?? 'Y') === 'Y' ? 'checked' : '' ?>>
+                                <div class="custom-checkbox-wrapper" style="display: flex; gap: 16px;">
+                                    <div>
+                                        <input type="checkbox" id="watermark_target_board" 
+                                               name="watermark_target_board" value="Y"
+                                               <?= ($configs['watermark_target_board'] ?? 'Y') === 'Y' ? 'checked' : '' ?>>
+                                        <label for="watermark_target_board">
                                             게시판
                                         </label>
                                     </div>
                                     <div>
-                                        <label>
-                                            <input type="checkbox" name="watermark_target_page" value="Y"
-                                                   <?= ($configs['watermark_target_page'] ?? 'Y') === 'Y' ? 'checked' : '' ?>>
+                                        <input type="checkbox" id="watermark_target_page" 
+                                               name="watermark_target_page" value="Y"
+                                               <?= ($configs['watermark_target_page'] ?? 'Y') === 'Y' ? 'checked' : '' ?>>
+                                        <label for="watermark_target_page">
                                             페이지
                                         </label>
                                     </div>
@@ -554,34 +608,38 @@
                             <div class="mb-3">
                                 <label class="form-label d-block mb-2">워터마크 위치</label>
                                 <div class="custom-radio-wrapper custom-radio-horizontal">
-                                    <label>
-                                        <input type="radio" name="watermark_position" 
-                                               id="position_1" value="1"
-                                               <?= ($configs['watermark_position'] ?? '5') == '1' ? 'checked' : '' ?>>
+                                    <input type="radio" name="watermark_position" 
+                                           id="position_1" value="1"
+                                           <?= ($configs['watermark_position'] ?? '5') == '1' ? 'checked' : '' ?>>
+                                    <label for="position_1">
                                         왼쪽 상단
                                     </label>
-                                    <label>
-                                        <input type="radio" name="watermark_position" 
-                                               id="position_2" value="2"
-                                               <?= ($configs['watermark_position'] ?? '5') == '2' ? 'checked' : '' ?>>
+                                    
+                                    <input type="radio" name="watermark_position" 
+                                           id="position_2" value="2"
+                                           <?= ($configs['watermark_position'] ?? '5') == '2' ? 'checked' : '' ?>>
+                                    <label for="position_2">
                                         오른쪽 상단
                                     </label>
-                                    <label>
-                                        <input type="radio" name="watermark_position" 
-                                               id="position_3" value="3"
-                                               <?= ($configs['watermark_position'] ?? '5') == '3' ? 'checked' : '' ?>>
+                                    
+                                    <input type="radio" name="watermark_position" 
+                                           id="position_3" value="3"
+                                           <?= ($configs['watermark_position'] ?? '5') == '3' ? 'checked' : '' ?>>
+                                    <label for="position_3">
                                         중앙
                                     </label>
-                                    <label>
-                                        <input type="radio" name="watermark_position" 
-                                               id="position_4" value="4"
-                                               <?= ($configs['watermark_position'] ?? '5') == '4' ? 'checked' : '' ?>>
+                                    
+                                    <input type="radio" name="watermark_position" 
+                                           id="position_4" value="4"
+                                           <?= ($configs['watermark_position'] ?? '5') == '4' ? 'checked' : '' ?>>
+                                    <label for="position_4">
                                         왼쪽 하단
                                     </label>
-                                    <label>
-                                        <input type="radio" name="watermark_position" 
-                                               id="position_5" value="5"
-                                               <?= ($configs['watermark_position'] ?? '5') == '5' ? 'checked' : '' ?>>
+                                    
+                                    <input type="radio" name="watermark_position" 
+                                           id="position_5" value="5"
+                                           <?= ($configs['watermark_position'] ?? '5') == '5' ? 'checked' : '' ?>>
+                                    <label for="position_5">
                                         오른쪽 하단
                                     </label>
                                 </div>
