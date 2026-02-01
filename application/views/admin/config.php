@@ -508,8 +508,24 @@
 const logoRatios = {};
 let isUpdating = false; // 무한 루프 방지
 
-// 페이지 로드 시 기존 로고의 비율 계산
+// 페이지 로드 시 마지막 선택한 탭 복원 및 로고 비율 계산
 document.addEventListener('DOMContentLoaded', function() {
+    // 마지막 선택한 탭 복원
+    const lastTab = localStorage.getItem('adminConfigTab') || 'basic';
+    const tabButton = document.querySelector(`#${lastTab}-tab`);
+    if (tabButton) {
+        const tab = new bootstrap.Tab(tabButton);
+        tab.show();
+    }
+    
+    // 탭 변경 시 localStorage에 저장
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(button => {
+        button.addEventListener('shown.bs.tab', function(e) {
+            const tabId = e.target.id.replace('-tab', '');
+            localStorage.setItem('adminConfigTab', tabId);
+        });
+    });
+    
     <?php foreach (['header_logo', 'footer_logo', 'mobile_header_logo', 'mobile_footer_logo'] as $logo): ?>
     <?php if (!empty($configs[$logo . '_width']) && !empty($configs[$logo . '_height'])): ?>
     const <?= $logo ?>_width = <?= $configs[$logo . '_width'] ?>;
@@ -572,6 +588,8 @@ function uploadLogo(file, logoType, width, height) {
     .then(data => {
         if (data.success) {
             alert('로고가 업로드되었습니다.');
+            // 현재 탭 저장 후 새로고침
+            localStorage.setItem('adminConfigTab', 'logo');
             location.reload();
         } else {
             alert(data.message || '업로드에 실패했습니다.');
@@ -658,6 +676,8 @@ function deleteLogo(logoType) {
     .then(data => {
         if (data.success) {
             alert('로고가 삭제되었습니다.');
+            // 현재 탭 저장 후 새로고침
+            localStorage.setItem('adminConfigTab', 'logo');
             location.reload();
         } else {
             alert(data.message || '삭제에 실패했습니다.');
@@ -766,6 +786,8 @@ function handleWatermarkUpload(input) {
     .then(data => {
         if (data.success) {
             alert('워터마크가 업로드되었습니다.');
+            // 현재 탭 저장 후 새로고침
+            localStorage.setItem('adminConfigTab', 'watermark');
             location.reload();
         } else {
             alert(data.message || '업로드에 실패했습니다.');
@@ -788,6 +810,8 @@ function deleteWatermark() {
     .then(data => {
         if (data.success) {
             alert('워터마크가 삭제되었습니다.');
+            // 현재 탭 저장 후 새로고침
+            localStorage.setItem('adminConfigTab', 'watermark');
             location.reload();
         } else {
             alert(data.message || '삭제에 실패했습니다.');
