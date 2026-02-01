@@ -1458,7 +1458,7 @@ class Admin extends Controller {
         if ($menuType === 'page') {
             $pageContent = $this->post('page_content', '');
             
-            // 기존 페이지 확인
+            // 1. DB에 저장 (편집용 백업)
             $existingPage = getUidData("SELECT id FROM menu_pages WHERE menu_id = ?", [$id]);
             
             if ($existingPage) {
@@ -1469,6 +1469,27 @@ class Admin extends Controller {
                     'menu_table' => 'header',
                     'content' => $pageContent
                 ]);
+            }
+            
+            // 2. 파일로 저장 (실행용)
+            $pageFilePath = __DIR__ . '/../../public/uploads/page/' . $id . '.php';
+            $pageFileContent = '<?php
+/**
+ * 메뉴 페이지: ' . $menuName . '
+ * 메뉴 ID: ' . $id . '
+ * 생성일: ' . date('Y-m-d H:i:s') . '
+ * 
+ * 이 파일은 자동 생성되었습니다.
+ * 관리자 페이지에서 수정하세요: /admin/editMenu/' . $id . '
+ */
+?>
+' . $pageContent;
+            
+            // 파일 저장
+            if (file_put_contents($pageFilePath, $pageFileContent) === false) {
+                error_log("페이지 파일 저장 실패: " . $pageFilePath);
+            } else {
+                chmod($pageFilePath, 0644); // 읽기 권한 설정
             }
         }
         
