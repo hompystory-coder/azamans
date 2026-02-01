@@ -256,7 +256,7 @@ function initCKEditor($textareaId = 'editor', $options = []) {
                 },
                 placeholder: '내용을 입력하세요...',
                 extraPlugins: [CustomUploadAdapterPlugin],
-                licenseKey: ''
+                licenseKey: 'GPL'
             })
             .then(editor => {
                 window.editor<?php echo $textareaId; ?> = editor;
