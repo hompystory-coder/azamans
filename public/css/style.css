@@ -94,16 +94,58 @@ main {
 .navbar {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     min-height: 180px !important; /* 기본 60px → 180px (3배) */
-    padding: 60px 0 !important; /* 상하 패딩 증가로 높이 확보 */
+    padding: 10px 0 0 0 !important; /* 상단 10px만 띄우기 */
+    align-items: flex-start !important; /* 상단 정렬 */
+    position: relative !important; /* admin-menu-area 위치 기준 */
+}
+
+.navbar .container {
+    align-items: flex-start !important;
 }
 
 .navbar-brand {
     color: var(--main-color1) !important;
-    font-size: 1.5rem; /* 원래 크기 유지 */
+    font-size: 1.5rem;
+    margin-top: 0 !important;
+}
+
+.navbar-collapse {
+    margin-top: 0 !important;
+}
+
+.navbar-nav {
+    margin-top: 0 !important;
 }
 
 .nav-link:hover {
     color: var(--main-color1) !important;
+}
+
+/* 관리자 메뉴 영역 (헤더 하단) */
+.admin-menu-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-menu-area .nav-link {
+    color: #333 !important;
+    font-size: 0.95rem;
+    padding: 8px 15px !important;
+    transition: all 0.3s ease;
+}
+
+.admin-menu-area .nav-link:hover {
+    color: var(--main-color1) !important;
+    background-color: rgba(var(--main-color1-rgb), 0.1);
+    border-radius: 4px;
 }
 
 /********************************************************

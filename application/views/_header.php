@@ -112,6 +112,25 @@
                 </ul>
             </div>
         </div>
+        
+        <!-- 관리자 생성 메뉴 영역 (2단 메뉴) -->
+        <div class="admin-menu-area">
+            <div class="container">
+                <ul class="nav justify-content-center">
+                    <!-- 여기에 관리자가 생성한 메뉴가 표시됩니다 -->
+                    <!-- TODO: 데이터베이스에서 메뉴 불러오기 -->
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="#">메뉴1</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="#">메뉴2</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="#">메뉴3</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </nav>
     
     <?php if (isLoggedIn()): ?>
