@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/public/css/style.css">
     <link rel="stylesheet" href="/public/css/board.css">
     <link rel="stylesheet" href="/public/css/bbs_common.css">
+    <link rel="stylesheet" href="/public/plugins/editor/build/ckeditor5-content.css">
 </head>
 <body>
     <?php include __DIR__ . '/../../_header.php'; ?>
@@ -35,8 +36,8 @@
                 </div>
             </div>
             
-            <div class="post-content">
-                <?php echo nl2br(xssFilter($post['content'])); ?>
+            <div class="post-content ck-content">
+                <?php echo $post['content']; ?>
             </div>
             
             <!-- 첨부파일 -->

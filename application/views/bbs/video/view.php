@@ -126,6 +126,7 @@
 
 <!-- 공통 CSS/JS -->
 <link rel="stylesheet" href="/public/css/bbs_common.css">
+    <link rel="stylesheet" href="/public/plugins/editor/build/ckeditor5-content.css">
 <script src="/public/js/bbs_common.js"></script>
 
 <?php include __DIR__ . '/../../_footer.php'; ?>
