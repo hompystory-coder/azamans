@@ -137,7 +137,7 @@ class Upload extends Controller {
             
             // DB 저장
             try {
-                getDbInsert('menu_page_upload', [
+                $insertId = getDbInsert('menu_page_upload', [
                     'menu_id' => $menuId,
                     'filename' => $newFileName,
                     'original_name' => $fileName,
@@ -146,17 +146,23 @@ class Upload extends Controller {
                     'mime_type' => $mimeType
                 ]);
                 
-                $uploadedFiles[] = [
-                    'uid' => getLastInsertId(),
-                    'filename' => $newFileName,
-                    'original_name' => $fileName,
-                    'filepath' => $filePath,
-                    'filesize' => $fileSize,
-                    'mime_type' => $mimeType
-                ];
+                if ($insertId) {
+                    $uploadedFiles[] = [
+                        'uid' => $insertId,
+                        'filename' => $newFileName,
+                        'original_name' => $fileName,
+                        'filepath' => $filePath,
+                        'filesize' => $fileSize,
+                        'mime_type' => $mimeType
+                    ];
+                } else {
+                    $errors[] = $fileName . ': DB 저장 실패';
+                    // 업로드된 파일 삭제
+                    @unlink($uploadPath);
+                }
                 
             } catch (Exception $e) {
-                $errors[] = $fileName . ': DB 저장 실패';
+                $errors[] = $fileName . ': DB 저장 실패 - ' . $e->getMessage();
                 // 업로드된 파일 삭제
                 @unlink($uploadPath);
             }

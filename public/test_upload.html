@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>첨부파일 업로드 테스트</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <h1>첨부파일 업로드 테스트</h1>
+    
+    <form id="testForm">
+        <label>Menu ID:</label>
+        <input type="number" id="menu_id" value="2" required><br><br>
+        
+        <label>파일 선택:</label>
+        <input type="file" id="files" multiple><br><br>
+        
+        <button type="submit">업로드 테스트</button>
+    </form>
+    
+    <h2>결과:</h2>
+    <pre id="result" style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd;"></pre>
+    
+    <script>
+    $('#testForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const menuId = $('#menu_id').val();
+        const files = $('#files')[0].files;
+        
+        if (files.length === 0) {
+            alert('파일을 선택해주세요!');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('menu_id', menuId);
+        
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files[]', files[i]);
+        }
+        
+        $('#result').text('업로드 중...');
+        
+        $.ajax({
+            url: '/upload/attach',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                $('#result').text(JSON.stringify(response, null, 2));
+                console.log('성공:', response);
+            },
+            error: function(xhr, status, error) {
+                const result = {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText,
+                    error: error
+                };
+                $('#result').text(JSON.stringify(result, null, 2));
+                console.error('실패:', result);
+            }
+        });
+    });
+    </script>
+</body>
+</html>
