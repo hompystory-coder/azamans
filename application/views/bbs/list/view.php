@@ -58,8 +58,8 @@
                             <?php endif; ?>
                             <span class="file-name"><?php echo xssFilter($file['original_name']); ?></span>
                             <span class="file-info">
-                                (<?php echo formatFileSize($file['file_size']); ?> / 
-                                다운로드: <?php echo number_format($file['download_count']); ?>)
+                                (<?php echo formatFileSize($file['file_size'] ?? $file['filesize'] ?? 0); ?> / 
+                                다운로드: <?php echo number_format($file['download_count'] ?? 0); ?>)
                             </span>
                         </a>
                     </li>
