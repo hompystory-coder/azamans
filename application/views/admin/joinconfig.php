@@ -51,14 +51,14 @@
                             <div class="mb-4">
                                 <label class="form-label fw-bold">회원 가입 허용</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="use_join" id="use_join_y" value="Y" <?= ($join_config['use_join'] ?? 'Y') == 'Y' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="use_join_y">
+                                    <input class="form-check-input" type="radio" name="use_join" id="use_join_y" value="Y" <?= ($join_config['use_join'] ?? 'Y') == 'Y' ? 'checked' : '' ?> style="cursor: pointer;">
+                                    <label class="form-check-label" for="use_join_y" style="cursor: pointer;">
                                         허용 (회원가입을 받습니다)
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="use_join" id="use_join_n" value="N" <?= ($join_config['use_join'] ?? 'Y') == 'N' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="use_join_n">
+                                    <input class="form-check-input" type="radio" name="use_join" id="use_join_n" value="N" <?= ($join_config['use_join'] ?? 'Y') == 'N' ? 'checked' : '' ?> style="cursor: pointer;">
+                                    <label class="form-check-label" for="use_join_n" style="cursor: pointer;">
                                         차단 (회원가입을 받지 않습니다)
                                     </label>
                                 </div>
@@ -70,14 +70,14 @@
                             <div class="mb-4">
                                 <label class="form-label fw-bold">회원 승인 방식</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="approval_type" id="approval_auto" value="auto" <?= ($join_config['approval_type'] ?? 'auto') == 'auto' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="approval_auto">
+                                    <input class="form-check-input" type="radio" name="approval_type" id="approval_auto" value="auto" <?= ($join_config['approval_type'] ?? 'auto') == 'auto' ? 'checked' : '' ?> style="cursor: pointer;">
+                                    <label class="form-check-label" for="approval_auto" style="cursor: pointer;">
                                         자동 승인 (가입 즉시 활성화)
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="approval_type" id="approval_manual" value="manual" <?= ($join_config['approval_type'] ?? 'auto') == 'manual' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="approval_manual">
+                                    <input class="form-check-input" type="radio" name="approval_type" id="approval_manual" value="manual" <?= ($join_config['approval_type'] ?? 'auto') == 'manual' ? 'checked' : '' ?> style="cursor: pointer;">
+                                    <label class="form-check-label" for="approval_manual" style="cursor: pointer;">
                                         관리자 승인 (관리자가 수동으로 승인)
                                     </label>
                                 </div>
@@ -93,46 +93,46 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="user_id" id="req_user_id" checked disabled>
-                                            <label class="form-check-label" for="req_user_id">
+                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="user_id" id="req_user_id" checked disabled style="cursor: not-allowed;">
+                                            <label class="form-check-label" for="req_user_id" style="cursor: not-allowed;">
                                                 <i class="fas fa-user text-primary"></i> 아이디 <span class="badge bg-secondary">필수</span>
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="password" id="req_password" checked disabled>
-                                            <label class="form-check-label" for="req_password">
+                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="password" id="req_password" checked disabled style="cursor: not-allowed;">
+                                            <label class="form-check-label" for="req_password" style="cursor: not-allowed;">
                                                 <i class="fas fa-lock text-danger"></i> 비밀번호 <span class="badge bg-secondary">필수</span>
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="email" id="req_email" <?= in_array('email', $join_config['required_fields'] ?? ['email']) ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="req_email">
+                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="email" id="req_email" <?= in_array('email', $join_config['required_fields'] ?? ['email']) ? 'checked' : '' ?> style="cursor: pointer;">
+                                            <label class="form-check-label" for="req_email" style="cursor: pointer;">
                                                 <i class="fas fa-envelope text-info"></i> 이메일
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="name" id="req_name" <?= in_array('name', $join_config['required_fields'] ?? ['name']) ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="req_name">
+                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="name" id="req_name" <?= in_array('name', $join_config['required_fields'] ?? ['name']) ? 'checked' : '' ?> style="cursor: pointer;">
+                                            <label class="form-check-label" for="req_name" style="cursor: pointer;">
                                                 <i class="fas fa-id-card text-success"></i> 이름
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="phone" id="req_phone" <?= in_array('phone', $join_config['required_fields'] ?? []) ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="req_phone">
+                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="phone" id="req_phone" <?= in_array('phone', $join_config['required_fields'] ?? []) ? 'checked' : '' ?> style="cursor: pointer;">
+                                            <label class="form-check-label" for="req_phone" style="cursor: pointer;">
                                                 <i class="fas fa-mobile-alt text-warning"></i> 휴대폰번호
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="address" id="req_address" <?= in_array('address', $join_config['required_fields'] ?? []) ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="req_address">
+                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="address" id="req_address" <?= in_array('address', $join_config['required_fields'] ?? []) ? 'checked' : '' ?> style="cursor: pointer;">
+                                            <label class="form-check-label" for="req_address" style="cursor: pointer;">
                                                 <i class="fas fa-map-marker-alt text-danger"></i> 주소
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="tel" id="req_tel" <?= in_array('tel', $join_config['required_fields'] ?? []) ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="req_tel">
+                                            <input class="form-check-input" type="checkbox" name="required_fields[]" value="tel" id="req_tel" <?= in_array('tel', $join_config['required_fields'] ?? []) ? 'checked' : '' ?> style="cursor: pointer;">
+                                            <label class="form-check-label" for="req_tel" style="cursor: pointer;">
                                                 <i class="fas fa-phone text-primary"></i> 연락처
                                             </label>
                                         </div>
