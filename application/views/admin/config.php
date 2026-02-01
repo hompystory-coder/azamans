@@ -402,7 +402,8 @@
                     <div class="card-body">
                         <form id="watermarkSettingsForm">
                             <div class="mb-3">
-                                <div class="form-check form-switch">
+                                <label class="form-label d-block">워터마크 사용</label>
+                                <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="checkbox" id="watermark_enabled" 
                                            name="watermark_enabled" value="Y"
                                            <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
@@ -435,24 +436,47 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label">워터마크 위치</label>
-                                <select class="form-select" name="watermark_position">
-                                    <option value="1" <?= ($configs['watermark_position'] ?? '5') == '1' ? 'selected' : '' ?>>
+                                <label class="form-label d-block">워터마크 위치</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="watermark_position" 
+                                           id="position_1" value="1"
+                                           <?= ($configs['watermark_position'] ?? '5') == '1' ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="position_1">
                                         왼쪽 상단
-                                    </option>
-                                    <option value="2" <?= ($configs['watermark_position'] ?? '5') == '2' ? 'selected' : '' ?>>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="watermark_position" 
+                                           id="position_2" value="2"
+                                           <?= ($configs['watermark_position'] ?? '5') == '2' ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="position_2">
                                         오른쪽 상단
-                                    </option>
-                                    <option value="3" <?= ($configs['watermark_position'] ?? '5') == '3' ? 'selected' : '' ?>>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="watermark_position" 
+                                           id="position_3" value="3"
+                                           <?= ($configs['watermark_position'] ?? '5') == '3' ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="position_3">
                                         중앙
-                                    </option>
-                                    <option value="4" <?= ($configs['watermark_position'] ?? '5') == '4' ? 'selected' : '' ?>>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="watermark_position" 
+                                           id="position_4" value="4"
+                                           <?= ($configs['watermark_position'] ?? '5') == '4' ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="position_4">
                                         왼쪽 하단
-                                    </option>
-                                    <option value="5" <?= ($configs['watermark_position'] ?? '5') == '5' ? 'selected' : '' ?>>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="watermark_position" 
+                                           id="position_5" value="5"
+                                           <?= ($configs['watermark_position'] ?? '5') == '5' ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="position_5">
                                         오른쪽 하단
-                                    </option>
-                                </select>
+                                    </label>
+                                </div>
                             </div>
                             
                             <div class="mb-3">
