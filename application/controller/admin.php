@@ -331,56 +331,17 @@ class Admin extends Controller {
      * 회원 상세/수정
      */
     public function member($uid) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // JSON 요청 처리
-            $json = file_get_contents('php://input');
-            $data = json_decode($json, true);
-            
-            // 회원 정보 수정
-            $updateData = [
-                'name' => cleanInput($data['name']),
-                'email' => cleanInput($data['email']),
-                'level' => (int)$data['level'],
-                'point' => (int)($data['point'] ?? 0),
-                'status' => cleanInput($data['status'])
-            ];
-            
-            // 비밀번호 변경이 있으면
-            if (!empty($data['new_password'])) {
-                $updateData['password'] = hashPassword($data['new_password']);
-            }
-            
-            $result = getDbUpdate('member', $updateData, 'uid = ?', [$uid]);
-            
-            if ($result !== false) {
-                $this->json([
-                    'success' => true,
-                    'message' => '회원 정보가 수정되었습니다.'
-                ]);
-            } else {
-                $this->json([
-                    'success' => false,
-                    'message' => '수정 중 오류가 발생했습니다.'
-                ], 500);
-            }
-            return;
-        }
+        // 하위 액션 처리
+        $action = $this->segments[3] ?? '';
         
-        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-            // 회원 삭제
-            $result = getDbUpdate('member', ['status' => 'withdrawn'], 'uid = ?', [$uid]);
-            
-            if ($result !== false) {
-                $this->json([
-                    'success' => true,
-                    'message' => '회원이 삭제(탈퇴처리)되었습니다.'
-                ]);
-            } else {
-                $this->json([
-                    'success' => false,
-                    'message' => '삭제 중 오류가 발생했습니다.'
-                ], 500);
-            }
+        if ($action === 'update') {
+            $this->memberUpdate();
+            return;
+        } elseif ($action === 'resetPassword') {
+            $this->memberResetPassword();
+            return;
+        } elseif ($action === 'delete') {
+            $this->memberDelete();
             return;
         }
         
@@ -388,15 +349,125 @@ class Admin extends Controller {
         $member = getUidData("SELECT * FROM member WHERE uid = ?", [$uid]);
         
         if (!$member) {
-            redirect('/admin/members');
+            $this->redirect('/admin/members');
+            return;
         }
+        
+        // 활동 통계
+        $stats = [
+            'post_count' => getUidData("SELECT COUNT(*) as cnt FROM bbs_index WHERE member_uid = ? AND status = 'active'", [$uid])['cnt'] ?? 0,
+            'comment_count' => getUidData("SELECT COUNT(*) as cnt FROM bbs_comment WHERE member_uid = ? AND status = 'active'", [$uid])['cnt'] ?? 0
+        ];
+        
+        // 최근 게시물
+        $recentPosts = getDbArray("
+            SELECT uid, board_id, title, created_at, view
+            FROM bbs_index
+            WHERE member_uid = ? AND status = 'active'
+            ORDER BY created_at DESC
+            LIMIT 10
+        ", [$uid]);
+        
+        // 최근 댓글
+        $recentComments = getDbArray("
+            SELECT c.uid, c.parent_uid, c.content, c.created_at, i.board_id, i.title as post_title
+            FROM bbs_comment c
+            LEFT JOIN bbs_index i ON c.parent_uid = i.uid
+            WHERE c.member_uid = ? AND c.status = 'active'
+            ORDER BY c.created_at DESC
+            LIMIT 10
+        ", [$uid]);
         
         $data = [
             'title' => '회원 상세',
-            'member' => $member
+            'member' => $member,
+            'stats' => $stats,
+            'recent_posts' => $recentPosts,
+            'recent_comments' => $recentComments
         ];
         
         $this->view('admin/member_detail', $data);
+    }
+    
+    /**
+     * 회원 정보 수정
+     */
+    private function memberUpdate() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $uid = (int)$_POST['uid'];
+        
+        $updateData = [
+            'name' => cleanInput($_POST['name'] ?? ''),
+            'nickname' => cleanInput($_POST['nickname'] ?? ''),
+            'email' => cleanInput($_POST['email'] ?? ''),
+            'level' => (int)($_POST['level'] ?? 1),
+            'point' => (int)($_POST['point'] ?? 0),
+            'status' => cleanInput($_POST['status'] ?? 'active'),
+            'phone' => cleanInput($_POST['phone'] ?? ''),
+            'tel' => cleanInput($_POST['tel'] ?? ''),
+            'address' => cleanInput($_POST['address'] ?? '')
+        ];
+        
+        $result = getDbUpdate('member', $updateData, $uid);
+        
+        if ($result !== false) {
+            $this->json(['success' => true, 'message' => '회원 정보가 수정되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '수정 중 오류가 발생했습니다.'], 500);
+        }
+    }
+    
+    /**
+     * 비밀번호 재설정
+     */
+    private function memberResetPassword() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $uid = (int)$_POST['uid'];
+        $newPassword = $_POST['new_password'] ?? '';
+        
+        if (strlen($newPassword) < 8) {
+            $this->json(['success' => false, 'message' => '비밀번호는 8자 이상이어야 합니다.'], 400);
+            return;
+        }
+        
+        $hashedPassword = hashPassword($newPassword);
+        $result = getDbUpdate('member', ['password' => $hashedPassword], $uid);
+        
+        if ($result !== false) {
+            $this->json(['success' => true, 'message' => '비밀번호가 재설정되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '재설정 중 오류가 발생했습니다.'], 500);
+        }
+    }
+    
+    /**
+     * 회원 삭제
+     */
+    private function memberDelete() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        $uid = (int)($input['uid'] ?? 0);
+        
+        // 회원을 탈퇴 상태로 변경
+        $result = getDbUpdate('member', ['status' => 'withdrawn'], $uid);
+        
+        if ($result !== false) {
+            $this->json(['success' => true, 'message' => '회원이 삭제(탈퇴처리)되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '삭제 중 오류가 발생했습니다.'], 500);
+        }
     }
     
     /**
