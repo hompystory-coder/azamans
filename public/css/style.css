@@ -118,7 +118,7 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 40px;
+    gap: 20px; /* 40px → 20px (반으로 줄임) */
     padding: 20px 0;
     margin-top: 15px;
     border-top: 1px solid #e0e0e0;
@@ -126,9 +126,9 @@ main {
 
 .header-bottom-menu-inner .nav-link {
     color: #2196F3 !important;
-    font-size: 1.3rem !important;
-    font-weight: 500 !important;
-    padding: 10px 20px !important;
+    font-size: 1rem !important; /* 상단 메뉴와 동일 */
+    font-weight: 400 !important; /* 상단 메뉴와 동일 */
+    padding: 0.5rem 1rem !important; /* 상단 메뉴와 동일 */
     transition: all 0.3s ease;
     text-decoration: none;
 }
