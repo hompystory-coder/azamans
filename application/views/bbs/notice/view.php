@@ -76,10 +76,10 @@
                         <a href="/bbs/<?php echo $board['bbs_id']; ?>/edit/<?php echo $post['uid']; ?>" class="btn">수정</a>
                         <button onclick="deletePost('<?php echo $board['bbs_id']; ?>', <?php echo $post['uid']; ?>)" class="btn btn-danger">삭제</button>
                     <?php endif; ?>
-                    
-                    <!-- 좋아요 버튼 -->
-                    <?php include __DIR__ . '/../_includes/like_button.php'; ?>
                 </div>
+                
+                <!-- 좋아요 버튼 -->
+                <?php include __DIR__ . '/../_includes/like_button.php'; ?>
             </div>
         </article>
         

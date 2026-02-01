@@ -1,5 +1,5 @@
 <!-- 디버그: 세션 정보 -->
-<?php if (true): // 디버그 모드 ?>
+<?php if (false): // 디버그 모드 (false = 숨김) ?>
 <div class="alert alert-info">
     <strong>디버그 정보:</strong><br>
     로그인 상태: <?php echo isLoggedIn() ? '로그인' : '비로그인'; ?><br>
