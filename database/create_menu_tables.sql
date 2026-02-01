@@ -46,9 +46,11 @@ CREATE TABLE footer_menu (
 DROP TABLE IF EXISTS menu_pages;
 CREATE TABLE menu_pages (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    menu_id INT NOT NULL COMMENT 'header_menu.id',
-    content TEXT NULL COMMENT '페이지 내용',
+    menu_id INT NOT NULL COMMENT 'header_menu.id 또는 footer_menu.id',
+    menu_table VARCHAR(50) DEFAULT 'header' COMMENT '메뉴 테이블 구분 (header, footer)',
+    content TEXT NULL COMMENT '페이지 내용 (HTML)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_menu_id (menu_id)
+    UNIQUE KEY uk_menu_id (menu_id),
+    INDEX idx_menu_table (menu_table)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
