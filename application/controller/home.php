@@ -53,4 +53,15 @@ class Home extends Controller {
         
         $this->view('home/about', $data);
     }
+    
+    /**
+     * CKEditor 5 테스트 페이지
+     */
+    public function testEditor() {
+        $data = [
+            'title' => 'CKEditor 5 테스트'
+        ];
+        
+        $this->view('home/test_editor', $data);
+    }
 }
