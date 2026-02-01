@@ -92,9 +92,9 @@
                                     <small class="text-muted">외부 링크 또는 특정 URL로 연결할 때 사용</small>
                                 </div>
                                 
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="use_redirect" id="use_redirect" value="Y" <?php echo ($menu['use_redirect'] ?? 'N') === 'Y' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="use_redirect">
+                                <div class="form-checkbox mb-3">
+                                    <input type="checkbox" name="use_redirect" id="use_redirect" value="Y" <?php echo ($menu['use_redirect'] ?? 'N') === 'Y' ? 'checked' : ''; ?>>
+                                    <label for="use_redirect">
                                         <strong>입력된 주소로 리다이렉트</strong> (외부주소 링크시 사용)
                                     </label>
                                 </div>
@@ -109,15 +109,15 @@
                                 <h5 class="mb-0">창 옵션</h5>
                             </div>
                             <div class="card-body">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="target_window" id="window_self" value="self" <?php echo ($menu['target_window'] ?? 'self') === 'self' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="window_self">
+                                <div class="form-checkbox mb-2">
+                                    <input type="radio" name="target_window" id="window_self" value="self" <?php echo ($menu['target_window'] ?? 'self') === 'self' ? 'checked' : ''; ?>>
+                                    <label for="window_self">
                                         현재창
                                     </label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="target_window" id="window_blank" value="blank" <?php echo ($menu['target_window'] ?? 'self') === 'blank' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="window_blank">
+                                <div class="form-checkbox">
+                                    <input type="radio" name="target_window" id="window_blank" value="blank" <?php echo ($menu['target_window'] ?? 'self') === 'blank' ? 'checked' : ''; ?>>
+                                    <label for="window_blank">
                                         새창
                                     </label>
                                 </div>
@@ -129,15 +129,15 @@
                                 <h5 class="mb-0">메뉴 상태</h5>
                             </div>
                             <div class="card-body">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="is_hidden" id="is_hidden" value="Y" <?php echo ($menu['is_hidden'] ?? 'N') === 'Y' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="is_hidden">
+                                <div class="form-checkbox mb-2">
+                                    <input type="checkbox" name="is_hidden" id="is_hidden" value="Y" <?php echo ($menu['is_hidden'] ?? 'N') === 'Y' ? 'checked' : ''; ?>>
+                                    <label for="is_hidden">
                                         <i class="fas fa-eye-slash me-1"></i>숨김 (URL 접근 가능)
                                     </label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="is_blocked" id="is_blocked" value="Y" <?php echo ($menu['is_blocked'] ?? 'N') === 'Y' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="is_blocked">
+                                <div class="form-checkbox">
+                                    <input type="checkbox" name="is_blocked" id="is_blocked" value="Y" <?php echo ($menu['is_blocked'] ?? 'N') === 'Y' ? 'checked' : ''; ?>>
+                                    <label for="is_blocked">
                                         <i class="fas fa-ban me-1"></i>차단 (접근 완전 차단)
                                     </label>
                                 </div>

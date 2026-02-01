@@ -17,6 +17,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/bbs_common.css">
     
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

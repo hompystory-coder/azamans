@@ -411,3 +411,68 @@
     background: #6c757d;
     border-color: #6c757d;
 }
+
+/* ================================================
+   라디오 버튼 스타일 (체크박스와 동일한 디자인)
+   ================================================ */
+
+/* 라디오 버튼 기본 구조 */
+.form-checkbox input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 0;
+    height: 0;
+}
+
+/* 커스텀 라디오 버튼 (둥근 원형) */
+.form-checkbox input[type="radio"] + label::before {
+    border-radius: 50%; /* 체크박스는 6px, 라디오는 원형 */
+}
+
+/* 라디오 선택 시 체크 표시 (원형 점) */
+.form-checkbox input[type="radio"] + label::after,
+.form-checkbox label:has(input[type="radio"])::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* 라디오 체크됨 상태 */
+.form-checkbox input[type="radio"]:checked + label::before,
+.form-checkbox label:has(input[type="radio"]:checked)::before {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.form-checkbox input[type="radio"]:checked + label::after,
+.form-checkbox label:has(input[type="radio"]:checked)::after {
+    transform: translateY(-50%) scale(1);
+}
+
+/* 라디오 포커스 효과 */
+.form-checkbox input[type="radio"]:focus + label::before,
+.form-checkbox label:has(input[type="radio"]:focus)::before {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* 라디오 비활성화 상태 */
+.form-checkbox input[type="radio"]:disabled + label,
+.form-checkbox label:has(input[type="radio"]:disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-checkbox input[type="radio"]:disabled + label::before,
+.form-checkbox label:has(input[type="radio"]:disabled)::before {
+    background: #e9ecef;
+    cursor: not-allowed;
+}
