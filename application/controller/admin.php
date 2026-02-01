@@ -1265,7 +1265,7 @@ class Admin extends Controller {
     }
     
     /**
-     * 헤더 메뉴 생성
+     * 헤더 메뉴 생성 (콤마로 여러 개 생성 가능)
      */
     public function createMenu() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -1273,24 +1273,41 @@ class Admin extends Controller {
             return;
         }
         
-        $menuName = trim($this->post('menu_name', ''));
+        $menuNames = trim($this->post('menu_name', ''));
         
-        if (empty($menuName)) {
+        if (empty($menuNames)) {
             $this->json(['success' => false, 'message' => '메뉴명을 입력해주세요.']);
+            return;
+        }
+        
+        // 콤마로 분리
+        $names = array_map('trim', explode(',', $menuNames));
+        $names = array_filter($names); // 빈 값 제거
+        
+        if (empty($names)) {
+            $this->json(['success' => false, 'message' => '유효한 메뉴명이 없습니다.']);
             return;
         }
         
         // 현재 최대 순서 조회
         $maxOrder = getUidData("SELECT MAX(menu_order) as max_order FROM header_menu")['max_order'] ?? 0;
         
-        // 메뉴 추가
-        $result = setDbData("
-            INSERT INTO header_menu (menu_name, menu_order, is_active)
-            VALUES (?, ?, 'Y')
-        ", [$menuName, $maxOrder + 1]);
+        $successCount = 0;
+        foreach ($names as $name) {
+            $maxOrder++;
+            $result = setDbData("
+                INSERT INTO header_menu (parent_id, menu_name, menu_type, menu_order, is_active)
+                VALUES (0, ?, 'page', ?, 'Y')
+            ", [$name, $maxOrder]);
+            
+            if ($result) {
+                $successCount++;
+            }
+        }
         
-        if ($result) {
-            $this->json(['success' => true, 'message' => '메뉴가 생성되었습니다.']);
+        if ($successCount > 0) {
+            $message = $successCount === 1 ? '메뉴가 생성되었습니다.' : "{$successCount}개의 메뉴가 생성되었습니다.";
+            $this->json(['success' => true, 'message' => $message]);
         } else {
             $this->json(['success' => false, 'message' => '메뉴 생성에 실패했습니다.']);
         }
@@ -1336,6 +1353,131 @@ class Admin extends Controller {
         }
         
         $this->json(['success' => true, 'message' => '순서가 변경되었습니다.']);
+    }
+    
+    /**
+     * 메뉴 수정 페이지
+     */
+    public function editMenu($id = null) {
+        if (!$id) {
+            redirect('/admin/menu/header');
+            return;
+        }
+        
+        // 메뉴 정보 조회
+        $menu = getUidData("SELECT * FROM header_menu WHERE id = ?", [$id]);
+        
+        if (!$menu) {
+            redirect('/admin/menu/header');
+            return;
+        }
+        
+        // 게시판 목록 조회
+        $boards = getDbArray("SELECT bbs_id, bbs_name FROM bbs_boards ORDER BY bbs_name ASC") ?? [];
+        
+        // 페이지 콘텐츠 조회
+        $pageContent = '';
+        if ($menu['menu_type'] === 'page') {
+            $page = getUidData("SELECT content FROM menu_pages WHERE menu_id = ?", [$id]);
+            $pageContent = $page['content'] ?? '';
+        }
+        
+        $data = [
+            'title' => '메뉴 수정',
+            'menu' => $menu,
+            'boards' => $boards,
+            'pageContent' => $pageContent
+        ];
+        
+        $this->view('admin/menu_edit', $data);
+    }
+    
+    /**
+     * 메뉴 업데이트
+     */
+    public function updateMenu($id = null) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$id) {
+            $this->json(['success' => false, 'message' => 'Invalid request'], 400);
+            return;
+        }
+        
+        $menuName = trim($this->post('menu_name', ''));
+        $menuType = $this->post('menu_type', 'page');
+        $menuTarget = trim($this->post('menu_target', ''));
+        $customUrl = trim($this->post('custom_url', ''));
+        $useRedirect = $this->post('use_redirect', 'N');
+        $targetWindow = $this->post('target_window', 'self');
+        $isHidden = $this->post('is_hidden', 'N');
+        $isBlocked = $this->post('is_blocked', 'N');
+        
+        if (empty($menuName)) {
+            $this->json(['success' => false, 'message' => '메뉴명을 입력해주세요.']);
+            return;
+        }
+        
+        // 메뉴 업데이트
+        $result = setDbData("
+            UPDATE header_menu 
+            SET menu_name = ?, menu_type = ?, menu_target = ?, custom_url = ?, 
+                use_redirect = ?, target_window = ?, is_hidden = ?, is_blocked = ?
+            WHERE id = ?
+        ", [$menuName, $menuType, $menuTarget, $customUrl, $useRedirect, $targetWindow, $isHidden, $isBlocked, $id]);
+        
+        // 페이지 타입이면 콘텐츠 저장
+        if ($menuType === 'page') {
+            $pageContent = $this->post('page_content', '');
+            
+            // 기존 페이지 확인
+            $existingPage = getUidData("SELECT id FROM menu_pages WHERE menu_id = ?", [$id]);
+            
+            if ($existingPage) {
+                setDbData("UPDATE menu_pages SET content = ? WHERE menu_id = ?", [$pageContent, $id]);
+            } else {
+                setDbData("INSERT INTO menu_pages (menu_id, content) VALUES (?, ?)", [$id, $pageContent]);
+            }
+        }
+        
+        if ($result !== false) {
+            $this->json(['success' => true, 'message' => '메뉴가 수정되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '메뉴 수정에 실패했습니다.']);
+        }
+    }
+    
+    /**
+     * 서브메뉴 추가
+     */
+    public function addSubmenu($parentId = null) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$parentId) {
+            $this->json(['success' => false, 'message' => 'Invalid request'], 400);
+            return;
+        }
+        
+        $menuName = trim($this->post('menu_name', ''));
+        
+        if (empty($menuName)) {
+            $this->json(['success' => false, 'message' => '메뉴명을 입력해주세요.']);
+            return;
+        }
+        
+        // 부모 메뉴의 최대 순서 조회
+        $maxOrder = getUidData("
+            SELECT MAX(menu_order) as max_order 
+            FROM header_menu 
+            WHERE parent_id = ?
+        ", [$parentId])['max_order'] ?? 0;
+        
+        // 서브메뉴 추가
+        $result = setDbData("
+            INSERT INTO header_menu (parent_id, menu_name, menu_type, menu_order, is_active)
+            VALUES (?, ?, 'page', ?, 'Y')
+        ", [$parentId, $menuName, $maxOrder + 1]);
+        
+        if ($result) {
+            $this->json(['success' => true, 'message' => '서브메뉴가 추가되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '서브메뉴 추가에 실패했습니다.']);
+        }
     }
 }
 

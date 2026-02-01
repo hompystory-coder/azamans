@@ -24,6 +24,10 @@
                                 <div class="mb-3">
                                     <label for="menu_name" class="form-label">메뉴명 <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="menu_name" name="menu_name" placeholder="예: 공지사항, 자유게시판" required>
+                                    <small class="text-muted">
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        콤마(,)로 구분하면 여러 메뉴를 한번에 생성할 수 있습니다.
+                                    </small>
                                 </div>
                                 <div class="d-grid gap-2">
                                     <button type="submit" class="btn btn-primary btn-lg">
@@ -59,17 +63,66 @@
                                     드래그하여 순서를 변경할 수 있습니다.
                                 </div>
                                 <ul id="menuList" class="list-group">
-                                    <?php foreach ($menus as $menu): ?>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="<?php echo $menu['id']; ?>" style="cursor: move;">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-grip-vertical text-muted me-3"></i>
-                                                <div>
-                                                    <strong><?php echo xssFilter($menu['menu_name']); ?></strong>
+                                    <?php 
+                                    // 1차 메뉴만 표시 (parent_id = 0)
+                                    $topMenus = array_filter($menus, function($m) { return $m['parent_id'] == 0; });
+                                    foreach ($topMenus as $menu): 
+                                    ?>
+                                        <li class="list-group-item" data-id="<?php echo $menu['id']; ?>" style="cursor: move;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center flex-grow-1">
+                                                    <i class="fas fa-grip-vertical text-muted me-3"></i>
+                                                    <div>
+                                                        <strong><?php echo xssFilter($menu['menu_name']); ?></strong>
+                                                        <span class="badge bg-info ms-2"><?php echo $menu['menu_type']; ?></span>
+                                                        <?php if ($menu['is_hidden'] === 'Y'): ?>
+                                                            <span class="badge bg-warning text-dark ms-1">숨김</span>
+                                                        <?php endif; ?>
+                                                        <?php if ($menu['is_blocked'] === 'Y'): ?>
+                                                            <span class="badge bg-danger ms-1">차단</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-sm btn-outline-primary add-submenu" data-id="<?php echo $menu['id']; ?>" title="서브메뉴 추가">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                    <a href="/admin/editMenu/<?php echo $menu['id']; ?>" class="btn btn-sm btn-outline-success" title="수정">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger delete-menu" data-id="<?php echo $menu['id']; ?>" title="삭제">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <button class="btn btn-sm btn-danger delete-menu" data-id="<?php echo $menu['id']; ?>">
-                                                <i class="fas fa-trash"></i> 삭제
-                                            </button>
+                                            
+                                            <?php 
+                                            // 서브메뉴 표시
+                                            $subMenus = array_filter($menus, function($m) use ($menu) { return $m['parent_id'] == $menu['id']; });
+                                            if (!empty($subMenus)): 
+                                            ?>
+                                                <ul class="list-group mt-2 ms-5">
+                                                    <?php foreach ($subMenus as $sub): ?>
+                                                        <li class="list-group-item">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <i class="fas fa-level-up-alt fa-rotate-90 text-muted me-2"></i>
+                                                                    <?php echo xssFilter($sub['menu_name']); ?>
+                                                                    <span class="badge bg-secondary ms-2"><?php echo $sub['menu_type']; ?></span>
+                                                                </div>
+                                                                <div class="btn-group">
+                                                                    <a href="/admin/editMenu/<?php echo $sub['id']; ?>" class="btn btn-sm btn-outline-success">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </a>
+                                                                    <button class="btn btn-sm btn-outline-danger delete-menu" data-id="<?php echo $sub['id']; ?>">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            <?php endif; ?>
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>
@@ -137,6 +190,35 @@ $(document).ready(function() {
             error: function(xhr) {
                 console.error('Error:', xhr);
                 alert('메뉴 삭제 중 오류가 발생했습니다.');
+            }
+        });
+    });
+    
+    // 서브메뉴 추가
+    $(document).on('click', '.add-submenu', function() {
+        const parentId = $(this).data('id');
+        const menuName = prompt('서브메뉴 이름을 입력하세요:');
+        
+        if (!menuName || menuName.trim() === '') {
+            return;
+        }
+        
+        $.ajax({
+            url: '/admin/addSubmenu/' + parentId,
+            method: 'POST',
+            data: { menu_name: menuName.trim() },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr);
+                alert('서브메뉴 추가 중 오류가 발생했습니다.');
             }
         });
     });
