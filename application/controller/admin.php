@@ -1392,8 +1392,15 @@ class Admin extends Controller {
             return;
         }
         
-        // 게시판 목록 조회
-        $boards = getDbArray("SELECT bbs_id, bbs_name FROM bbs_boards ORDER BY bbs_name ASC") ?? [];
+        // 게시판 목록 조회 (하드코딩된 게시판 타입)
+        $boards = [
+            ['board_id' => 'free', 'board_name' => '자유게시판'],
+            ['board_id' => 'notice', 'board_name' => '공지사항'],
+            ['board_id' => 'qna', 'board_name' => 'Q&A'],
+            ['board_id' => 'gallery', 'board_name' => '갤러리'],
+            ['board_id' => 'video', 'board_name' => '동영상'],
+            ['board_id' => 'list', 'board_name' => '리스트형']
+        ];
         
         // 페이지 콘텐츠 조회
         $pageContent = '';
