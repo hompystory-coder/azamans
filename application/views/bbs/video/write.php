@@ -185,6 +185,17 @@
     }
     
     function removeFile(index) {
+        const input = document.getElementById('files');
+        const dt = new DataTransfer();
+        const files = Array.from(input.files);
+        
+        files.forEach((file, i) => {
+            if (i !== index) dt.items.add(file);
+        });
+        
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change'));
+    }
     
     // 기존 파일 삭제
     function deleteExistingFile(index) {
@@ -201,17 +212,6 @@
             fileItem.style.opacity = "0.5";
             fileItem.style.textDecoration = "line-through";
         }
-    }
-        const input = document.getElementById('files');
-        const dt = new DataTransfer();
-        const files = Array.from(input.files);
-        
-        files.forEach((file, i) => {
-            if (i !== index) dt.items.add(file);
-        });
-        
-        input.files = dt.files;
-        input.dispatchEvent(new Event('change'));
     }
     
     // 폼 제출
