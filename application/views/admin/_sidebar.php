@@ -43,9 +43,8 @@
             </a>
             <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu') !== false) ? 'show' : ''; ?>" id="menuManageMenu">
                 <ul class="nav flex-column ms-3">
-                    <li><a href="/admin/menus" class="nav-link py-1 small <?php echo ($_SERVER['REQUEST_URI'] == '/admin/menus') ? 'active' : ''; ?>">메뉴 리스트</a></li>
-                    <li><a href="/admin/menu/add" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu/add') !== false) ? 'active' : ''; ?>">메뉴 추가</a></li>
-                    <li><a href="/admin/menu/order" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu/order') !== false) ? 'active' : ''; ?>">메뉴 순서</a></li>
+                    <li><a href="/admin/menu/header" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu/header') !== false) ? 'active' : ''; ?>">헤더메뉴</a></li>
+                    <li><a href="/admin/menu/footer" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/menu/footer') !== false) ? 'active' : ''; ?>">푸터메뉴</a></li>
                 </ul>
             </div>
         </li>
