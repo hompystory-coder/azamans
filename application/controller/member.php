@@ -269,14 +269,28 @@ class Member extends Controller {
     /**
      * 마이페이지
      */
-    public function mypage() {
+    public function mypage($tab = 'profile') {
         $this->requireLogin();
         
-        $user = getUidData("SELECT * FROM member WHERE uid = ?", [$_SESSION['user_id']]);
+        $uid = $_SESSION['user_id'];
+        $user = getUidData("SELECT * FROM member WHERE uid = ?", [$uid]);
+        
+        if (!$user) {
+            $this->redirect('/member/login');
+            return;
+        }
+        
+        // 게시물, 댓글 수 조회
+        $postCount = getDbCnt("SELECT COUNT(*) FROM bbs_index WHERE member_uid = ? AND status = 'active'", [$uid]);
+        $commentCount = getDbCnt("SELECT COUNT(*) FROM bbs_comment WHERE member_uid = ? AND status = 'active'", [$uid]);
+        
+        $user['post_count'] = $postCount;
+        $user['comment_count'] = $commentCount;
         
         $data = [
             'title' => '마이페이지',
-            'user' => $user
+            'user' => $user,
+            'active_tab' => $tab
         ];
         
         $this->view('member/mypage', $data);
@@ -391,6 +405,168 @@ class Member extends Controller {
         } else {
             $this->json(['success' => false, 'message' => '정보 수정 중 오류가 발생했습니다.'], 500);
         }
+    }
+    
+    /**
+     * 비밀번호 변경
+     */
+    public function changePassword() {
+        $this->requireLogin();
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        $currentPassword = $input['current_password'] ?? '';
+        $newPassword = $input['new_password'] ?? '';
+        $newPasswordConfirm = $input['new_password_confirm'] ?? '';
+        
+        // 유효성 검사
+        if (empty($currentPassword) || empty($newPassword)) {
+            $this->json(['success' => false, 'message' => '모든 필드를 입력해주세요.'], 400);
+            return;
+        }
+        
+        if ($newPassword !== $newPasswordConfirm) {
+            $this->json(['success' => false, 'message' => '새 비밀번호가 일치하지 않습니다.'], 400);
+            return;
+        }
+        
+        if (strlen($newPassword) < 8) {
+            $this->json(['success' => false, 'message' => '비밀번호는 8자 이상이어야 합니다.'], 400);
+            return;
+        }
+        
+        // 현재 비밀번호 확인
+        $user = getUidData("SELECT password FROM member WHERE uid = ?", [$_SESSION['user_id']]);
+        
+        if (!password_verify($currentPassword, $user['password'])) {
+            $this->json(['success' => false, 'message' => '현재 비밀번호가 일치하지 않습니다.'], 400);
+            return;
+        }
+        
+        // 비밀번호 변경
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $result = getDbUpdate('member', 
+            ['password' => $hashedPassword], 
+            'uid = ?', 
+            [$_SESSION['user_id']]
+        );
+        
+        if ($result !== false) {
+            $this->json(['success' => true, 'message' => '비밀번호가 변경되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '비밀번호 변경 중 오류가 발생했습니다.'], 500);
+        }
+    }
+    
+    /**
+     * 활동 내역 조회 (AJAX)
+     */
+    public function activity($type = 'posts') {
+        $this->requireLogin();
+        
+        $uid = $_SESSION['user_id'];
+        $html = '';
+        
+        if ($type === 'posts') {
+            // 내 게시물
+            $posts = getDbArray("
+                SELECT b.uid, b.board_id, b.title, b.view, b.created_at,
+                       bo.board_name
+                FROM bbs_index b
+                LEFT JOIN board bo ON b.board_id = bo.board_id
+                WHERE b.member_uid = ? AND b.status = 'active'
+                ORDER BY b.created_at DESC
+                LIMIT 20
+            ", [$uid]);
+            
+            if (empty($posts)) {
+                $html = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>작성한 게시물이 없습니다.</div>';
+            } else {
+                $html .= '<div class="list-group list-group-flush">';
+                foreach ($posts as $post) {
+                    $html .= '
+                    <a href="/board/view/' . $post['board_id'] . '/' . $post['uid'] . '" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">' . xssFilter($post['title']) . '</h6>
+                                <p class="mb-1 small text-muted">
+                                    <span class="badge bg-secondary me-2">' . xssFilter($post['board_name']) . '</span>
+                                    <i class="fas fa-eye me-1"></i>' . number_format($post['view']) . '
+                                </p>
+                            </div>
+                            <small class="text-muted">' . date('Y-m-d', strtotime($post['created_at'])) . '</small>
+                        </div>
+                    </a>';
+                }
+                $html .= '</div>';
+            }
+        } elseif ($type === 'comments') {
+            // 내 댓글
+            $comments = getDbArray("
+                SELECT c.uid, c.parent_uid, c.content, c.created_at,
+                       b.title as post_title, b.board_id
+                FROM bbs_comment c
+                LEFT JOIN bbs_index b ON c.parent_uid = b.uid
+                WHERE c.member_uid = ? AND c.status = 'active'
+                ORDER BY c.created_at DESC
+                LIMIT 20
+            ", [$uid]);
+            
+            if (empty($comments)) {
+                $html = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>작성한 댓글이 없습니다.</div>';
+            } else {
+                $html .= '<div class="list-group list-group-flush">';
+                foreach ($comments as $comment) {
+                    $html .= '
+                    <a href="/board/view/' . $comment['board_id'] . '/' . $comment['parent_uid'] . '#comment-' . $comment['uid'] . '" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 small text-muted">게시물: ' . xssFilter($comment['post_title']) . '</h6>
+                                <p class="mb-1">' . nl2br(xssFilter(mb_substr($comment['content'], 0, 100))) . (mb_strlen($comment['content']) > 100 ? '...' : '') . '</p>
+                            </div>
+                            <small class="text-muted">' . date('Y-m-d', strtotime($comment['created_at'])) . '</small>
+                        </div>
+                    </a>';
+                }
+                $html .= '</div>';
+            }
+        } elseif ($type === 'points') {
+            // 포인트 내역
+            $points = getDbArray("
+                SELECT * FROM point_history
+                WHERE member_uid = ?
+                ORDER BY created_at DESC
+                LIMIT 50
+            ", [$uid]);
+            
+            if (empty($points)) {
+                $html = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>포인트 내역이 없습니다.</div>';
+            } else {
+                $html .= '<div class="table-responsive">';
+                $html .= '<table class="table table-hover">';
+                $html .= '<thead><tr><th>날짜</th><th>내용</th><th class="text-end">포인트</th><th class="text-end">잔액</th></tr></thead>';
+                $html .= '<tbody>';
+                foreach ($points as $point) {
+                    $pointClass = $point['point'] > 0 ? 'text-success' : 'text-danger';
+                    $pointSign = $point['point'] > 0 ? '+' : '';
+                    $html .= '
+                    <tr>
+                        <td>' . date('Y-m-d H:i', strtotime($point['created_at'])) . '</td>
+                        <td>' . xssFilter($point['reason'] ?? '포인트 적립') . '</td>
+                        <td class="text-end ' . $pointClass . ' fw-bold">' . $pointSign . number_format($point['point']) . '</td>
+                        <td class="text-end">' . number_format($point['balance'] ?? 0) . '</td>
+                    </tr>';
+                }
+                $html .= '</tbody></table></div>';
+            }
+        }
+        
+        echo $html;
+        exit;
     }
     
     /**
