@@ -23,8 +23,18 @@ class Upload extends Controller {
     }
     
     /**
+     * 페이지 첨부파일 업로드 (라우팅용)
+     * URL: /upload/attach
+     * 
+     * @return void
+     */
+    public function attach() {
+        $this->pageAttach();
+    }
+    
+    /**
      * 페이지 첨부파일 업로드
-     * URL: /upload/page/attach
+     * URL: /upload/pageAttach 또는 /upload/attach
      * 
      * @return void
      */

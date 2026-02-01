@@ -258,7 +258,7 @@ $(document).ready(function() {
                 
                 // 첨부파일 먼저 업로드
                 $.ajax({
-                    url: '/upload/pageAttach',
+                    url: '/upload/attach',  // camelCase → attach로 변경
                     method: 'POST',
                     data: filesFormData,
                     processData: false,
@@ -269,9 +269,14 @@ $(document).ready(function() {
                         // 파일 업로드 후 메뉴 업데이트
                         updateMenu(formData, menuId);
                     },
-                    error: function(xhr) {
+                    error: function(xhr, status, error) {
                         console.error('파일 업로드 실패:', xhr);
-                        alert('첨부파일 업로드 중 오류가 발생했습니다.');
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response:', xhr.responseText);
+                        alert('첨부파일 업로드 중 오류가 발생했습니다.\n' + 
+                              'Status: ' + xhr.status + '\n' +
+                              'Error: ' + (xhr.responseText || error));
                     }
                 });
             } else {
