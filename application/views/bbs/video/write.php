@@ -136,6 +136,12 @@
     
     <?php include __DIR__ . '/../../_footer.php'; ?>
     
+    <script>
+    console.log('🔍 페이지 로드 시작');
+    console.log('🔍 Textarea ID: content');
+    console.log('🔍 Textarea 존재:', document.getElementById('content') ? '✅' : '❌');
+    </script>
+    
     <?php 
     // CKEditor 로드
     require_once __DIR__ . '/../../../../editor.php';
@@ -144,6 +150,12 @@
         'height' => 500
     ]);
     ?>
+    
+    <script>
+    console.log('🔍 CKEditor 스크립트 로드 완료');
+    console.log('🔍 ClassicEditor 존재:', typeof ClassicEditor !== 'undefined' ? '✅' : '❌');
+    console.log('🔍 window.editorcontent 존재:', window.editorcontent ? '✅' : '❌');
+    </script>
     
     <script>
     // 파일 미리보기

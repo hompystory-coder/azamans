@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CKEditor 테스트</title>
+</head>
+<body>
+    <h1>CKEditor 5 로드 테스트</h1>
+    <textarea name="content" id="content" placeholder="내용을 입력하세요">테스트 내용</textarea>
+    
+    <hr>
+    <button onclick="checkEditor()">에디터 상태 확인</button>
+    <div id="status"></div>
+    
+    <?php 
+    // CKEditor 로드
+    require_once __DIR__ . '/../editor.php';
+    initCKEditor('content', [
+        'imageUploadUrl' => '/upload/bbs/image',
+        'height' => 500
+    ]);
+    ?>
+    
+    <script>
+    function checkEditor() {
+        const status = document.getElementById('status');
+        status.innerHTML = '';
+        
+        // 1. ClassicEditor 존재 확인
+        if (typeof ClassicEditor !== 'undefined') {
+            status.innerHTML += '<p>✅ ClassicEditor 로드 완료</p>';
+        } else {
+            status.innerHTML += '<p>❌ ClassicEditor 로드 실패</p>';
+        }
+        
+        // 2. window.editorcontent 존재 확인
+        if (window.editorcontent) {
+            status.innerHTML += '<p>✅ window.editorcontent 존재</p>';
+            status.innerHTML += '<p>📝 에디터 내용: ' + window.editorcontent.getData().substring(0, 50) + '...</p>';
+        } else {
+            status.innerHTML += '<p>❌ window.editorcontent 없음</p>';
+        }
+        
+        // 3. textarea 상태 확인
+        const textarea = document.getElementById('content');
+        status.innerHTML += '<p>📄 Textarea display: ' + window.getComputedStyle(textarea).display + '</p>';
+        status.innerHTML += '<p>📄 Textarea value: ' + textarea.value.substring(0, 50) + '</p>';
+    }
+    
+    // 페이지 로드 후 3초 뒤 자동 체크
+    setTimeout(checkEditor, 3000);
+    </script>
+</body>
+</html>
