@@ -108,17 +108,27 @@
 </div>
 <script>
 function deletePost(uid) {
-    if (!confirm('게시물을 삭제하시겠습니까?')) return;
-    fetch('/admin/posts/' + uid, { method: 'DELETE' })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('삭제되었습니다.');
-                location.reload();
-            } else {
-                alert('오류: ' + data.message);
-            }
-        });
+    if (!confirm('정말로 삭제하시겠습니까?')) return;
+    
+    fetch('/admin/deletePost/' + uid, { 
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('삭제되었습니다.');
+            location.reload();
+        } else {
+            alert('오류: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('삭제 중 오류가 발생했습니다.');
+    });
 }
 </script>
 </body>

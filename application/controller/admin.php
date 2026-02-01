@@ -1073,6 +1073,53 @@ class Admin extends Controller {
     }
     
     /**
+     * 게시물 삭제 (DELETE /admin/posts/{uid})
+     */
+    public function deletePost($uid) {
+        // JSON 요청만 허용
+        if ($_SERVER['REQUEST_METHOD'] !== 'DELETE' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        // 관리자 권한 확인
+        if (!isAdmin()) {
+            $this->json(['success' => false, 'message' => '권한이 없습니다.'], 403);
+            return;
+        }
+        
+        // BoardModel 로드
+        require_once __DIR__ . '/../models/BoardModel.php';
+        $boardModel = new BoardModel();
+        
+        // 게시물 정보 조회
+        $post = $boardModel->getPost($uid);
+        
+        if (!$post) {
+            $this->json(['success' => false, 'message' => '존재하지 않는 게시물입니다.'], 404);
+            return;
+        }
+        
+        // 게시물 삭제
+        $result = $boardModel->deletePost($uid);
+        
+        if ($result) {
+            // 최적화 데이터 삭제
+            bbsDeleteOptimizationData($post['bbs_id'], $uid);
+            
+            $this->json([
+                'success' => true,
+                'message' => '게시물이 삭제되었습니다.'
+            ]);
+        } else {
+            $this->json([
+                'success' => false,
+                'message' => '삭제 중 오류가 발생했습니다.'
+            ], 500);
+        }
+    }
+    
+    /**
      * 댓글 리스트
      */
     public function comments() {
