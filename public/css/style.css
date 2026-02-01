@@ -108,6 +108,11 @@ main {
     font-size: 1.5rem;
 }
 
+/* 상단 메뉴 폰트 크기 조정 */
+.navbar-nav .nav-link {
+    font-size: 0.875rem !important; /* 1rem에서 2px(0.125rem) 줄임 */
+}
+
 .nav-link:hover {
     color: var(--main-color1) !important;
 }
@@ -126,7 +131,7 @@ main {
 
 .header-bottom-menu-inner .nav-link {
     color: #333 !important; /* 상단 메뉴와 동일한 색상 */
-    font-size: 1rem !important; /* 상단 메뉴와 동일 */
+    font-size: 1.125rem !important; /* 1rem에서 2px(0.125rem) 늘림 */
     font-weight: 500 !important; /* 약간 진하게 */
     padding: 0.5rem 1rem !important; /* 상단 메뉴와 동일 */
     transition: all 0.3s ease;
