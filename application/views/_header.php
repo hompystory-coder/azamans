@@ -115,12 +115,33 @@
             <!-- 하단 메뉴 영역 -->
             <div class="w-100"></div> <!-- 줄바꿈 -->
             <div class="header-bottom-menu-inner">
-                <a class="nav-link" href="#">메뉴1</a>
-                <a class="nav-link" href="#">메뉴2</a>
-                <a class="nav-link" href="#">메뉴3</a>
-                <a class="nav-link" href="#">메뉴4</a>
-                <a class="nav-link" href="#">메뉴5</a>
-                <a class="nav-link" href="#">메뉴6</a>
+                <?php
+                // TODO: 데이터베이스에서 메뉴 불러오기
+                $hasMenus = false; // 임시로 메뉴 없음 상태
+                
+                if ($hasMenus):
+                    // 메뉴가 있을 때
+                ?>
+                    <a class="nav-link" href="#">메뉴1</a>
+                    <a class="nav-link" href="#">메뉴2</a>
+                    <a class="nav-link" href="#">메뉴3</a>
+                    <a class="nav-link" href="#">메뉴4</a>
+                    <a class="nav-link" href="#">메뉴5</a>
+                    <a class="nav-link" href="#">메뉴6</a>
+                <?php else: ?>
+                    <!-- 메뉴가 없을 때 -->
+                    <?php if (isAdmin()): ?>
+                        <!-- 관리자: 메뉴 생성 바로가기 -->
+                        <a class="nav-link text-muted" href="/admin/menu/header">
+                            <i class="fas fa-plus-circle me-2"></i>메뉴를 생성해주세요 (바로가기)
+                        </a>
+                    <?php else: ?>
+                        <!-- 비회원/일반회원: 안내 멘트 -->
+                        <span class="text-muted" style="font-size: 0.95rem;">
+                            <i class="fas fa-info-circle me-2"></i>메뉴가 없습니다
+                        </span>
+                    <?php endif; ?>
+                <?php endif; ?>
                 
                 <!-- 검색창 -->
                 <div class="header-search ms-auto">
