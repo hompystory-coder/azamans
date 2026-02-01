@@ -138,7 +138,7 @@
     
     <?php 
     // CKEditor 로드
-    require_once __DIR__ . '/../../../editor.php';
+    require_once __DIR__ . '/../../../../editor.php';
     initCKEditor('content', [
         'imageUploadUrl' => '/upload/bbs/image',
         'height' => 500

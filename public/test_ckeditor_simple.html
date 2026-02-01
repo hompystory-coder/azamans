@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CKEditor 테스트</title>
+    <style>
+        body {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            color: #333;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 20px 0;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 CKEditor 5 로드 테스트</h1>
+    
+    <div class="info">
+        <strong>📌 테스트 목적:</strong> CKEditor가 정상적으로 로드되고 작동하는지 확인
+    </div>
+    
+    <form id="testForm">
+        <label for="content"><strong>내용:</strong></label>
+        <textarea name="content" id="content" placeholder="여기에 내용을 입력하세요..."></textarea>
+        
+        <br><br>
+        <button type="button" class="btn" onclick="getContent()">내용 가져오기</button>
+    </form>
+    
+    <div id="result" style="margin-top: 20px;"></div>
+    
+    <!-- CKEditor 로드 -->
+    <script src="/public/plugins/editor/build/ckeditor.js?v=<?php echo time(); ?>"></script>
+    <script>
+    let editorInstance;
+    
+    ClassicEditor
+        .create(document.querySelector('#content'), {
+            language: 'ko',
+            toolbar: {
+                items: [
+                    'undo', 'redo', '|',
+                    'heading', '|',
+                    'bold', 'italic', 'underline', '|',
+                    'link', 'uploadImage', 'insertTable', '|',
+                    'bulletedList', 'numberedList'
+                ],
+                shouldNotGroupWhenFull: true
+            },
+            image: {
+                toolbar: ['imageTextAlternative', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'resizeImage']
+            },
+            // 간단한 업로드 어댑터
+            simpleUpload: {
+                uploadUrl: '/upload/bbs/image'
+            },
+            licenseKey: 'GPL'
+        })
+        .then(editor => {
+            editorInstance = editor;
+            console.log('✅ CKEditor 로드 성공!', editor);
+            document.getElementById('result').innerHTML = '<div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 4px; border-left: 4px solid #28a745;"><strong>✅ CKEditor가 정상적으로 로드되었습니다!</strong></div>';
+        })
+        .catch(error => {
+            console.error('❌ CKEditor 로드 실패:', error);
+            document.getElementById('result').innerHTML = '<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 4px; border-left: 4px solid #dc3545;"><strong>❌ CKEditor 로드 실패:</strong><br>' + error.message + '</div>';
+        });
+    
+    function getContent() {
+        if (editorInstance) {
+            const content = editorInstance.getData();
+            document.getElementById('result').innerHTML = '<div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; border-left: 4px solid #ffc107;"><strong>📝 에디터 내용:</strong><br><pre style="white-space: pre-wrap; word-wrap: break-word;">' + content.substring(0, 500) + (content.length > 500 ? '...' : '') + '</pre></div>';
+        }
+    }
+    </script>
+</body>
+</html>

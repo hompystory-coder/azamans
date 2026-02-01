@@ -166,6 +166,15 @@ $(document).ready(function() {
         $('.type-option').hide();
         const selectedType = $('input[name="menu_type"]:checked').val();
         $('#option_' + selectedType).show();
+        
+        // CKEditor refresh (hidden 상태에서 초기화되면 레이아웃 깨짐 방지)
+        if (selectedType === 'page' && window.editorpage_content) {
+            setTimeout(function() {
+                window.editorpage_content.editing.view.change(writer => {
+                    writer.setStyle('height', '500px', window.editorpage_content.editing.view.document.getRoot());
+                });
+            }, 100);
+        }
     }
     
     // 초기 로드
@@ -226,13 +235,87 @@ $(document).ready(function() {
 });
 </script>
 
-<?php 
-// CKEditor 로드
-require_once __DIR__ . '/../../editor.php';
-initCKEditor('page_content', [
-    'imageUploadUrl' => '/upload/page/image',
-    'height' => 500
-]);
-?>
+<!-- CKEditor 스크립트 로드 -->
+<script src="/public/plugins/editor/build/ckeditor.js?v=<?php echo time(); ?>"></script>
+
+<script>
+// CKEditor 초기화 (지연 로드)
+let editorpage_content = null;
+
+function initPageContentEditor() {
+    if (editorpage_content) {
+        return; // 이미 초기화됨
+    }
+    
+    if (typeof ClassicEditor === 'undefined') {
+        console.error('❌ ClassicEditor가 로드되지 않았습니다.');
+        return;
+    }
+    
+    ClassicEditor
+        .create(document.querySelector('#page_content'), {
+            toolbar: {
+                items: [
+                    'findAndReplace', '|',
+                    'heading', '|',
+                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                    'bold', 'italic', 'underline', 'strikethrough', '|',
+                    'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed', '|',
+                    'alignment', '|',
+                    'bulletedList', 'numberedList', 'todoList', '|',
+                    'outdent', 'indent', '|',
+                    'code', 'codeBlock', '|',
+                    'highlight', 'removeFormat', '|',
+                    'specialCharacters', 'horizontalLine', 'pageBreak', '|',
+                    'htmlEmbed', 'sourceEditing', '|',
+                    'undo', 'redo'
+                ],
+                shouldNotGroupWhenFull: true
+            },
+            language: 'ko',
+            image: {
+                toolbar: [
+                    'imageTextAlternative',
+                    'toggleImageCaption',
+                    '|',
+                    'imageStyle:inline',
+                    'imageStyle:wrapText',
+                    'imageStyle:breakText',
+                    '|',
+                    'resizeImage',
+                    '|',
+                    'linkImage'
+                ]
+            },
+            simpleUpload: {
+                uploadUrl: '/upload/page/image'
+            },
+            licenseKey: 'GPL'
+        })
+        .then(editor => {
+            window.editorpage_content = editor;
+            console.log('✅ CKEditor 초기화 완료: page_content');
+        })
+        .catch(error => {
+            console.error('❌ CKEditor 초기화 오류:', error);
+        });
+}
+
+// 페이지 로드 시 메뉴 타입 확인 후 CKEditor 초기화
+$(document).ready(function() {
+    const currentType = $('input[name="menu_type"]:checked').val();
+    if (currentType === 'page') {
+        // display:block 상태에서 초기화
+        setTimeout(initPageContentEditor, 300);
+    }
+    
+    // 메뉴 타입 변경 시 CKEditor 초기화
+    $('input[name="menu_type"]').on('change', function() {
+        if ($(this).val() === 'page') {
+            setTimeout(initPageContentEditor, 300);
+        }
+    });
+});
+</script>
 
 <?php include __DIR__ . '/../_footer.php'; ?>
