@@ -150,6 +150,15 @@
     
     <?php include __DIR__ . '/../../_footer.php'; ?>
     
+    <?php 
+    // CKEditor 로드
+    require_once __DIR__ . '/../../../../editor.php';
+    initCKEditor('content', [
+        'imageUploadUrl' => '/upload/bbs/image',
+        'height' => 500
+    ]);
+    ?>
+    
     <script>
     // 파일 미리보기
     document.getElementById('files')?.addEventListener('change', function(e) {
