@@ -209,59 +209,23 @@
     
     <?php if (isLoggedIn()): ?>
     <script>
-    // 알림 업데이트 함수
+    // 알림 업데이트 함수 (임시 비활성화 - API 미구현)
     function updateNotifications() {
-        fetch('/member/getNotifications')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.notifications) {
-                    const unreadCount = data.unread_count || 0;
-                    const badge = document.getElementById('notificationBadge');
-                    const list = document.getElementById('notificationList');
-                    
-                    // 배지 업데이트
-                    if (unreadCount > 0) {
-                        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                        badge.style.display = 'block';
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                    
-                    // 알림 목록 업데이트
-                    if (data.notifications.length > 0) {
-                        list.innerHTML = data.notifications.map(noti => `
-                            <li>
-                                <a class="dropdown-item ${noti.is_read === 'N' ? 'bg-light' : ''}" href="${noti.link || '#'}">
-                                    <div class="d-flex align-items-start">
-                                        <i class="fas fa-${noti.type === 'comment' ? 'comment' : 'bell'} text-primary me-2 mt-1"></i>
-                                        <div class="flex-grow-1">
-                                            <div class="small">${noti.message}</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">${noti.time_ago}</div>
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                        `).join('');
-                    } else {
-                        list.innerHTML = '<li class="dropdown-item text-center text-muted"><small>새로운 알림이 없습니다.</small></li>';
-                    }
-                }
-            })
-            .catch(err => console.error('알림 로드 실패:', err));
+        // TODO: /member/getNotifications API 구현 필요
+        // 임시로 빈 알림 표시
+        const badge = document.getElementById('notificationBadge');
+        const list = document.getElementById('notificationList');
+        
+        if (badge) badge.style.display = 'none';
+        if (list) {
+            list.innerHTML = '<li class="dropdown-item text-center text-muted"><small>새로운 알림이 없습니다.</small></li>';
+        }
     }
     
-    // 모든 알림 읽음 처리
+    // 모든 알림 읽음 처리 (임시 비활성화 - API 미구현)
     function markAllAsRead() {
-        fetch('/member/markAllNotificationsRead', {
-            method: 'POST'
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                updateNotifications();
-            }
-        })
-        .catch(err => console.error('알림 읽음 처리 실패:', err));
+        // TODO: /member/markAllNotificationsRead API 구현 필요
+        console.log('알림 읽음 처리 API 미구현');
     }
     
     // 초기 로드 및 30초마다 업데이트

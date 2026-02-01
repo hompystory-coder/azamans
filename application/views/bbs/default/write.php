@@ -245,6 +245,11 @@
     function submitPost(e) {
         e.preventDefault();
         
+        // CKEditor 내용 textarea에 동기화
+        if (window.editorcontent) {
+            document.getElementById('content').value = window.editorcontent.getData();
+        }
+        
         const formData = new FormData(e.target);
         const url = <?php echo $mode === 'write' 
             ? "'/bbs/{$board['bbs_id']}/write-process'" 
