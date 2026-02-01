@@ -142,7 +142,10 @@
                                     $menuUrl = '/page/' . $menu['id'];
                                     break;
                                 case 'board':
-                                    $menuUrl = '/bbs/' . xssFilter($menu['menu_target']) . '/list';
+                                    // menu_target이 있는 경우에만 게시판 링크 생성
+                                    if (!empty($menu['menu_target'])) {
+                                        $menuUrl = '/bbs/' . xssFilter($menu['menu_target']);
+                                    }
                                     break;
                                 case 'content':
                                     $menuUrl = '/content/' . xssFilter($menu['menu_target']);
