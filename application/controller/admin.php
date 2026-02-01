@@ -1244,7 +1244,7 @@ class Admin extends Controller {
         if ($action === 'header') {
             // 헤더 메뉴 목록 조회
             $menus = getDbArray("
-                SELECT * FROM header_menus 
+                SELECT * FROM header_menu 
                 ORDER BY menu_order ASC, id ASC
             ") ?? [];
             
@@ -1274,7 +1274,6 @@ class Admin extends Controller {
         }
         
         $menuName = trim($this->post('menu_name', ''));
-        $menuUrl = trim($this->post('menu_url', '/'));
         
         if (empty($menuName)) {
             $this->json(['success' => false, 'message' => '메뉴명을 입력해주세요.']);
@@ -1282,13 +1281,13 @@ class Admin extends Controller {
         }
         
         // 현재 최대 순서 조회
-        $maxOrder = getUidData("SELECT MAX(menu_order) as max_order FROM header_menus")['max_order'] ?? 0;
+        $maxOrder = getUidData("SELECT MAX(menu_order) as max_order FROM header_menu")['max_order'] ?? 0;
         
         // 메뉴 추가
         $result = setDbData("
-            INSERT INTO header_menus (menu_name, menu_url, menu_order, is_active)
-            VALUES (?, ?, ?, 'Y')
-        ", [$menuName, $menuUrl, $maxOrder + 1]);
+            INSERT INTO header_menu (menu_name, menu_order, is_active)
+            VALUES (?, ?, 'Y')
+        ", [$menuName, $maxOrder + 1]);
         
         if ($result) {
             $this->json(['success' => true, 'message' => '메뉴가 생성되었습니다.']);
@@ -1306,7 +1305,7 @@ class Admin extends Controller {
             return;
         }
         
-        $result = setDbData("DELETE FROM header_menus WHERE id = ?", [$id]);
+        $result = setDbData("DELETE FROM header_menu WHERE id = ?", [$id]);
         
         if ($result) {
             $this->json(['success' => true, 'message' => '메뉴가 삭제되었습니다.']);
@@ -1333,7 +1332,7 @@ class Admin extends Controller {
         
         // 순서 업데이트
         foreach ($orders as $order => $id) {
-            setDbData("UPDATE header_menus SET menu_order = ? WHERE id = ?", [$order + 1, $id]);
+            setDbData("UPDATE header_menu SET menu_order = ? WHERE id = ?", [$order + 1, $id]);
         }
         
         $this->json(['success' => true, 'message' => '순서가 변경되었습니다.']);

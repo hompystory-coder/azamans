@@ -25,11 +25,6 @@
                                     <label for="menu_name" class="form-label">메뉴명 <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="menu_name" name="menu_name" placeholder="예: 공지사항, 자유게시판" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="menu_url" class="form-label">URL</label>
-                                    <input type="text" class="form-control" id="menu_url" name="menu_url" placeholder="예: /bbs/notice" value="/">
-                                    <small class="text-muted">비워두면 '/' 로 설정됩니다.</small>
-                                </div>
                                 <div class="d-grid gap-2">
                                     <button type="submit" class="btn btn-primary btn-lg">
                                         <i class="fas fa-check me-2"></i>생성
@@ -70,10 +65,6 @@
                                                 <i class="fas fa-grip-vertical text-muted me-3"></i>
                                                 <div>
                                                     <strong><?php echo xssFilter($menu['menu_name']); ?></strong>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-link me-1"></i><?php echo xssFilter($menu['menu_url']); ?>
-                                                    </small>
                                                 </div>
                                             </div>
                                             <button class="btn btn-sm btn-danger delete-menu" data-id="<?php echo $menu['id']; ?>">
