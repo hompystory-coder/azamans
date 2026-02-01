@@ -23,39 +23,88 @@ class BoardModel extends DBModel {
     public function getPostList($boardId, $page = 1, $perPage = 20, $category = null, $search = null) {
         $offset = ($page - 1) * $perPage;
         
-        $where = ["bbs_id = ?"];
-        $params = [$boardId];
-        
-        if ($category) {
-            $where[] = "category = ?";
-            $params[] = $category;
-        }
-        
+        // 🔍 검색어가 있으면 bbs_data 직접 검색
         if ($search) {
+            $where = ["bbs_id = ?"];
+            $params = [$boardId];
+            
+            if ($category) {
+                $where[] = "category = ?";
+                $params[] = $category;
+            }
+            
             $where[] = "(title LIKE ? OR content LIKE ?)";
             $params[] = "%{$search}%";
             $params[] = "%{$search}%";
+            
+            $whereClause = implode(' AND ', $where);
+            
+            // 전체 개수
+            $total = getDbCnt("SELECT COUNT(*) FROM bbs_data WHERE {$whereClause}", $params);
+            
+            // 공지사항
+            $notices = getDbArray("
+                SELECT * FROM bbs_data 
+                WHERE bbs_id = ? AND is_notice = 'Y'
+                ORDER BY reg_date DESC
+            ", [$boardId]);
+            
+            // 일반 게시물
+            $posts = getDbArray("
+                SELECT * FROM bbs_data 
+                WHERE {$whereClause} AND is_notice = 'N'
+                ORDER BY reg_date DESC
+                LIMIT {$perPage} OFFSET {$offset}
+            ", $params);
+            
+            return [
+                'notices' => $notices,
+                'posts' => $posts,
+                'total' => $total,
+                'pages' => ceil($total / $perPage)
+            ];
         }
         
-        $whereClause = implode(' AND ', $where);
-        
-        // 전체 개수
-        $total = getDbCnt("SELECT COUNT(*) FROM bbs_data WHERE {$whereClause}", $params);
-        
+        // ✅ 일반 리스트: bbs_index 기반 조회 (성능 최적화)
         // 공지사항
         $notices = getDbArray("
-            SELECT * FROM bbs_data 
-            WHERE bbs_id = ? AND is_notice = 'Y'
-            ORDER BY reg_date DESC
+            SELECT d.* 
+            FROM bbs_index i
+            INNER JOIN bbs_data d ON i.data_uid = d.uid
+            WHERE i.bbs_id = ? AND i.is_notice = 'Y'
+            ORDER BY d.reg_date DESC
         ", [$boardId]);
         
-        // 일반 게시물
+        // 전체 개수 (bbs_index 기반)
+        $countWhere = ['i.bbs_id = ?', 'i.is_notice = ?'];
+        $countParams = [$boardId, 'N'];
+        
+        if ($category) {
+            $countWhere[] = 'i.category = ?';
+            $countParams[] = $category;
+        }
+        
+        $countWhereClause = implode(' AND ', $countWhere);
+        $total = getDbCnt("SELECT COUNT(*) FROM bbs_index i WHERE {$countWhereClause}", $countParams);
+        
+        // 일반 게시물 (bbs_index + bbs_data 조인)
+        $postWhere = ['i.bbs_id = ?', 'i.is_notice = ?'];
+        $postParams = [$boardId, 'N'];
+        
+        if ($category) {
+            $postWhere[] = 'i.category = ?';
+            $postParams[] = $category;
+        }
+        
+        $postWhereClause = implode(' AND ', $postWhere);
         $posts = getDbArray("
-            SELECT * FROM bbs_data 
-            WHERE {$whereClause} AND is_notice = 'N'
-            ORDER BY reg_date DESC
+            SELECT d.* 
+            FROM bbs_index i
+            INNER JOIN bbs_data d ON i.data_uid = d.uid
+            WHERE {$postWhereClause}
+            ORDER BY d.reg_date DESC
             LIMIT {$perPage} OFFSET {$offset}
-        ", $params);
+        ", $postParams);
         
         return [
             'notices' => $notices,

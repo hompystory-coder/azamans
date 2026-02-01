@@ -301,6 +301,16 @@ class Bbs extends Controller {
             }
         }
         
+        // ✅ 최적화 테이블에 데이터 추가
+        bbsInsertOptimizationData(
+            $boardId,
+            $postId,
+            $postData['member_uid'],
+            $postData['category'],
+            $postData['is_notice'],
+            $postData['is_secret']
+        );
+        
         $this->json([
             'success' => true,
             'message' => '게시물이 등록되었습니다.',
@@ -418,6 +428,15 @@ class Bbs extends Controller {
             }
         }
         
+        // ✅ 최적화 테이블 업데이트
+        bbsUpdateOptimizationData(
+            $boardId,
+            $uid,
+            $updateData['category'] ?? null,
+            $updateData['is_notice'] ?? 'N',
+            $post['is_secret'] ?? 'N'
+        );
+        
         $this->json([
             'success' => true,
             'message' => '게시물이 수정되었습니다.',
@@ -452,6 +471,9 @@ class Bbs extends Controller {
         $result = $this->boardModel->deletePost($uid);
         
         if ($result) {
+            // ✅ 최적화 테이블에서 삭제
+            bbsDeleteOptimizationData($boardId, $uid);
+            
             $this->json([
                 'success' => true,
                 'message' => '게시물이 삭제되었습니다.',
