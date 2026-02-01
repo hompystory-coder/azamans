@@ -64,11 +64,161 @@ class Admin extends Controller {
      * 사이트 설정
      */
     public function config() {
+        // 모든 설정 로드
+        $configRows = getDbArray("SELECT config_key, config_value FROM admin_config");
+        $configs = [];
+        foreach ($configRows as $row) {
+            $configs[$row['config_key']] = $row['config_value'];
+        }
+        
         $data = [
-            'title' => '사이트 설정'
+            'title' => '사이트 설정',
+            'configs' => $configs
         ];
         
+        // 하위 메서드 처리
+        $action = $this->segments[2] ?? '';
+        
+        if ($action === 'uploadLogo') {
+            $this->uploadLogo();
+            return;
+        } elseif ($action === 'deleteLogo') {
+            $this->deleteLogo();
+            return;
+        } elseif ($action === 'saveDimensions') {
+            $this->saveDimensions();
+            return;
+        } elseif ($action === 'saveBasic') {
+            $this->saveBasicConfig();
+            return;
+        }
+        
         $this->view('admin/config', $data);
+    }
+    
+    /**
+     * 기본 설정 저장
+     */
+    private function saveBasicConfig() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        $configs = [
+            'site_name' => cleanInput($_POST['site_name'] ?? ''),
+            'site_url' => cleanInput($_POST['site_url'] ?? ''),
+            'site_email' => cleanInput($_POST['site_email'] ?? '')
+        ];
+        
+        foreach ($configs as $key => $value) {
+            setConfig($key, $value);
+        }
+        
+        $this->json(['success' => true, 'message' => '설정이 저장되었습니다.']);
+    }
+    
+    /**
+     * 로고 업로드
+     */
+    private function uploadLogo() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false, 'message' => '잘못된 요청입니다.'], 400);
+            return;
+        }
+        
+        if (!isset($_FILES['logo']) || $_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
+            $this->json(['success' => false, 'message' => '파일 업로드 오류가 발생했습니다.'], 400);
+            return;
+        }
+        
+        $logoType = cleanInput($_POST['logo_type'] ?? '');
+        $width = (int)($_POST['width'] ?? 0);
+        $height = (int)($_POST['height'] ?? 0);
+        
+        $file = $_FILES['logo'];
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        
+        if (!in_array($file['type'], $allowed)) {
+            $this->json(['success' => false, 'message' => '이미지 파일만 업로드 가능합니다.'], 400);
+            return;
+        }
+        
+        // 업로드 디렉토리
+        $uploadDir = __DIR__ . '/../../public/uploads/logos';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        // 파일명 생성
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = $logoType . '_' . time() . '.' . $extension;
+        $filepath = $uploadDir . '/' . $filename;
+        
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            $url = '/public/uploads/logos/' . $filename;
+            
+            // DB에 저장
+            setConfig($logoType, $url);
+            setConfig($logoType . '_width', $width);
+            setConfig($logoType . '_height', $height);
+            
+            $this->json(['success' => true, 'url' => $url]);
+        } else {
+            $this->json(['success' => false, 'message' => '파일 저장에 실패했습니다.'], 500);
+        }
+    }
+    
+    /**
+     * 로고 크기 저장
+     */
+    private function saveDimensions() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false], 400);
+            return;
+        }
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        $logoType = cleanInput($input['logo_type'] ?? '');
+        $width = (int)($input['width'] ?? 0);
+        $height = (int)($input['height'] ?? 0);
+        
+        if ($width > 0 && $height > 0) {
+            setConfig($logoType . '_width', $width);
+            setConfig($logoType . '_height', $height);
+            $this->json(['success' => true]);
+        } else {
+            $this->json(['success' => false], 400);
+        }
+    }
+    
+    /**
+     * 로고 삭제
+     */
+    private function deleteLogo() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json(['success' => false], 400);
+            return;
+        }
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        $logoType = cleanInput($input['logo_type'] ?? '');
+        
+        // 파일 경로 가져오기
+        $logoUrl = getConfig($logoType);
+        if ($logoUrl) {
+            $filepath = __DIR__ . '/../../' . ltrim($logoUrl, '/');
+            if (file_exists($filepath)) {
+                unlink($filepath);
+            }
+        }
+        
+        // DB에서 삭제
+        setConfig($logoType, '');
+        setConfig($logoType . '_width', '');
+        setConfig($logoType . '_height', '');
+        
+        $this->json(['success' => true]);
     }
     
     /**

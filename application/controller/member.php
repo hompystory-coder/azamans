@@ -109,8 +109,28 @@ class Member extends Controller {
             $this->redirect('/');
         }
         
+        // 가입 환경 설정 로드
+        $varFile = __DIR__ . '/../config/var/member_join.var.php';
+        $joinConfig = [];
+        if (file_exists($varFile)) {
+            include $varFile;
+            $joinConfig = $join_config ?? [];
+        }
+        
+        // 회원가입 허용 여부 확인
+        if (($joinConfig['use_join'] ?? 'Y') === 'N') {
+            $data = [
+                'title' => '회원가입',
+                'error' => '현재 회원가입을 받지 않습니다.'
+            ];
+            $this->view('error', $data);
+            return;
+        }
+        
         $data = [
-            'title' => '회원가입'
+            'title' => '회원가입',
+            'join_config' => $joinConfig,
+            'required_fields' => $joinConfig['required_fields'] ?? ['user_id', 'password', 'email', 'name']
         ];
         
         $this->view('member/register', $data);
@@ -124,12 +144,35 @@ class Member extends Controller {
             $this->redirect('/member/register');
         }
         
+        // 가입 환경 설정 로드
+        $varFile = __DIR__ . '/../config/var/member_join.var.php';
+        $joinConfig = [];
+        if (file_exists($varFile)) {
+            include $varFile;
+            $joinConfig = $join_config ?? [];
+        }
+        
+        // 회원가입 허용 여부 확인
+        if (($joinConfig['use_join'] ?? 'Y') === 'N') {
+            $this->json([
+                'success' => false,
+                'message' => '현재 회원가입을 받지 않습니다.'
+            ], 403);
+            return;
+        }
+        
+        $requiredFields = $joinConfig['required_fields'] ?? ['user_id', 'password', 'email', 'name'];
+        $approvalType = $joinConfig['approval_type'] ?? 'auto';
+        
         // 입력 데이터
         $username = cleanInput($this->post('username'));
         $email = cleanInput($this->post('email'));
         $password = $this->post('password');
         $passwordConfirm = $this->post('password_confirm');
         $name = cleanInput($this->post('name'));
+        $phone = cleanInput($this->post('phone'));
+        $address = cleanInput($this->post('address'));
+        $tel = cleanInput($this->post('tel'));
         
         // 유효성 검사
         $errors = [];
@@ -138,8 +181,10 @@ class Member extends Controller {
             $errors[] = '아이디는 4자 이상이어야 합니다.';
         }
         
-        if (!validateEmail($email)) {
-            $errors[] = '올바른 이메일 주소를 입력해주세요.';
+        if (in_array('email', $requiredFields)) {
+            if (empty($email) || !validateEmail($email)) {
+                $errors[] = '올바른 이메일 주소를 입력해주세요.';
+            }
         }
         
         if (empty($password) || strlen($password) < 8) {
@@ -148,6 +193,22 @@ class Member extends Controller {
         
         if ($password !== $passwordConfirm) {
             $errors[] = '비밀번호가 일치하지 않습니다.';
+        }
+        
+        if (in_array('name', $requiredFields) && empty($name)) {
+            $errors[] = '이름을 입력해주세요.';
+        }
+        
+        if (in_array('phone', $requiredFields) && empty($phone)) {
+            $errors[] = '휴대폰번호를 입력해주세요.';
+        }
+        
+        if (in_array('address', $requiredFields) && empty($address)) {
+            $errors[] = '주소를 입력해주세요.';
+        }
+        
+        if (in_array('tel', $requiredFields) && empty($tel)) {
+            $errors[] = '연락처를 입력해주세요.';
         }
         
         // 중복 체크
@@ -161,25 +222,40 @@ class Member extends Controller {
                 'success' => false,
                 'errors' => $errors
             ], 400);
+            return;
         }
+        
+        // 승인 방식에 따른 상태 설정
+        $status = ($approvalType === 'auto') ? 'active' : 'pending';
         
         // 회원 정보 저장
         $hashedPassword = hashPassword($password);
-        $insertId = getDbInsert('member', [
+        $memberData = [
             'user_id' => $username,
             'password' => $hashedPassword,
             'email' => $email,
             'name' => $name,
             'nickname' => $name,
             'level' => 1,
-            'status' => 'active',
+            'status' => $status,
             'point' => 0
-        ]);
+        ];
+        
+        // 선택적 필드 추가
+        if (!empty($phone)) $memberData['phone'] = $phone;
+        if (!empty($address)) $memberData['address'] = $address;
+        if (!empty($tel)) $memberData['tel'] = $tel;
+        
+        $insertId = getDbInsert('member', $memberData);
         
         if ($insertId) {
+            $message = ($status === 'pending') 
+                ? '회원가입이 완료되었습니다. 관리자 승인 후 이용 가능합니다.' 
+                : '회원가입이 완료되었습니다.';
+            
             $this->json([
                 'success' => true,
-                'message' => '회원가입이 완료되었습니다.',
+                'message' => $message,
                 'redirect' => '/member/login'
             ]);
         } else {
