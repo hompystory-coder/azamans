@@ -125,9 +125,9 @@ main {
 }
 
 .header-bottom-menu-inner .nav-link {
-    color: #2196F3 !important;
+    color: #333 !important; /* 상단 메뉴와 동일한 색상 */
     font-size: 1rem !important; /* 상단 메뉴와 동일 */
-    font-weight: 400 !important; /* 상단 메뉴와 동일 */
+    font-weight: 500 !important; /* 약간 진하게 */
     padding: 0.5rem 1rem !important; /* 상단 메뉴와 동일 */
     transition: all 0.3s ease;
     text-decoration: none;
@@ -135,7 +135,6 @@ main {
 
 .header-bottom-menu-inner .nav-link:hover {
     color: var(--main-color1) !important;
-    transform: translateY(-2px);
 }
 
 /* 검색창 스타일 */
