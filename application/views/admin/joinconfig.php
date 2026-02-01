@@ -287,6 +287,25 @@
 </style>
 
 <script>
+// 페이지 로드 시 마지막 선택한 탭 복원
+document.addEventListener('DOMContentLoaded', function() {
+    // 마지막 선택한 탭 복원
+    const lastTab = localStorage.getItem('adminJoinConfigTab') || 'env';
+    const tabButton = document.querySelector(`#${lastTab}-tab`);
+    if (tabButton) {
+        const tab = new bootstrap.Tab(tabButton);
+        tab.show();
+    }
+    
+    // 탭 변경 시 localStorage에 저장
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(button => {
+        button.addEventListener('shown.bs.tab', function(e) {
+            const tabId = e.target.id.replace('-tab', '');
+            localStorage.setItem('adminJoinConfigTab', tabId);
+        });
+    });
+});
+
 function saveEnv() {
     const form = document.getElementById('envForm');
     const formData = new FormData(form);
@@ -309,6 +328,8 @@ function saveEnv() {
     .then(data => {
         if (data.success) {
             alert('가입 환경 설정이 저장되었습니다.');
+            // 현재 탭 유지
+            localStorage.setItem('adminJoinConfigTab', 'env');
         } else {
             alert(data.message || '저장에 실패했습니다.');
         }
@@ -332,6 +353,8 @@ function saveTerms() {
     .then(data => {
         if (data.success) {
             alert('이용약관이 저장되었습니다.');
+            // 현재 탭 유지
+            localStorage.setItem('adminJoinConfigTab', 'terms');
         } else {
             alert(data.message || '저장에 실패했습니다.');
         }
@@ -355,6 +378,8 @@ function savePrivacy() {
     .then(data => {
         if (data.success) {
             alert('개인정보보호정책이 저장되었습니다.');
+            // 현재 탭 유지
+            localStorage.setItem('adminJoinConfigTab', 'privacy');
         } else {
             alert(data.message || '저장에 실패했습니다.');
         }
@@ -378,6 +403,8 @@ function saveYouth() {
     .then(data => {
         if (data.success) {
             alert('청소년보호정책이 저장되었습니다.');
+            // 현재 탭 유지
+            localStorage.setItem('adminJoinConfigTab', 'youth');
         } else {
             alert(data.message || '저장에 실패했습니다.');
         }

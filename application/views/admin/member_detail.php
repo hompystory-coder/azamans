@@ -368,6 +368,25 @@
 </div>
 
 <script>
+// 페이지 로드 시 마지막 선택한 탭 복원
+document.addEventListener('DOMContentLoaded', function() {
+    // 마지막 선택한 탭 복원
+    const lastTab = localStorage.getItem('adminMemberDetailTab') || 'info';
+    const tabButton = document.querySelector(`#${lastTab}-tab`);
+    if (tabButton) {
+        const tab = new bootstrap.Tab(tabButton);
+        tab.show();
+    }
+    
+    // 탭 변경 시 localStorage에 저장
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(button => {
+        button.addEventListener('shown.bs.tab', function(e) {
+            const tabId = e.target.id.replace('-tab', '');
+            localStorage.setItem('adminMemberDetailTab', tabId);
+        });
+    });
+});
+
 function saveInfo() {
     const form = document.getElementById('infoForm');
     const formData = new FormData(form);
@@ -380,6 +399,8 @@ function saveInfo() {
     .then(data => {
         if (data.success) {
             alert('회원 정보가 저장되었습니다.');
+            // 현재 탭 유지
+            localStorage.setItem('adminMemberDetailTab', 'info');
             location.reload();
         } else {
             alert(data.message || '저장에 실패했습니다.');
@@ -420,6 +441,8 @@ function resetPassword() {
         if (data.success) {
             alert('비밀번호가 재설정되었습니다.');
             document.getElementById('passwordForm').reset();
+            // 현재 탭 유지
+            localStorage.setItem('adminMemberDetailTab', 'password');
         } else {
             alert(data.message || '재설정에 실패했습니다.');
         }
