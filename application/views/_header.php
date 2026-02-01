@@ -111,13 +111,10 @@
                     <?php endif; ?>
                 </ul>
             </div>
-        </div>
-    </nav>
-    
-    <!-- 하단 메뉴 영역 -->
-    <div class="header-bottom-menu">
-        <div class="container">
-            <nav class="nav">
+            
+            <!-- 하단 메뉴 영역 -->
+            <div class="w-100"></div> <!-- 줄바꿈 -->
+            <div class="header-bottom-menu-inner">
                 <a class="nav-link" href="#">메뉴1</a>
                 <a class="nav-link" href="#">메뉴2</a>
                 <a class="nav-link" href="#">메뉴3</a>
@@ -126,13 +123,13 @@
                 <a class="nav-link" href="#">메뉴6</a>
                 
                 <!-- 검색창 -->
-                <div class="header-search">
+                <div class="header-search ms-auto">
                     <input type="text" placeholder="검색" id="headerSearchInput">
                     <button type="button" onclick="headerSearch()">검색창</button>
                 </div>
-            </nav>
+            </div>
         </div>
-    </div>
+    </nav>
     
     <script>
     function headerSearch() {

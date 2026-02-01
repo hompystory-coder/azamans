@@ -94,7 +94,13 @@ main {
 .navbar {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     padding-top: 10px !important;
-    padding-bottom: 0 !important; /* 하단 패딩 제거 */
+    padding-bottom: 0 !important;
+}
+
+.navbar .container {
+    display: flex;
+    flex-wrap: wrap; /* 여러 줄로 나누기 */
+    align-items: center;
 }
 
 .navbar-brand {
@@ -106,23 +112,19 @@ main {
     color: var(--main-color1) !important;
 }
 
-/* 헤더 하단 메뉴 영역 */
-.header-bottom-menu {
+/* 헤더 하단 메뉴 영역 (navbar 내부) */
+.header-bottom-menu-inner {
     width: 100%;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 25px 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.header-bottom-menu .nav {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 40px;
+    padding: 20px 0;
+    margin-top: 15px;
+    border-top: 1px solid #e0e0e0;
 }
 
-.header-bottom-menu .nav-link {
+.header-bottom-menu-inner .nav-link {
     color: #2196F3 !important;
     font-size: 1.3rem !important;
     font-weight: 500 !important;
@@ -131,7 +133,7 @@ main {
     text-decoration: none;
 }
 
-.header-bottom-menu .nav-link:hover {
+.header-bottom-menu-inner .nav-link:hover {
     color: var(--main-color1) !important;
     transform: translateY(-2px);
 }
