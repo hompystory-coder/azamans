@@ -191,11 +191,21 @@ class ImageProcessor {
             }
             
             // 5. 워터마크 적용 (JPG만)
+            // 디버그 로그
+            error_log('=== 워터마크 체크 ===');
+            error_log('워터마크 사용: ' . ($this->config['watermark_enabled'] ?? 'N'));
+            error_log('이미지 타입: ' . $size[2] . ' (2=JPG, 3=PNG, 1=GIF)');
+            error_log('워터마크 이미지: ' . ($this->config['watermark_image'] ?? '없음'));
+            
             if ($this->config['watermark_enabled'] === 'Y' && $size[2] == 2 && !empty($this->config['watermark_image'])) {
                 $watermarkPath = PUBLIC_PATH . $this->config['watermark_image'];
+                error_log('워터마크 전체 경로: ' . $watermarkPath);
+                error_log('워터마크 파일 존재: ' . (file_exists($watermarkPath) ? 'YES' : 'NO'));
+                
                 if (file_exists($watermarkPath)) {
                     // 원본에 워터마크
                     if ($result['original']) {
+                        error_log('원본에 워터마크 적용: ' . $result['original']);
                         $this->watermarkImage(
                             $targetDir . '/' . $result['original'],
                             $watermarkPath,
@@ -206,6 +216,7 @@ class ImageProcessor {
                     
                     // 큰 썸네일에 워터마크
                     if ($result['big']) {
+                        error_log('큰 썸네일에 워터마크 적용: ' . $result['big']);
                         $this->watermarkImage(
                             $targetDir . '/' . $result['big'],
                             $watermarkPath,
@@ -214,6 +225,8 @@ class ImageProcessor {
                         );
                     }
                 }
+            } else {
+                error_log('워터마크 적용 조건 불충족');
             }
             
             // 6. 원본 이미지 삭제 옵션 처리
