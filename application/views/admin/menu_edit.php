@@ -66,8 +66,8 @@
                                     <select class="form-select" name="menu_target" id="board_select">
                                         <option value="">게시판을 선택하세요</option>
                                         <?php foreach ($boards as $board): ?>
-                                            <option value="<?php echo $board['board_id']; ?>" <?php echo $menu['menu_target'] === $board['board_id'] ? 'selected' : ''; ?>>
-                                                <?php echo xssFilter($board['board_name']); ?> (<?php echo $board['board_id']; ?>)
+                                            <option value="<?php echo xssFilter($board['board_id']); ?>" <?php echo ($menu['menu_target'] ?? '') === $board['board_id'] ? 'selected' : ''; ?>>
+                                                <?php echo xssFilter($board['board_name']); ?> (<?php echo xssFilter($board['board_id']); ?>)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
