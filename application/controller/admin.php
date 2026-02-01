@@ -1748,16 +1748,52 @@ class Admin extends Controller {
             return;
         }
         
-        if (!isset($_FILES['watermark']) || $_FILES['watermark']['error'] !== UPLOAD_ERR_OK) {
-            $this->json(['success' => false, 'message' => '파일 업로드 오류가 발생했습니다.'], 400);
+        if (!isset($_FILES['watermark'])) {
+            $this->json(['success' => false, 'message' => '파일이 전송되지 않았습니다.'], 400);
+            return;
+        }
+        
+        if ($_FILES['watermark']['error'] !== UPLOAD_ERR_OK) {
+            $errorMsg = '파일 업로드 오류: ';
+            switch ($_FILES['watermark']['error']) {
+                case UPLOAD_ERR_INI_SIZE:
+                    $errorMsg .= 'php.ini의 upload_max_filesize를 초과했습니다.';
+                    break;
+                case UPLOAD_ERR_FORM_SIZE:
+                    $errorMsg .= 'HTML 폼의 MAX_FILE_SIZE를 초과했습니다.';
+                    break;
+                case UPLOAD_ERR_PARTIAL:
+                    $errorMsg .= '파일이 부분적으로만 업로드되었습니다.';
+                    break;
+                case UPLOAD_ERR_NO_FILE:
+                    $errorMsg .= '파일이 업로드되지 않았습니다.';
+                    break;
+                case UPLOAD_ERR_NO_TMP_DIR:
+                    $errorMsg .= '임시 폴더가 없습니다.';
+                    break;
+                case UPLOAD_ERR_CANT_WRITE:
+                    $errorMsg .= '디스크 쓰기에 실패했습니다.';
+                    break;
+                case UPLOAD_ERR_EXTENSION:
+                    $errorMsg .= 'PHP 확장이 업로드를 중단했습니다.';
+                    break;
+                default:
+                    $errorMsg .= '알 수 없는 오류 (' . $_FILES['watermark']['error'] . ')';
+            }
+            $this->json(['success' => false, 'message' => $errorMsg], 400);
             return;
         }
         
         $file = $_FILES['watermark'];
         
+        // MIME 타입 체크 (finfo 사용)
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        
         // PNG 파일만 허용
-        if ($file['type'] !== 'image/png') {
-            $this->json(['success' => false, 'message' => 'PNG 파일만 업로드 가능합니다.'], 400);
+        if ($mimeType !== 'image/png') {
+            $this->json(['success' => false, 'message' => 'PNG 파일만 업로드 가능합니다. (업로드된 파일 타입: ' . $mimeType . ')'], 400);
             return;
         }
         
@@ -1770,7 +1806,16 @@ class Admin extends Controller {
         // 업로드 디렉토리
         $uploadDir = __DIR__ . '/../../public/uploads/watermark';
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            if (!mkdir($uploadDir, 0755, true)) {
+                $this->json(['success' => false, 'message' => '업로드 디렉토리 생성 실패'], 500);
+                return;
+            }
+        }
+        
+        // 디렉토리 쓰기 권한 체크
+        if (!is_writable($uploadDir)) {
+            $this->json(['success' => false, 'message' => '업로드 디렉토리 쓰기 권한 없음'], 500);
+            return;
         }
         
         // 기존 워터마크 삭제
@@ -1784,6 +1829,7 @@ class Admin extends Controller {
         $filepath = $uploadDir . '/' . $filename;
         
         if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            @chmod($filepath, 0644);
             $url = '/uploads/watermark/' . $filename;
             
             // DB에 저장
@@ -1791,7 +1837,7 @@ class Admin extends Controller {
             
             $this->json(['success' => true, 'url' => $url]);
         } else {
-            $this->json(['success' => false, 'message' => '파일 업로드에 실패했습니다.'], 500);
+            $this->json(['success' => false, 'message' => '파일 업로드에 실패했습니다. 경로: ' . $filepath], 500);
         }
     }
     
