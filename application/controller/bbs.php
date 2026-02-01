@@ -582,8 +582,8 @@ class Bbs extends Controller {
             exit;
         }
         
-        // 실제 파일 경로
-        $filePath = __DIR__ . '/../../' . ltrim($file['filepath'], '/');
+        // 실제 파일 경로 (PUBLIC_PATH = /home/mvc/public)
+        $filePath = PUBLIC_PATH . '/uploads/' . ltrim($file['filepath'], '/');
         
         if (!file_exists($filePath)) {
             echo '파일이 존재하지 않습니다: ' . $filePath;
