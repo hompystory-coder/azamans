@@ -402,12 +402,13 @@
                     <div class="card-body">
                         <form id="watermarkSettingsForm">
                             <div class="mb-3">
-                                <label class="form-label d-block">워터마크 사용</label>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="watermark_enabled" 
-                                           name="watermark_enabled" value="Y"
-                                           <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="watermark_enabled">
+                                <label class="form-label d-block mb-2">워터마크 사용</label>
+                                <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                    <label style="cursor: pointer; margin: 0;">
+                                        <input type="checkbox" id="watermark_enabled" 
+                                               name="watermark_enabled" value="Y"
+                                               <?= ($configs['watermark_enabled'] ?? 'N') === 'Y' ? 'checked' : '' ?>
+                                               style="cursor: pointer; margin-right: 8px;">
                                         워터마크 사용
                                     </label>
                                 </div>
@@ -436,46 +437,53 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label d-block">워터마크 위치</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="watermark_position" 
-                                           id="position_1" value="1"
-                                           <?= ($configs['watermark_position'] ?? '5') == '1' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="position_1">
-                                        왼쪽 상단
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="watermark_position" 
-                                           id="position_2" value="2"
-                                           <?= ($configs['watermark_position'] ?? '5') == '2' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="position_2">
-                                        오른쪽 상단
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="watermark_position" 
-                                           id="position_3" value="3"
-                                           <?= ($configs['watermark_position'] ?? '5') == '3' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="position_3">
-                                        중앙
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="watermark_position" 
-                                           id="position_4" value="4"
-                                           <?= ($configs['watermark_position'] ?? '5') == '4' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="position_4">
-                                        왼쪽 하단
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="watermark_position" 
-                                           id="position_5" value="5"
-                                           <?= ($configs['watermark_position'] ?? '5') == '5' ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="position_5">
-                                        오른쪽 하단
-                                    </label>
+                                <label class="form-label d-block mb-2">워터마크 위치</label>
+                                <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="cursor: pointer; margin: 0;">
+                                            <input type="radio" name="watermark_position" 
+                                                   id="position_1" value="1"
+                                                   <?= ($configs['watermark_position'] ?? '5') == '1' ? 'checked' : '' ?>
+                                                   style="cursor: pointer; margin-right: 8px;">
+                                            왼쪽 상단
+                                        </label>
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="cursor: pointer; margin: 0;">
+                                            <input type="radio" name="watermark_position" 
+                                                   id="position_2" value="2"
+                                                   <?= ($configs['watermark_position'] ?? '5') == '2' ? 'checked' : '' ?>
+                                                   style="cursor: pointer; margin-right: 8px;">
+                                            오른쪽 상단
+                                        </label>
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="cursor: pointer; margin: 0;">
+                                            <input type="radio" name="watermark_position" 
+                                                   id="position_3" value="3"
+                                                   <?= ($configs['watermark_position'] ?? '5') == '3' ? 'checked' : '' ?>
+                                                   style="cursor: pointer; margin-right: 8px;">
+                                            중앙
+                                        </label>
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="cursor: pointer; margin: 0;">
+                                            <input type="radio" name="watermark_position" 
+                                                   id="position_4" value="4"
+                                                   <?= ($configs['watermark_position'] ?? '5') == '4' ? 'checked' : '' ?>
+                                                   style="cursor: pointer; margin-right: 8px;">
+                                            왼쪽 하단
+                                        </label>
+                                    </div>
+                                    <div style="margin-bottom: 0;">
+                                        <label style="cursor: pointer; margin: 0;">
+                                            <input type="radio" name="watermark_position" 
+                                                   id="position_5" value="5"
+                                                   <?= ($configs['watermark_position'] ?? '5') == '5' ? 'checked' : '' ?>
+                                                   style="cursor: pointer; margin-right: 8px;">
+                                            오른쪽 하단
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                             
