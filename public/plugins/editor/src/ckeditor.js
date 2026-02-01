@@ -16,7 +16,7 @@ import { Image, ImageCaption, ImageStyle, ImageToolbar, ImageUpload, ImageResize
 import { Indent, IndentBlock } from '@ckeditor/ckeditor5-indent';
 import { Link, AutoLink, LinkImage } from '@ckeditor/ckeditor5-link';
 import { List, ListProperties, TodoList } from '@ckeditor/ckeditor5-list';
-import { MediaEmbed, MediaEmbedToolbar } from '@ckeditor/ckeditor5-media-embed';
+import { MediaEmbed } from '@ckeditor/ckeditor5-media-embed';
 import { Paragraph } from '@ckeditor/ckeditor5-paragraph';
 import { PasteFromOffice } from '@ckeditor/ckeditor5-paste-from-office';
 import { Table, TableToolbar, TableProperties, TableCellProperties, TableCaption, TableColumnResize } from '@ckeditor/ckeditor5-table';
@@ -73,7 +73,6 @@ ClassicEditor.builtinPlugins = [
 	ListProperties,
 	TodoList,
 	MediaEmbed,
-	MediaEmbedToolbar,
 	Paragraph,
 	PasteFromOffice,
 	Table,
@@ -159,8 +158,5 @@ ClassicEditor.defaultConfig = {
 			'tableCellProperties',
 			'tableProperties'
 		]
-	},
-	mediaEmbed: {
-		toolbar: []
 	}
 };

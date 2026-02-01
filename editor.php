@@ -182,9 +182,6 @@ function initCKEditor($textareaId = 'editor', $options = []) {
                         'toggleTableCaption'
                     ]
                 },
-                mediaEmbed: {
-                    toolbar: []
-                },
                 fontFamily: {
                     options: [
                         '나눔고딕, NanumGothic',
