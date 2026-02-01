@@ -1342,6 +1342,48 @@ class Admin extends Controller {
             return;
         }
         
+        // 1. 메뉴 정보 조회 (타입 확인용)
+        $menu = getUidData("SELECT * FROM header_menu WHERE id = ?", [$id]);
+        
+        if (!$menu) {
+            $this->json(['success' => false, 'message' => '메뉴를 찾을 수 없습니다.'], 404);
+            return;
+        }
+        
+        // 2. 페이지 타입이면 관련 데이터 삭제
+        if ($menu['menu_type'] === 'page') {
+            // 2-1. DB에서 페이지 콘텐츠 삭제
+            getDbDelete('menu_pages', 'menu_id = ?', [$id]);
+            
+            // 2-2. 파일 삭제
+            $pageFilePath = __DIR__ . '/../../public/uploads/page/' . $id . '.php';
+            if (file_exists($pageFilePath)) {
+                if (unlink($pageFilePath)) {
+                    error_log("페이지 파일 삭제 완료: " . $pageFilePath);
+                } else {
+                    error_log("페이지 파일 삭제 실패: " . $pageFilePath);
+                }
+            }
+        }
+        
+        // 3. 서브메뉴 확인 및 삭제
+        $subMenus = getDbArray("SELECT id, menu_type FROM header_menu WHERE parent_id = ?", [$id]);
+        if (!empty($subMenus)) {
+            foreach ($subMenus as $subMenu) {
+                // 서브메뉴가 페이지 타입이면 파일도 삭제
+                if ($subMenu['menu_type'] === 'page') {
+                    getDbDelete('menu_pages', 'menu_id = ?', [$subMenu['id']]);
+                    $subPageFilePath = __DIR__ . '/../../public/uploads/page/' . $subMenu['id'] . '.php';
+                    if (file_exists($subPageFilePath)) {
+                        unlink($subPageFilePath);
+                    }
+                }
+            }
+            // 서브메뉴 삭제
+            getDbDelete('header_menu', 'parent_id = ?', [$id]);
+        }
+        
+        // 4. 메뉴 삭제
         $result = getDbDelete('header_menu', 'id = ?', [$id]);
         
         if ($result) {
