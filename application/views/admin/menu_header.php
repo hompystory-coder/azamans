@@ -160,9 +160,18 @@ $(document).ready(function() {
                     alert(response.message);
                 }
             },
-            error: function(xhr) {
+            error: function(xhr, status, error) {
                 console.error('Error:', xhr);
-                alert('메뉴 생성 중 오류가 발생했습니다.');
+                console.error('Status:', status);
+                console.error('Error:', error);
+                console.error('Response Text:', xhr.responseText);
+                console.error('Status Code:', xhr.status);
+                console.error('Ready State:', xhr.readyState);
+                
+                alert('메뉴 생성 중 오류가 발생했습니다.\n\n' +
+                      'Status: ' + xhr.status + '\n' +
+                      'Error: ' + error + '\n' +
+                      'Response: ' + xhr.responseText.substring(0, 200));
             }
         });
     });
