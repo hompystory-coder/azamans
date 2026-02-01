@@ -19,10 +19,30 @@ class ImageProcessor {
      * 설정 로드
      */
     private function loadConfig() {
-        $configs = getDbArray("SELECT config_key, config_value FROM site_config WHERE config_group IN ('image', 'thumbnail', 'watermark')");
+        // 1. var 파일에서 로드 시도
+        $varFiles = [
+            'image' => __DIR__ . '/../config/var/image.var.php',
+            'watermark' => __DIR__ . '/../config/var/watermark.var.php'
+        ];
         
-        foreach ($configs as $config) {
-            $this->config[$config['config_key']] = $config['config_value'];
+        $configLoaded = false;
+        foreach ($varFiles as $key => $file) {
+            if (file_exists($file)) {
+                $varConfig = include $file;
+                if (is_array($varConfig)) {
+                    $this->config = array_merge($this->config, $varConfig);
+                    $configLoaded = true;
+                }
+            }
+        }
+        
+        // 2. var 파일이 없으면 DB에서 로드
+        if (!$configLoaded) {
+            $configs = getDbArray("SELECT config_key, config_value FROM site_config WHERE config_group IN ('image', 'thumbnail', 'watermark')");
+            
+            foreach ($configs as $config) {
+                $this->config[$config['config_key']] = $config['config_value'];
+            }
         }
         
         // 기본값 설정

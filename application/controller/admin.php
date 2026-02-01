@@ -130,6 +130,9 @@ class Admin extends Controller {
             setConfig($key, $value);
         }
         
+        // var 파일로 저장
+        $this->saveConfigToVar('site', $configs);
+        
         $this->json(['success' => true, 'message' => '설정이 저장되었습니다.']);
     }
     
@@ -178,6 +181,14 @@ class Admin extends Controller {
             setConfig($logoType . '_width', $width);
             setConfig($logoType . '_height', $height);
             
+            // var 파일 저장
+            $logoSettings = getDbArray("SELECT config_key, config_value FROM admin_config WHERE config_key LIKE '%logo%'");
+            $settings = [];
+            foreach ($logoSettings as $setting) {
+                $settings[$setting['config_key']] = $setting['config_value'];
+            }
+            $this->saveConfigToVar('logo', $settings);
+            
             $this->json(['success' => true, 'url' => $url]);
         } else {
             $this->json(['success' => false, 'message' => '파일 저장에 실패했습니다.'], 500);
@@ -201,6 +212,15 @@ class Admin extends Controller {
         if ($width > 0 && $height > 0) {
             setConfig($logoType . '_width', $width);
             setConfig($logoType . '_height', $height);
+            
+            // var 파일 저장
+            $logoSettings = getDbArray("SELECT config_key, config_value FROM admin_config WHERE config_key LIKE '%logo%'");
+            $settings = [];
+            foreach ($logoSettings as $setting) {
+                $settings[$setting['config_key']] = $setting['config_value'];
+            }
+            $this->saveConfigToVar('logo', $settings);
+            
             $this->json(['success' => true]);
         } else {
             $this->json(['success' => false], 400);
@@ -1710,6 +1730,9 @@ class Admin extends Controller {
             getDbUpdate('site_config', ['config_value' => $value], 'config_key = ?', [$key]);
         }
         
+        // var 파일로 저장
+        $this->saveConfigToVar('image', $settings);
+        
         $this->json(['success' => true, 'message' => '이미지 설정이 저장되었습니다.']);
     }
     
@@ -1855,6 +1878,14 @@ class Admin extends Controller {
             // DB에 저장
             getDbUpdate('site_config', ['config_value' => $url], 'config_key = ?', ['watermark_image']);
             
+            // var 파일 업데이트 (현재 워터마크 설정 전체 읽어서 저장)
+            $watermarkSettings = getDbArray("SELECT config_key, config_value FROM site_config WHERE config_key LIKE 'watermark%'");
+            $settings = [];
+            foreach ($watermarkSettings as $setting) {
+                $settings[$setting['config_key']] = $setting['config_value'];
+            }
+            $this->saveConfigToVar('watermark', $settings);
+            
             $this->json(['success' => true, 'url' => $url]);
         } else {
             $this->json(['success' => false, 'message' => '파일 업로드에 실패했습니다. 경로: ' . $filepath], 500);
@@ -1881,9 +1912,62 @@ class Admin extends Controller {
             
             // DB에서 삭제
             getDbUpdate('site_config', ['config_value' => ''], 'config_key = ?', ['watermark_image']);
+            
+            // var 파일 업데이트
+            $watermarkSettings = getDbArray("SELECT config_key, config_value FROM site_config WHERE config_key LIKE 'watermark%'");
+            $settings = [];
+            foreach ($watermarkSettings as $setting) {
+                $settings[$setting['config_key']] = $setting['config_value'];
+            }
+            $this->saveConfigToVar('watermark', $settings);
         }
         
         $this->json(['success' => true, 'message' => '워터마크가 삭제되었습니다.']);
+    }
+    
+    /**
+     * 설정을 var 파일로 저장
+     */
+    private function saveConfigToVar($filename, $settings) {
+        $varDir = __DIR__ . '/../config/var';
+        
+        // 디렉토리가 없으면 생성
+        if (!is_dir($varDir)) {
+            mkdir($varDir, 0755, true);
+        }
+        
+        $varFile = $varDir . '/' . $filename . '.var.php';
+        
+        $content = "<?php\n";
+        $content .= "/**\n";
+        $content .= " * " . $filename . " 설정 파일\n";
+        $content .= " * 자동 생성됨: " . date('Y-m-d H:i:s') . "\n";
+        $content .= " */\n\n";
+        $content .= "return [\n";
+        
+        foreach ($settings as $key => $value) {
+            if (is_string($value)) {
+                $content .= "    '{$key}' => '" . addslashes($value) . "',\n";
+            } elseif (is_int($value)) {
+                $content .= "    '{$key}' => {$value},\n";
+            } elseif (is_bool($value)) {
+                $content .= "    '{$key}' => " . ($value ? 'true' : 'false') . ",\n";
+            } else {
+                $content .= "    '{$key}' => null,\n";
+            }
+        }
+        
+        $content .= "];\n";
+        
+        // 파일 쓰기
+        $result = file_put_contents($varFile, $content);
+        
+        if ($result !== false) {
+            @chmod($varFile, 0644);
+            return true;
+        }
+        
+        return false;
     }
 }
 
