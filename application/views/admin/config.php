@@ -419,9 +419,13 @@
                                 <small class="text-muted">투명 배경의 PNG 파일만 사용 가능 (최대 2MB)</small>
                                 <?php if (!empty($configs['watermark_image'])): ?>
                                 <div class="mt-2">
-                                    <img src="<?= xssFilter($configs['watermark_image']) ?>" 
+                                    <img src="/public<?= xssFilter($configs['watermark_image']) ?>" 
                                          style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px; background: #f8f9fa;" 
-                                         id="watermark_preview">
+                                         id="watermark_preview"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                                    <span style="display: none; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6;">
+                                        <i class="fas fa-image"></i> 워터마크
+                                    </span>
                                     <button type="button" class="btn btn-sm btn-outline-danger ms-2" 
                                             onclick="deleteWatermark()">
                                         <i class="fas fa-trash"></i> 삭제
