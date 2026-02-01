@@ -112,27 +112,27 @@
                 </ul>
             </div>
         </div>
-        
-        <!-- 하단 메뉴 영역 -->
-        <div class="header-bottom-menu">
-            <div class="container">
-                <nav class="nav">
-                    <a class="nav-link" href="#">메뉴1</a>
-                    <a class="nav-link" href="#">메뉴2</a>
-                    <a class="nav-link" href="#">메뉴3</a>
-                    <a class="nav-link" href="#">메뉴4</a>
-                    <a class="nav-link" href="#">메뉴5</a>
-                    <a class="nav-link" href="#">메뉴6</a>
-                    
-                    <!-- 검색창 -->
-                    <div class="header-search">
-                        <input type="text" placeholder="검색" id="headerSearchInput">
-                        <button type="button" onclick="headerSearch()">검색창</button>
-                    </div>
-                </nav>
-            </div>
-        </div>
     </nav>
+    
+    <!-- 하단 메뉴 영역 -->
+    <div class="header-bottom-menu">
+        <div class="container">
+            <nav class="nav">
+                <a class="nav-link" href="#">메뉴1</a>
+                <a class="nav-link" href="#">메뉴2</a>
+                <a class="nav-link" href="#">메뉴3</a>
+                <a class="nav-link" href="#">메뉴4</a>
+                <a class="nav-link" href="#">메뉴5</a>
+                <a class="nav-link" href="#">메뉴6</a>
+                
+                <!-- 검색창 -->
+                <div class="header-search">
+                    <input type="text" placeholder="검색" id="headerSearchInput">
+                    <button type="button" onclick="headerSearch()">검색창</button>
+                </div>
+            </nav>
+        </div>
+    </div>
     
     <script>
     function headerSearch() {
