@@ -19,12 +19,12 @@
                     </h5>
                     <div class="list-group">
                         <?php foreach ($pageFiles as $file): ?>
-                        <a href="/page/download/<?php echo $file['id']; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <a href="/page/download/<?php echo $file['uid']; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                             <div>
                                 <i class="fas fa-file me-2 text-primary"></i>
                                 <strong><?php echo xssFilter($file['original_name']); ?></strong>
                                 <small class="text-muted ms-2">
-                                    (<?php echo number_format($file['file_size'] / 1024, 2); ?> KB)
+                                    (<?php echo number_format($file['filesize'] / 1024, 2); ?> KB)
                                 </small>
                             </div>
                             <div>

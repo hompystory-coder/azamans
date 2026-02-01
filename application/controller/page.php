@@ -62,8 +62,8 @@ class Page extends Controller {
             }
         }
         
-        // 첨부파일 목록 조회
-        $pageFiles = getDbArray("SELECT * FROM page_files WHERE menu_id = ? ORDER BY id ASC", [$menuId]);
+        // 첨부파일 목록 조회 (menu_page_upload로 변경)
+        $pageFiles = getDbArray("SELECT * FROM menu_page_upload WHERE menu_id = ? ORDER BY uid ASC", [$menuId]);
         
         $data = [
             'title' => xssFilter($menu['menu_name']),
@@ -84,16 +84,16 @@ class Page extends Controller {
             return;
         }
         
-        // 파일 정보 조회
-        $file = getUidData("SELECT * FROM page_files WHERE id = ?", [$fileId]);
+        // 파일 정보 조회 (menu_page_upload로 변경)
+        $file = getUidData("SELECT * FROM menu_page_upload WHERE uid = ?", [$fileId]);
         
         if (!$file) {
             $this->show404();
             return;
         }
         
-        // 실제 파일 경로
-        $filePath = __DIR__ . '/../../public/uploads/page/files/' . $file['saved_name'];
+        // 실제 파일 경로 (filepath 사용)
+        $filePath = __DIR__ . '/../../' . ltrim($file['filepath'], '/');
         
         if (!file_exists($filePath)) {
             $this->show404();
@@ -101,7 +101,7 @@ class Page extends Controller {
         }
         
         // 다운로드 횟수 증가
-        getDbUpdate('page_files', ['download_count' => $file['download_count'] + 1], 'id = ?', [$fileId]);
+        getDbUpdate('menu_page_upload', ['download_count' => $file['download_count'] + 1], 'uid = ?', [$fileId]);
         
         // 파일 다운로드
         header('Content-Type: application/octet-stream');

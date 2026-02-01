@@ -23,6 +23,145 @@ class Upload extends Controller {
     }
     
     /**
+     * 페이지 첨부파일 업로드
+     * URL: /upload/page/attach
+     * 
+     * @return void
+     */
+    public function pageAttach() {
+        // POST 요청만 허용
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json([
+                'success' => false,
+                'message' => 'POST 요청만 허용됩니다.'
+            ], 405);
+            return;
+        }
+        
+        // menu_id 확인
+        $menuId = $this->post('menu_id');
+        if (!$menuId) {
+            $this->json([
+                'success' => false,
+                'message' => '메뉴 ID가 필요합니다.'
+            ], 400);
+            return;
+        }
+        
+        // 파일 업로드 확인
+        if (!isset($_FILES['files']) || empty($_FILES['files']['name'][0])) {
+            $this->json([
+                'success' => false,
+                'message' => '업로드할 파일이 없습니다.'
+            ], 400);
+            return;
+        }
+        
+        $files = $_FILES['files'];
+        $uploadedFiles = [];
+        $errors = [];
+        
+        // 허용 파일 확장자
+        $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'zip', 'doc', 'docx', 'hwp', 'txt'];
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        
+        // 다중 파일 처리
+        $fileCount = count($files['name']);
+        for ($i = 0; $i < $fileCount; $i++) {
+            // 에러 체크
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                $errors[] = $files['name'][$i] . ': 업로드 실패';
+                continue;
+            }
+            
+            $fileName = $files['name'][$i];
+            $fileTmpName = $files['tmp_name'][$i];
+            $fileSize = $files['size'][$i];
+            
+            // 파일 확장자 확인
+            $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            if (!in_array($fileExt, $allowedExts)) {
+                $errors[] = $fileName . ': 허용되지 않는 파일 형식';
+                continue;
+            }
+            
+            // 파일 크기 확인
+            if ($fileSize > $maxSize) {
+                $errors[] = $fileName . ': 파일 크기 초과 (최대 10MB)';
+                continue;
+            }
+            
+            // 업로드 경로 생성 (날짜별 폴더)
+            $year = date('Y');
+            $month = date('m');
+            $day = date('d');
+            
+            $uploadDir = __DIR__ . '/../../public/uploads/page/attach/' . $year . '/' . $month . '/' . $day;
+            
+            // 디렉토리 생성
+            if (!file_exists($uploadDir)) {
+                if (!mkdir($uploadDir, 0755, true)) {
+                    $errors[] = $fileName . ': 디렉토리 생성 실패';
+                    continue;
+                }
+            }
+            
+            // 파일명 생성 (중복 방지)
+            $newFileName = uniqid() . '_' . time() . '.' . $fileExt;
+            $uploadPath = $uploadDir . '/' . $newFileName;
+            
+            // 파일 이동
+            if (!move_uploaded_file($fileTmpName, $uploadPath)) {
+                $errors[] = $fileName . ': 파일 이동 실패';
+                continue;
+            }
+            
+            // 파일 권한 설정
+            chmod($uploadPath, 0644);
+            
+            // 상대 경로 생성
+            $filePath = '/public/uploads/page/attach/' . $year . '/' . $month . '/' . $day . '/' . $newFileName;
+            
+            // MIME 타입 확인
+            $mimeType = mime_content_type($uploadPath);
+            
+            // DB 저장
+            try {
+                getDbInsert('menu_page_upload', [
+                    'menu_id' => $menuId,
+                    'filename' => $newFileName,
+                    'original_name' => $fileName,
+                    'filepath' => $filePath,
+                    'filesize' => $fileSize,
+                    'mime_type' => $mimeType
+                ]);
+                
+                $uploadedFiles[] = [
+                    'uid' => getLastInsertId(),
+                    'filename' => $newFileName,
+                    'original_name' => $fileName,
+                    'filepath' => $filePath,
+                    'filesize' => $fileSize,
+                    'mime_type' => $mimeType
+                ];
+                
+            } catch (Exception $e) {
+                $errors[] = $fileName . ': DB 저장 실패';
+                // 업로드된 파일 삭제
+                @unlink($uploadPath);
+            }
+        }
+        
+        // 응답
+        $this->json([
+            'success' => count($uploadedFiles) > 0,
+            'message' => count($uploadedFiles) . '개 파일 업로드 완료',
+            'files' => $uploadedFiles,
+            'errors' => $errors
+        ]);
+    }
+    
+    /**
      * 이미지 업로드 처리
      * 
      * @param string $type 업로드 타입 (bbs, page)

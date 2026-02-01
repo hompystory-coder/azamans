@@ -1352,20 +1352,23 @@ class Admin extends Controller {
         
         // 2. 페이지 타입이면 관련 데이터 삭제
         if ($menu['menu_type'] === 'page') {
-            // 2-1. 첨부파일 삭제
-            $pageFiles = getDbArray("SELECT * FROM page_files WHERE menu_id = ?", [$id]);
+            // 2-1. 첨부파일 실제 파일 삭제 (menu_page_upload로 변경)
+            $pageFiles = getDbArray("SELECT * FROM menu_page_upload WHERE menu_id = ?", [$id]);
             foreach ($pageFiles as $file) {
-                $realFilePath = __DIR__ . '/../../public/uploads/page/files/' . $file['saved_name'];
+                // filepath에서 실제 경로 추출
+                $realFilePath = __DIR__ . '/../../' . ltrim($file['filepath'], '/');
                 if (file_exists($realFilePath)) {
-                    unlink($realFilePath);
+                    @unlink($realFilePath);
+                    error_log("첨부파일 삭제: " . $realFilePath);
                 }
             }
-            getDbDelete('page_files', 'menu_id = ?', [$id]);
+            // DB에서 첨부파일 정보 삭제
+            getDbDelete('menu_page_upload', 'menu_id = ?', [$id]);
             
             // 2-2. DB에서 페이지 콘텐츠 삭제
             getDbDelete('menu_pages', 'menu_id = ?', [$id]);
             
-            // 2-3. 파일 삭제
+            // 2-3. 페이지 PHP 파일 삭제
             $pageFilePath = __DIR__ . '/../../public/uploads/page/' . $id . '.php';
             if (file_exists($pageFilePath)) {
                 if (unlink($pageFilePath)) {
@@ -1382,20 +1385,20 @@ class Admin extends Controller {
             foreach ($subMenus as $subMenu) {
                 // 서브메뉴가 페이지 타입이면 파일도 삭제
                 if ($subMenu['menu_type'] === 'page') {
-                    // 서브메뉴 첨부파일 삭제
-                    $subPageFiles = getDbArray("SELECT * FROM page_files WHERE menu_id = ?", [$subMenu['id']]);
+                    // 서브메뉴 첨부파일 삭제 (menu_page_upload로 변경)
+                    $subPageFiles = getDbArray("SELECT * FROM menu_page_upload WHERE menu_id = ?", [$subMenu['id']]);
                     foreach ($subPageFiles as $file) {
-                        $realFilePath = __DIR__ . '/../../public/uploads/page/files/' . $file['saved_name'];
+                        $realFilePath = __DIR__ . '/../../' . ltrim($file['filepath'], '/');
                         if (file_exists($realFilePath)) {
-                            unlink($realFilePath);
+                            @unlink($realFilePath);
                         }
                     }
-                    getDbDelete('page_files', 'menu_id = ?', [$subMenu['id']]);
+                    getDbDelete('menu_page_upload', 'menu_id = ?', [$subMenu['id']]);
                     
                     getDbDelete('menu_pages', 'menu_id = ?', [$subMenu['id']]);
                     $subPageFilePath = __DIR__ . '/../../public/uploads/page/' . $subMenu['id'] . '.php';
                     if (file_exists($subPageFilePath)) {
-                        unlink($subPageFilePath);
+                        @unlink($subPageFilePath);
                     }
                 }
             }
@@ -1471,8 +1474,8 @@ class Admin extends Controller {
             $page = getUidData("SELECT content FROM menu_pages WHERE menu_id = ?", [$id]);
             $pageContent = $page['content'] ?? '';
             
-            // 첨부파일 목록 조회
-            $pageFiles = getDbArray("SELECT * FROM page_files WHERE menu_id = ? ORDER BY id ASC", [$id]);
+            // 첨부파일 목록 조회 (menu_page_upload로 변경)
+            $pageFiles = getDbArray("SELECT * FROM menu_page_upload WHERE menu_id = ? ORDER BY uid ASC", [$id]);
         }
         
         $data = [
@@ -1604,6 +1607,43 @@ class Admin extends Controller {
     }
     
     /**
+     * 페이지 첨부파일 삭제
+     */
+    public function deletePageFile($fileId = null) {
+        if (!$fileId) {
+            $this->json(['success' => false, 'message' => 'Invalid file ID'], 400);
+            return;
+        }
+        
+        // 파일 정보 조회
+        $file = getUidData("SELECT * FROM menu_page_upload WHERE uid = ?", [$fileId]);
+        
+        if (!$file) {
+            $this->json(['success' => false, 'message' => '파일을 찾을 수 없습니다.'], 404);
+            return;
+        }
+        
+        // 실제 파일 삭제
+        $realFilePath = __DIR__ . '/../../' . ltrim($file['filepath'], '/');
+        if (file_exists($realFilePath)) {
+            if (!@unlink($realFilePath)) {
+                error_log("첨부파일 삭제 실패: " . $realFilePath);
+            } else {
+                error_log("첨부파일 삭제 완료: " . $realFilePath);
+            }
+        }
+        
+        // DB에서 삭제
+        $result = getDbDelete('menu_page_upload', 'uid = ?', [$fileId]);
+        
+        if ($result) {
+            $this->json(['success' => true, 'message' => '파일이 삭제되었습니다.']);
+        } else {
+            $this->json(['success' => false, 'message' => '파일 삭제에 실패했습니다.']);
+        }
+    }
+    
+    /**
      * 서브메뉴 추가
      */
     public function addSubmenu($parentId = null) {
@@ -1639,39 +1679,6 @@ class Admin extends Controller {
             $this->json(['success' => true, 'message' => '서브메뉴가 추가되었습니다.']);
         } else {
             $this->json(['success' => false, 'message' => '서브메뉴 추가에 실패했습니다.']);
-        }
-    }
-    
-    /**
-     * 페이지 첨부파일 삭제
-     */
-    public function deletePageFile($fileId = null) {
-        if (!$fileId) {
-            $this->json(['success' => false, 'message' => 'Invalid file ID'], 400);
-            return;
-        }
-        
-        // 파일 정보 조회
-        $file = getUidData("SELECT * FROM page_files WHERE id = ?", [$fileId]);
-        
-        if (!$file) {
-            $this->json(['success' => false, 'message' => '파일을 찾을 수 없습니다.'], 404);
-            return;
-        }
-        
-        // 실제 파일 삭제
-        $realFilePath = __DIR__ . '/../../public/uploads/page/files/' . $file['saved_name'];
-        if (file_exists($realFilePath)) {
-            unlink($realFilePath);
-        }
-        
-        // DB에서 삭제
-        $result = getDbDelete('page_files', 'id = ?', [$fileId]);
-        
-        if ($result) {
-            $this->json(['success' => true, 'message' => '파일이 삭제되었습니다.']);
-        } else {
-            $this->json(['success' => false, 'message' => '파일 삭제에 실패했습니다.']);
         }
     }
 }

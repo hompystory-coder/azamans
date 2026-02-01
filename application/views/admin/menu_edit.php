@@ -81,15 +81,15 @@
                                             <strong>기존 첨부파일:</strong>
                                             <ul class="list-group mt-2" id="existing-files-list">
                                                 <?php foreach ($pageFiles as $file): ?>
-                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="file-<?php echo $file['id']; ?>">
+                                                <li class="list-group-item d-flex justify-content-between align-items-center" id="file-<?php echo $file['uid']; ?>">
                                                     <div>
                                                         <i class="fas fa-file me-2"></i>
-                                                        <a href="/page/download/<?php echo $file['id']; ?>" target="_blank">
+                                                        <a href="/page/download/<?php echo $file['uid']; ?>" target="_blank">
                                                             <?php echo xssFilter($file['original_name']); ?>
                                                         </a>
-                                                        <small class="text-muted ms-2">(<?php echo number_format($file['file_size'] / 1024, 2); ?> KB)</small>
+                                                        <small class="text-muted ms-2">(<?php echo number_format($file['filesize'] / 1024, 2); ?> KB, 다운로드: <?php echo $file['download_count']; ?>회)</small>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm btn-danger" onclick="deletePageFile(<?php echo $file['id']; ?>)">
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="deletePageFile(<?php echo $file['uid']; ?>)">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </li>
@@ -232,8 +232,8 @@ $(document).ready(function() {
             document.getElementById('page_content').value = window.editorpage_content.getData();
         }
         
-        const formData = new FormData(this);
         const menuId = <?php echo $menu['id']; ?>;
+        const formData = new FormData(this);
         
         // 체크박스 값 처리
         formData.set('use_redirect', $('#use_redirect').is(':checked') ? 'Y' : 'N');
@@ -245,35 +245,75 @@ $(document).ready(function() {
         if (selectedType === 'page') {
             formData.delete('menu_target');
             formData.set('menu_target', '');
+            
+            // 첨부파일 업로드 (별도 처리)
+            const fileInput = document.getElementById('page_files');
+            if (fileInput && fileInput.files.length > 0) {
+                const filesFormData = new FormData();
+                filesFormData.append('menu_id', menuId);
+                
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    filesFormData.append('files[]', fileInput.files[i]);
+                }
+                
+                // 첨부파일 먼저 업로드
+                $.ajax({
+                    url: '/upload/pageAttach',
+                    method: 'POST',
+                    data: filesFormData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(fileResponse) {
+                        console.log('파일 업로드 완료:', fileResponse);
+                        // 파일 업로드 후 메뉴 업데이트
+                        updateMenu(formData, menuId);
+                    },
+                    error: function(xhr) {
+                        console.error('파일 업로드 실패:', xhr);
+                        alert('첨부파일 업로드 중 오류가 발생했습니다.');
+                    }
+                });
+            } else {
+                // 첨부파일 없으면 바로 메뉴 업데이트
+                updateMenu(formData, menuId);
+            }
         } else if (selectedType === 'board') {
             // 게시판 선택값만 사용
             formData.set('menu_target', $('#board_select').val());
+            updateMenu(formData, menuId);
         } else if (selectedType === 'content') {
             // 콘텐츠 선택값만 사용
             formData.set('menu_target', $('#content_select').val());
+            updateMenu(formData, menuId);
         }
+    });
+    
+    // 메뉴 업데이트 함수
+    function updateMenu(formData, menuId) {
+        // page_files[] 제거 (이미 업로드됨)
+        formData.delete('page_files[]');
         
         $.ajax({
             url: '/admin/updateMenu/' + menuId,
             method: 'POST',
-            data: formData,
-            processData: false,  // 파일 업로드를 위해 필수
-            contentType: false,  // 파일 업로드를 위해 필수
+            data: Object.fromEntries(formData),
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
                     alert(response.message);
                     location.href = '/admin/menu/header';
                 } else {
-                    alert(response.message);
+                    alert(response.message || '메뉴 수정에 실패했습니다.');
                 }
             },
             error: function(xhr) {
                 console.error('Error:', xhr);
-                alert('메뉴 수정 중 오류가 발생했습니다.');
+                console.error('Response:', xhr.responseText);
+                alert('메뉴 수정 중 오류가 발생했습니다.\n오류: ' + (xhr.responseText || xhr.statusText));
             }
         });
-    });
+    }
 });
 
 // 페이지 첨부파일 삭제
