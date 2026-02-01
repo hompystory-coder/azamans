@@ -39,7 +39,6 @@ import { Mention } from '@ckeditor/ckeditor5-mention';
 import { WordCount } from '@ckeditor/ckeditor5-word-count';
 import { Autosave } from '@ckeditor/ckeditor5-autosave';
 import { CKFinderUploadAdapter } from '@ckeditor/ckeditor5-adapter-ckfinder';
-import { RestrictedEditingMode } from '@ckeditor/ckeditor5-restricted-editing';
 
 export default class ClassicEditor extends ClassicEditorBase {}
 
@@ -102,8 +101,7 @@ ClassicEditor.builtinPlugins = [
 	Mention,
 	WordCount,
 	Autosave,
-	CKFinderUploadAdapter,
-	RestrictedEditingMode
+	CKFinderUploadAdapter
 ];
 
 // Editor configuration.
@@ -161,5 +159,8 @@ ClassicEditor.defaultConfig = {
 			'tableCellProperties',
 			'tableProperties'
 		]
+	},
+	mediaEmbed: {
+		toolbar: []
 	}
 };
