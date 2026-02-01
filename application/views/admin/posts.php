@@ -61,16 +61,16 @@
                                 <?php foreach ($posts as $post): ?>
                                 <tr>
                                     <td class="text-center"><?php echo $num--; ?></td>
-                                    <td><span class="badge bg-secondary"><?php echo xssFilter($post['board_id']); ?></span></td>
+                                    <td><span class="badge bg-secondary"><?php echo xssFilter($post['bbs_name'] ?? $post['bbs_id'] ?? ''); ?></span></td>
                                     <td>
-                                        <a href="/bbs/<?php echo $post['board_id']; ?>/view/<?php echo $post['uid']; ?>" 
+                                        <a href="/bbs/<?php echo $post['bbs_id']; ?>/view/<?php echo $post['uid']; ?>" 
                                            target="_blank" class="text-decoration-none">
-                                            <?php echo xssFilter($post['subject']); ?>
+                                            <?php echo xssFilter($post['title'] ?? '제목 없음'); ?>
                                         </a>
                                     </td>
-                                    <td><?php echo xssFilter($post['writer']); ?></td>
-                                    <td class="text-center"><?php echo number_format($post['views']); ?></td>
-                                    <td class="text-center small"><?php echo date('Y-m-d H:i', strtotime($post['created_at'])); ?></td>
+                                    <td><?php echo xssFilter($post['name'] ?? ''); ?></td>
+                                    <td class="text-center"><?php echo number_format($post['view_count'] ?? 0); ?></td>
+                                    <td class="text-center small"><?php echo date('Y-m-d H:i', strtotime($post['reg_date'] ?? 'now')); ?></td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-outline-danger" 
                                                 onclick="deletePost(<?php echo $post['uid']; ?>)">
