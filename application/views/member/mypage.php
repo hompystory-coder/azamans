@@ -1,5 +1,28 @@
 <?php include __DIR__ . '/../_header.php'; ?>
 
+<style>
+/* 마이페이지 버튼 텍스트 색상 강제 적용 */
+#profileForm button[type="submit"],
+#passwordForm button[type="submit"] {
+    color: white !important;
+}
+
+#profileForm button[type="submit"]:hover,
+#passwordForm button[type="submit"]:hover {
+    color: white !important;
+}
+
+#profileForm button[type="submit"]:focus,
+#passwordForm button[type="submit"]:focus {
+    color: white !important;
+}
+
+#profileForm button[type="submit"]:active,
+#passwordForm button[type="submit"]:active {
+    color: white !important;
+}
+</style>
+
 <div class="container my-5">
     <div class="row">
         <!-- 왼쪽: 프로필 카드 -->
@@ -133,7 +156,7 @@
                                            value="<?= xssFilter($user['address'] ?? '') ?>">
                                 </div>
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-primary" style="color: white;">
+                                    <button type="submit" class="btn btn-primary" style="color: white !important;">
                                         <i class="fas fa-save me-2"></i>저장
                                     </button>
                                 </div>
@@ -164,7 +187,7 @@
                                            minlength="8" required>
                                 </div>
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-warning" style="color: white;">
+                                    <button type="submit" class="btn btn-warning" style="color: white !important;">
                                         <i class="fas fa-key me-2"></i>비밀번호 변경
                                     </button>
                                 </div>
