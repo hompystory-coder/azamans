@@ -93,9 +93,8 @@ main {
 ********************************************************/
 .navbar {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    min-height: 180px !important; /* 높이만 3배로 증가 */
     padding-top: 10px !important;
-    padding-bottom: 10px !important;
+    padding-bottom: 0 !important; /* 하단 패딩 제거 */
 }
 
 .navbar-brand {
@@ -105,6 +104,72 @@ main {
 
 .nav-link:hover {
     color: var(--main-color1) !important;
+}
+
+/* 헤더 하단 메뉴 영역 */
+.header-bottom-menu {
+    width: 100%;
+    background-color: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    padding: 20px 0;
+    margin-top: 15px;
+}
+
+.header-bottom-menu .nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+
+.header-bottom-menu .nav-link {
+    color: #2196F3 !important;
+    font-size: 1.3rem !important;
+    font-weight: 500 !important;
+    padding: 10px 20px !important;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.header-bottom-menu .nav-link:hover {
+    color: var(--main-color1) !important;
+    transform: translateY(-2px);
+}
+
+/* 검색창 스타일 */
+.header-search {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.header-search input {
+    width: 200px;
+    height: 40px;
+    padding: 5px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.header-search input:focus {
+    outline: none;
+    border-color: var(--main-color1);
+}
+
+.header-search button {
+    height: 40px;
+    padding: 0 20px;
+    background-color: var(--main-color1);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.header-search button:hover {
+    background-color: var(--main-color2);
 }
 
 /********************************************************

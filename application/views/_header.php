@@ -112,7 +112,48 @@
                 </ul>
             </div>
         </div>
+        
+        <!-- 하단 메뉴 영역 -->
+        <div class="header-bottom-menu">
+            <div class="container">
+                <nav class="nav">
+                    <a class="nav-link" href="#">메뉴1</a>
+                    <a class="nav-link" href="#">메뉴2</a>
+                    <a class="nav-link" href="#">메뉴3</a>
+                    <a class="nav-link" href="#">메뉴4</a>
+                    <a class="nav-link" href="#">메뉴5</a>
+                    <a class="nav-link" href="#">메뉴6</a>
+                    
+                    <!-- 검색창 -->
+                    <div class="header-search">
+                        <input type="text" placeholder="검색" id="headerSearchInput">
+                        <button type="button" onclick="headerSearch()">검색창</button>
+                    </div>
+                </nav>
+            </div>
+        </div>
     </nav>
+    
+    <script>
+    function headerSearch() {
+        const query = document.getElementById('headerSearchInput').value;
+        if (query.trim()) {
+            window.location.href = '/search?q=' + encodeURIComponent(query);
+        }
+    }
+    
+    // 엔터키로 검색
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('headerSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    headerSearch();
+                }
+            });
+        }
+    });
+    </script>
     
     <?php if (isLoggedIn()): ?>
     <script>
