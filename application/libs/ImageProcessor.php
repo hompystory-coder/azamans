@@ -29,14 +29,18 @@ class ImageProcessor {
         $defaults = [
             'image_max_width' => 900,
             'image_quality' => 100,
-            'thumb_big_width' => 800,
+            'thumb_big_width' => 900,
             'thumb_big_height' => 600,
-            'thumb_middle_width' => 400,
-            'thumb_middle_height' => 300,
-            'thumb_small_width' => 200,
-            'thumb_small_height' => 150,
+            'thumb_middle_width' => 640,
+            'thumb_middle_height' => 480,
+            'thumb_small_width' => 480,
+            'thumb_small_height' => 360,
             'thumb_quality' => 100,
+            'thumbnail_delete_original' => 'N',
+            'thumbnail_transparent_bg' => 'white',
             'watermark_enabled' => 'N',
+            'watermark_target_board' => 'Y',
+            'watermark_target_page' => 'Y',
             'watermark_position' => 5,
             'watermark_image' => '',
             'watermark_opacity' => 80,
@@ -212,6 +216,16 @@ class ImageProcessor {
                 }
             }
             
+            // 6. 원본 이미지 삭제 옵션 처리
+            if ($this->config['thumbnail_delete_original'] === 'Y' && $result['original'] && $result['big']) {
+                $originalPath = $targetDir . '/' . $result['original'];
+                if (file_exists($originalPath) && $result['original'] !== basename($sourcePath)) {
+                    @unlink($originalPath);
+                    $result['original'] = ''; // 원본 삭제됨
+                    $result['message'] .= ' (원본 삭제됨)';
+                }
+            }
+            
             $result['success'] = true;
             $result['message'] = '이미지 처리 완료';
             
@@ -379,7 +393,12 @@ class ImageProcessor {
                 }
             } else {
                 $dst = imagecreatetruecolor($dst_w, $dst_h);
-                $bgcolor = imagecolorallocate($dst, 255, 255, 255);
+                // 투명 배경 처리 옵션 적용
+                if ($this->config['thumbnail_transparent_bg'] === 'black') {
+                    $bgcolor = imagecolorallocate($dst, 0, 0, 0); // 검정
+                } else {
+                    $bgcolor = imagecolorallocate($dst, 255, 255, 255); // 흰색 (기본)
+                }
 
                 if($src_w > $src_h) {
                     $tmp_h = round(($dst_w * $src_h) / $src_w);
@@ -412,7 +431,12 @@ class ImageProcessor {
             }
         } else {
             $dst = imagecreatetruecolor($dst_w, $dst_h);
-            $bgcolor = imagecolorallocate($dst, 255, 255, 255);
+            // 투명 배경 처리 옵션 적용
+            if ($this->config['thumbnail_transparent_bg'] === 'black') {
+                $bgcolor = imagecolorallocate($dst, 0, 0, 0); // 검정
+            } else {
+                $bgcolor = imagecolorallocate($dst, 255, 255, 255); // 흰색 (기본)
+            }
 
             if($src_w < $dst_w) {
                 if($src_h >= $dst_h) {

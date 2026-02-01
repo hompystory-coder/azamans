@@ -1675,13 +1675,15 @@ class Admin extends Controller {
         $settings = [
             'image_max_width' => (int)($_POST['image_max_width'] ?? 900),
             'image_quality' => (int)($_POST['image_quality'] ?? 100),
-            'thumb_big_width' => (int)($_POST['thumb_big_width'] ?? 800),
+            'thumb_big_width' => (int)($_POST['thumb_big_width'] ?? 900),
             'thumb_big_height' => (int)($_POST['thumb_big_height'] ?? 600),
-            'thumb_middle_width' => (int)($_POST['thumb_middle_width'] ?? 400),
-            'thumb_middle_height' => (int)($_POST['thumb_middle_height'] ?? 300),
-            'thumb_small_width' => (int)($_POST['thumb_small_width'] ?? 200),
-            'thumb_small_height' => (int)($_POST['thumb_small_height'] ?? 150),
-            'thumb_quality' => (int)($_POST['thumb_quality'] ?? 100)
+            'thumb_middle_width' => (int)($_POST['thumb_middle_width'] ?? 640),
+            'thumb_middle_height' => (int)($_POST['thumb_middle_height'] ?? 480),
+            'thumb_small_width' => (int)($_POST['thumb_small_width'] ?? 480),
+            'thumb_small_height' => (int)($_POST['thumb_small_height'] ?? 360),
+            'thumb_quality' => (int)($_POST['thumb_quality'] ?? 100),
+            'thumbnail_delete_original' => cleanInput($_POST['thumbnail_delete_original'] ?? 'N'),
+            'thumbnail_transparent_bg' => cleanInput($_POST['thumbnail_transparent_bg'] ?? 'white')
         ];
         
         // 유효성 검사
@@ -1693,6 +1695,14 @@ class Admin extends Controller {
         if ($settings['thumb_quality'] < 1 || $settings['thumb_quality'] > 100) {
             $this->json(['success' => false, 'message' => '썸네일 해상도는 1~100 사이여야 합니다.'], 400);
             return;
+        }
+        
+        if (!in_array($settings['thumbnail_delete_original'], ['Y', 'N'])) {
+            $settings['thumbnail_delete_original'] = 'N';
+        }
+        
+        if (!in_array($settings['thumbnail_transparent_bg'], ['white', 'black'])) {
+            $settings['thumbnail_transparent_bg'] = 'white';
         }
         
         // site_config 테이블에 저장
@@ -1714,6 +1724,8 @@ class Admin extends Controller {
         
         $settings = [
             'watermark_enabled' => cleanInput($_POST['watermark_enabled'] ?? 'N'),
+            'watermark_target_board' => cleanInput($_POST['watermark_target_board'] ?? 'Y'),
+            'watermark_target_page' => cleanInput($_POST['watermark_target_page'] ?? 'Y'),
             'watermark_position' => (int)($_POST['watermark_position'] ?? 5),
             'watermark_opacity' => (int)($_POST['watermark_opacity'] ?? 80)
         ];
@@ -1721,6 +1733,14 @@ class Admin extends Controller {
         // 유효성 검사
         if (!in_array($settings['watermark_enabled'], ['Y', 'N'])) {
             $settings['watermark_enabled'] = 'N';
+        }
+        
+        if (!in_array($settings['watermark_target_board'], ['Y', 'N'])) {
+            $settings['watermark_target_board'] = 'Y';
+        }
+        
+        if (!in_array($settings['watermark_target_page'], ['Y', 'N'])) {
+            $settings['watermark_target_page'] = 'Y';
         }
         
         if ($settings['watermark_position'] < 1 || $settings['watermark_position'] > 5) {

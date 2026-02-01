@@ -383,6 +383,61 @@
                                 </div>
                             </div>
                             
+                            <hr class="my-4">
+                            
+                            <!-- 썸네일 추가 설정 -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h6 class="mb-3"><i class="fas fa-cog"></i> 썸네일 추가 옵션</h6>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label d-block mb-2">원본 이미지 처리</label>
+                                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                        <div style="margin-bottom: 8px;">
+                                            <label style="cursor: pointer; margin: 0;">
+                                                <input type="radio" name="thumbnail_delete_original" value="N"
+                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'N' ? 'checked' : '' ?>
+                                                       style="cursor: pointer; margin-right: 8px;">
+                                                원본 보관
+                                            </label>
+                                        </div>
+                                        <div style="margin-bottom: 0;">
+                                            <label style="cursor: pointer; margin: 0;">
+                                                <input type="radio" name="thumbnail_delete_original" value="Y"
+                                                       <?= ($configs['thumbnail_delete_original'] ?? 'N') === 'Y' ? 'checked' : '' ?>
+                                                       style="cursor: pointer; margin-right: 8px;">
+                                                원본 삭제
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">썸네일 생성 후 원본 이미지를 보관할지 삭제할지 선택합니다.</small>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label d-block mb-2">투명 배경 처리</label>
+                                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                        <div style="margin-bottom: 8px;">
+                                            <label style="cursor: pointer; margin: 0;">
+                                                <input type="radio" name="thumbnail_transparent_bg" value="white"
+                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'white' ? 'checked' : '' ?>
+                                                       style="cursor: pointer; margin-right: 8px;">
+                                                흰색 배경
+                                            </label>
+                                        </div>
+                                        <div style="margin-bottom: 0;">
+                                            <label style="cursor: pointer; margin: 0;">
+                                                <input type="radio" name="thumbnail_transparent_bg" value="black"
+                                                       <?= ($configs['thumbnail_transparent_bg'] ?? 'white') === 'black' ? 'checked' : '' ?>
+                                                       style="cursor: pointer; margin-right: 8px;">
+                                                검정 배경
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">PNG 등 투명 배경이 있는 이미지의 여백을 채울 색상을 선택합니다.</small>
+                                </div>
+                            </div>
+                            
                             <button type="button" class="btn btn-primary" onclick="saveImageSettings()">
                                 <i class="fas fa-save me-2"></i>저장
                             </button>
@@ -412,6 +467,29 @@
                                         워터마크 사용
                                     </label>
                                 </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label d-block mb-2">워터마크 적용 대상</label>
+                                <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px;">
+                                    <div style="margin-bottom: 8px;">
+                                        <label style="cursor: pointer; margin: 0;">
+                                            <input type="checkbox" name="watermark_target_board" value="Y"
+                                                   <?= ($configs['watermark_target_board'] ?? 'Y') === 'Y' ? 'checked' : '' ?>
+                                                   style="cursor: pointer; margin-right: 8px;">
+                                            게시판
+                                        </label>
+                                    </div>
+                                    <div style="margin-bottom: 0;">
+                                        <label style="cursor: pointer; margin: 0;">
+                                            <input type="checkbox" name="watermark_target_page" value="Y"
+                                                   <?= ($configs['watermark_target_page'] ?? 'Y') === 'Y' ? 'checked' : '' ?>
+                                                   style="cursor: pointer; margin-right: 8px;">
+                                            페이지
+                                        </label>
+                                    </div>
+                                </div>
+                                <small class="text-muted">게시판과 페이지를 모두 선택하면 모든 곳에 워터마크가 적용됩니다.</small>
                             </div>
                             
                             <div class="mb-3">
@@ -723,6 +801,9 @@ function saveImageSettings() {
     const form = document.getElementById('imageSettingsForm');
     const formData = new FormData(form);
     
+    // 현재 탭 저장
+    localStorage.setItem('adminConfigTab', 'image');
+    
     fetch('/admin/config/saveImageSettings', {
         method: 'POST',
         body: formData
@@ -748,6 +829,15 @@ function saveWatermarkSettings() {
     // 체크박스 값 처리
     const enabled = document.getElementById('watermark_enabled').checked;
     formData.set('watermark_enabled', enabled ? 'Y' : 'N');
+    
+    // 적용 대상 체크박스 처리
+    const targetBoard = document.querySelector('input[name="watermark_target_board"]').checked;
+    const targetPage = document.querySelector('input[name="watermark_target_page"]').checked;
+    formData.set('watermark_target_board', targetBoard ? 'Y' : 'N');
+    formData.set('watermark_target_page', targetPage ? 'Y' : 'N');
+    
+    // 현재 탭 저장
+    localStorage.setItem('adminConfigTab', 'watermark');
     
     fetch('/admin/config/saveWatermarkSettings', {
         method: 'POST',
