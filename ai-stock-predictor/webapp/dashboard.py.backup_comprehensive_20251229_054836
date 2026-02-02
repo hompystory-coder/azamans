@@ -1,0 +1,1063 @@
+"""
+AI 주식 도우미 - 구글 스타일 심플 UI
+"""
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from datetime import datetime, timedelta
+import sys
+import os
+
+# 경로 추가
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from data.fetcher import StockDataFetcher
+from data.indicators import TechnicalIndicators
+from models.lstm_model import StockPricePredictor
+from analysis.backtesting import BacktestingEngine
+from data.external_sources import ExternalDataCollector
+from models.enhanced_predictor import EnhancedPredictor
+from analysis.final_decision import InvestmentDecisionEngine, get_decision_emoji, get_decision_color, get_decision_name_kr
+from data.realtime_analyzer import RealtimeAnalyzer  # 실시간 분석기
+from data.analysis_cache import AnalysisCache  # 캐시 시스템
+from data.company_database import search_ticker_advanced, KOREA_TOP_COMPANIES, USA_TOP_COMPANIES  # 기업 데이터베이스
+from webapp.realtime_widget import realtime_price_widget, mini_realtime_chart
+from models.investor_pattern_predictor import InvestorPatternPredictor  # 🆕 투자자 패턴 예측
+
+# 페이지 설정
+st.set_page_config(
+    page_title="AI 주식 도우미",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# 구글 스타일 CSS
+st.markdown("""
+<style>
+    /* 전체 배경 */
+    .stApp {
+        background-color: #ffffff;
+    }
+    
+    /* 헤더 숨기기 */
+    header {visibility: hidden;}
+    
+    /* 메인 컨테이너 중앙 정렬 */
+    .main .block-container {
+        padding-top: 5rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    /* 로고 스타일 */
+    .logo {
+        text-align: center;
+        font-size: 5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .title {
+        text-align: center;
+        font-size: 2.5rem;
+        color: #202124;
+        font-weight: 400;
+        margin-bottom: 2rem;
+    }
+    
+    /* 검색창 스타일 */
+    .stTextInput > div > div > input {
+        background-color: #ffffff;
+        border: 1px solid #dfe1e5;
+        border-radius: 24px;
+        padding: 14px 20px;
+        font-size: 16px;
+        box-shadow: 0 1px 6px rgba(32,33,36,.28);
+        transition: box-shadow 0.2s;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        box-shadow: 0 1px 6px rgba(32,33,36,.28);
+        border-color: rgba(223,225,229,0);
+        outline: none;
+    }
+    
+    /* 버튼 스타일 */
+    .stButton > button {
+        background-color: #f8f9fa;
+        border: 1px solid #f8f9fa;
+        border-radius: 4px;
+        color: #3c4043;
+        font-size: 14px;
+        margin: 11px 4px;
+        padding: 0 16px;
+        height: 36px;
+        min-width: 120px;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .stButton > button:hover {
+        box-shadow: 0 1px 1px rgba(0,0,0,.1);
+        border-color: #dadce0;
+        color: #202124;
+    }
+    
+    .stButton > button[kind="primary"] {
+        background-color: #1a73e8;
+        border-color: #1a73e8;
+        color: white;
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        background-color: #1765cc;
+        border-color: #1765cc;
+    }
+    
+    /* 인기 종목 버튼 */
+    .popular-btn {
+        display: inline-block;
+        background: #f8f9fa;
+        border: 1px solid #dadce0;
+        border-radius: 20px;
+        padding: 8px 16px;
+        margin: 4px;
+        font-size: 14px;
+        color: #3c4043;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .popular-btn:hover {
+        background: #e8eaed;
+    }
+    
+    /* 결과 카드 */
+    .result-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 16px 0;
+        box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    }
+    
+    /* 결정 배너 */
+    .decision-banner {
+        padding: 24px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 500;
+        margin: 24px 0;
+        color: white;
+    }
+    
+    /* 푸터 */
+    .footer {
+        text-align: center;
+        color: #70757a;
+        font-size: 14px;
+        margin-top: 40px;
+        padding: 20px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# 세션 상태 초기화
+if 'ticker' not in st.session_state:
+    st.session_state.ticker = None
+if 'show_results' not in st.session_state:
+    st.session_state.show_results = False
+
+# 로고 및 타이틀
+st.markdown('<div class="logo">📈</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">AI 주식 도우미</div>', unsafe_allow_html=True)
+
+# 검색 폼
+with st.form(key='search_form', clear_on_submit=False):
+    col1, col2, col3 = st.columns([6, 1, 1])
+    
+    with col1:
+        ticker_input = st.text_input(
+            "search",
+            placeholder="주식명이나 티커를 입력하세요 (예: 삼성전자, 애플, AAPL, 테슬라) - 한국/미국 500대 기업 지원",
+            label_visibility="collapsed",
+            key="ticker_search"
+        )
+    
+    with col2:
+        submit = st.form_submit_button("🔍 검색", type="primary", use_container_width=True)
+    
+    with col3:
+        clear = st.form_submit_button("🔄 초기화", use_container_width=True)
+
+# 초기화 처리
+if clear:
+    st.session_state.ticker = None
+    st.session_state.show_results = False
+    st.rerun()
+
+# 검색 처리 (한국 500대 + 미국 500대 기업 지원)
+if submit and ticker_input:
+    # 🆕 고급 검색 엔진 사용
+    input_text = ticker_input.strip()
+    ticker = search_ticker_advanced(input_text)
+    
+    st.session_state.ticker = ticker
+    st.session_state.show_results = True
+    st.rerun()
+
+# 인기 종목 (form 밖에서 처리)
+st.markdown("<br>", unsafe_allow_html=True)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
+
+popular_stocks = [
+    ("AAPL", "🍎 애플", col1),
+    ("TSLA", "⚡ 테슬라", col2),
+    ("NVDA", "🎮 엔비디아", col3),
+    ("005930.KQ", "📱 삼성전자", col4),
+    ("000660.KS", "💾 SK하이닉스", col5),
+    ("035420.KS", "🔍 NAVER", col6)
+]
+
+for ticker, name, col in popular_stocks:
+    with col:
+        if st.button(name, key=f"pop_{ticker}", use_container_width=True):
+            st.session_state.ticker = ticker
+            st.session_state.show_results = True
+            st.rerun()
+
+# 결과 표시
+if st.session_state.show_results and st.session_state.ticker:
+    ticker = st.session_state.ticker
+    
+    with st.spinner(f"🤖 {ticker} 분석 중... (한국 500대 + 미국 500대 기업 지원)"):
+        try:
+            # 데이터 수집
+            fetcher = StockDataFetcher()
+            start_date = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
+            df = fetcher.get_stock_data(ticker, start_date=start_date)
+            
+            if df is None or len(df) == 0:
+                st.error(f"❌ '{ticker}' 종목을 찾을 수 없습니다.")
+                st.info("""
+                💡 **검색 팁:**
+                - 미국 주식: AAPL, TSLA, NVDA
+                - 한국 주식: 005930.KQ (삼성전자), 035420.KS (네이버)
+                - 한글 검색: 애플, 테슬라, 삼성전자
+                """)
+            else:
+                info = fetcher.get_stock_info(ticker)
+                
+                # 기술적 분석
+                try:
+                    df = TechnicalIndicators.add_all_indicators(df)
+                    signal = TechnicalIndicators.get_trading_signal(df)
+                except Exception as e:
+                    st.warning(f"⚠️ 기술적 분석 중 오류: {str(e)}")
+                    signal = 'HOLD'
+                
+                # AI 예측
+                try:
+                    predictor = StockPricePredictor()
+                    predictions = predictor.predict_future(df, days=30)
+                except Exception as e:
+                    st.warning(f"⚠️ AI 예측 중 오류: {str(e)}")
+                    predictions = [df['Close'].iloc[-1]] * 30
+                
+                # 실시간 가격 사용 (네이버 or yfinance)
+                try:
+                    realtime_price_data = fetcher.get_realtime_price(ticker)
+                    if realtime_price_data and realtime_price_data.get('is_realtime'):
+                        current_price = realtime_price_data['price']
+                    else:
+                        current_price = df['Close'].iloc[-1]
+                except:
+                    current_price = df['Close'].iloc[-1]
+                predicted_price = predictions[-1] if len(predictions) > 0 else current_price
+                
+                # 외부 데이터
+                try:
+                    external_collector = ExternalDataCollector()
+                    external_data = external_collector.collect_all_data(ticker)
+                except:
+                    external_data = {}
+                
+                # 실시간 종합 분석 (뉴스, YouTube 등)
+                try:
+                    realtime_analyzer = RealtimeAnalyzer()
+                    realtime_data = realtime_analyzer.analyze_comprehensive(ticker, info.get('name', ticker))
+                except:
+                    realtime_data = {
+                        'news_analysis': {'items': []},
+                        'youtube_sentiment': {'videos': []},
+                        'risk_factors': [],
+                        'positive_factors': [],
+                        'timeline_events': []
+                    }
+                
+                # 백테스팅
+                try:
+                    backtest_engine = BacktestingEngine()
+                    backtest_results = backtest_engine.run_monthly_backtest(ticker, df)
+                except:
+                    backtest_results = None
+                
+                # Enhanced Predictor
+                try:
+                    enhanced_predictor = EnhancedPredictor()
+                    enhanced_prediction = enhanced_predictor.predict_with_external_data(
+                        df, external_data, days=30
+                    )
+                except:
+                    enhanced_prediction = predictions
+                
+                # 최종 투자 결정
+                try:
+                    decision_engine = InvestmentDecisionEngine()
+                    final_report = decision_engine.generate_final_report(
+                        ticker=ticker,
+                        df=df,
+                        technical_signal=signal,
+                        prediction=enhanced_prediction if enhanced_prediction is not None else predictions,
+                        external_data=external_data,
+                        backtest_results=backtest_results,
+                        patterns={}
+                    )
+                except Exception as e:
+                    # 간단한 결정 생성
+                    final_report = {
+                        'decision': 'HOLD',
+                        'total_score': 50,
+                        'investment_strategy': {
+                            'position_size': '10-20%',
+                            'entry_price': float(current_price),
+                            'stop_loss': current_price * 0.9,
+                            'holding_period': '1-3개월'
+                        },
+                        'price_targets': {
+                            'target_1m': predicted_price,
+                            'target_3m': predicted_price * 1.1,
+                            'risk_reward_ratio': 2.0
+                        },
+                        'key_reasons': {
+                            'positive': realtime_data.get('positive_factors', ['AI 예측 가능']),
+                            'negative': realtime_data.get('risk_factors', ['데이터 부족'])
+                        },
+                        'risk': {
+                            'level': 'MEDIUM',
+                            'factors': realtime_data.get('risk_factors', ['불확실성 존재'])
+                        }
+                    }
+                
+                # 실시간 데이터를 final_report에 통합
+                if 'key_reasons' in final_report:
+                    # 실시간 분석 결과 추가
+                    if realtime_data.get('positive_factors'):
+                        final_report['key_reasons']['positive'] = (
+                            realtime_data['positive_factors'] + 
+                            final_report['key_reasons'].get('positive', [])
+                        )[:10]
+                    if realtime_data.get('risk_factors'):
+                        final_report['key_reasons']['negative'] = (
+                            realtime_data['risk_factors'] + 
+                            final_report['key_reasons'].get('negative', [])
+                        )[:10]
+                
+                # 실시간 가격 사용 (네이버 or yfinance)
+                try:
+                    realtime_price_data = fetcher.get_realtime_price(ticker)
+                    if realtime_price_data and realtime_price_data.get('is_realtime'):
+                        current_price = realtime_price_data['price']
+                    else:
+                        current_price = df['Close'].iloc[-1]
+                except:
+                    current_price = df['Close'].iloc[-1]
+                predicted_price = predictions[-1] if len(predictions) > 0 else current_price
+                
+                # 🆕 분석 데이터 캐시에 저장 (한국 500대 + 미국 500대)
+                try:
+                    cache = AnalysisCache()
+                    cache_data = {
+                        'ticker': ticker,
+                        'info': info,
+                        'signal': signal,
+                        'current_price': float(current_price),
+                        'predicted_price': float(predicted_price),
+                        'predictions': [float(p) for p in predictions] if predictions else [],
+                        'external_data': external_data,
+                        'realtime_data': realtime_data,
+                        'backtest_results': backtest_results,
+                        'final_report': final_report
+                    }
+                    cache.save_analysis(ticker, cache_data)
+                    st.success(f"✅ {ticker} 분석 데이터 저장 완료!")
+                except Exception as e:
+                    pass  # 캐시 저장 실패해도 진행
+                
+                # === 결과 표시 ===
+                st.markdown("<br><br>", unsafe_allow_html=True)
+                
+                # 1. 투자 결정
+                decision = final_report['decision']
+                decision_emoji = get_decision_emoji(decision)
+                decision_color = get_decision_color(decision)
+                decision_name = get_decision_name_kr(decision)
+                
+                st.markdown(
+                    f'<div class="decision-banner" style="background: {decision_color};">'
+                    f'{decision_emoji} {decision_name}'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+                
+                # 🔴 실시간 가격 위젯 추가
+                st.markdown("---")
+                realtime_price_widget(ticker, auto_refresh=False)
+                
+                # 미니 실시간 차트
+                with st.expander("📊 실시간 1시간 차트 보기", expanded=False):
+                    mini_realtime_chart(ticker, "1h")
+                st.markdown("---")
+                
+                # 2. 기본 정보
+                st.markdown('<div class="result-card">', unsafe_allow_html=True)
+                st.markdown(f"### 📊 {info.get('name', ticker)} ({ticker})")
+                
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("현재가", f"${current_price:,.2f}")
+                with col2:
+                    change_pct = ((predicted_price - current_price) / current_price * 100)
+                    st.metric("30일 예측", f"${predicted_price:,.2f}", f"{change_pct:+.2f}%")
+                with col3:
+                    try:
+                        rsi = df['RSI'].iloc[-1] if 'RSI' in df.columns else 50
+                        st.metric("RSI", f"{rsi:.1f}")
+                    except:
+                        st.metric("RSI", "N/A")
+                with col4:
+                    st.metric("신뢰도", f"{final_report['total_score']:.0f}/100")
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # 3. 투자 전략
+                st.markdown('<div class="result-card">', unsafe_allow_html=True)
+                st.markdown("### 💡 투자 전략")
+                
+                strategy = final_report['investment_strategy']
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown(f"""
+                    **진입 전략**
+                    - 비중: {strategy['position_size']}
+                    - 진입가: ${strategy['entry_price']:,.2f}
+                    - 손절가: ${strategy['stop_loss']:,.2f}
+                    """)
+                
+                with col2:
+                    st.markdown(f"""
+                    **목표 수익**
+                    - 1개월: ${final_report['price_targets']['target_1m']:,.2f}
+                    - 3개월: ${final_report['price_targets']['target_3m']:,.2f}
+                    - 기간: {strategy['holding_period']}
+                    """)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # 4. 가격 차트 + 투자자 매매 통합 (한국 주식인 경우)
+                st.markdown('<div class="result-card">', unsafe_allow_html=True)
+                st.markdown("### 📈 가격 추세 및 투자자 매매 분석")
+                st.caption("⚠️ 차트는 15-20분 지연된 데이터입니다. 실시간 가격은 빨간 별(⭐)로 표시됩니다.")
+                
+                # 투자자 데이터 확인
+                investor_data = fetcher.get_investor_distribution(ticker)
+                timeline_data = fetcher.get_investor_timeline(ticker, df) if investor_data['available'] else {'available': False}
+                
+                if timeline_data['available']:
+                    # 🆕 단일 그래프에 모두 표시 (주가 + 외국인 + 기관)
+                    from plotly.subplots import make_subplots
+                    
+                    fig = make_subplots(specs=[[{"secondary_y": True}]])
+                    
+                    # 1. 주가 (왼쪽 Y축)
+                    recent_df = df.tail(180)
+                    fig.add_trace(
+                        go.Scatter(
+                            x=recent_df.index,
+                            y=recent_df['Close'],
+                            name='주가',
+                            line=dict(color='#1a73e8', width=3),
+                            yaxis='y1'
+                        ),
+                        secondary_y=False
+                    )
+                    
+                    # 2. AI 예측 (왼쪽 Y축)
+                    future_dates = pd.date_range(
+                        start=df.index[-1] + timedelta(days=1),
+                        periods=len(predictions),
+                        freq='D'
+                    )
+                    fig.add_trace(
+                        go.Scatter(
+                            x=future_dates,
+                            y=predictions,
+                            name='AI 예측',
+                            line=dict(color='#ea4335', width=2, dash='dash'),
+                            yaxis='y1'
+                        ),
+                        secondary_y=False
+                    )
+                    
+                    # 🆕 실시간 가격 마커 추가
+                    try:
+                        realtime_data = fetcher.get_realtime_price(ticker)
+                        realtime_price = realtime_data.get('price', recent_df['Close'].iloc[-1])
+                        is_realtime = realtime_data.get('is_realtime', False)
+                        
+                        if is_realtime:
+                            # 한국 주식 여부
+                            is_korean = ticker.endswith('.KS') or ticker.endswith('.KQ')
+                            
+                            # 실시간 가격 마커 (빨간색 큰 점)
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=[df.index[-1]],
+                                    y=[realtime_price],
+                                    name='🔴 실시간 가격',
+                                    mode='markers+text',
+                                    marker=dict(
+                                        color='#ff0000',
+                                        size=20,
+                                        symbol='star',
+                                        line=dict(width=2, color='white')
+                                    ),
+                                    text=[f"실시간: {realtime_price:,.0f}{'원' if is_korean else ''}"],
+                                    textposition='top center',
+                                    textfont=dict(size=12, color='#ff0000', family='Arial Black'),
+                                    hovertemplate=f'<b>🔴 실시간 가격</b><br>{realtime_price:,.0f}{"원" if is_korean else ""}<br>출처: NAVER<extra></extra>',
+                                    yaxis='y1',
+                                    showlegend=True
+                                ),
+                                secondary_y=False
+                            )
+                    except Exception as e:
+                        pass  # 실시간 가격 가져오기 실패 시 무시
+                    
+                    # 3. 외국인 순매수를 주가에 맞춘 점으로 표시 (왼쪽 Y축)
+                    # 외국인 순매수를 주가 범위에 정규화
+                    price_min = recent_df['Close'].min()
+                    price_max = recent_df['Close'].max()
+                    price_range = price_max - price_min
+                    
+                    # 타임라인 데이터와 주가를 날짜로 매칭
+                    foreign_points = []
+                    institutional_points = []
+                    point_dates = []
+                    point_prices = []
+                    
+                    for date in timeline_data['dates']:
+                        if date in df.index:
+                            point_dates.append(date)
+                            point_prices.append(df.loc[date, 'Close'])
+                            
+                            # 해당 날짜의 순매수 찾기
+                            idx = timeline_data['dates'].index(date)
+                            foreign_points.append(timeline_data['foreign_net'][idx])
+                            institutional_points.append(timeline_data['institutional_net'][idx])
+                    
+                    # 외국인 순매수 점 (초록=매수, 빨강=매도)
+                    foreign_colors = ['#34a853' if x > 0 else '#ea4335' if x < 0 else '#fbbc04' for x in foreign_points]
+                    foreign_sizes = [abs(x) / 10 + 5 for x in foreign_points]  # 크기는 순매수량에 비례
+                    
+                    fig.add_trace(
+                        go.Scatter(
+                            x=point_dates,
+                            y=point_prices,
+                            name='외국인 순매수',
+                            mode='markers',
+                            marker=dict(
+                                color=foreign_colors,
+                                size=foreign_sizes,
+                                symbol='circle',
+                                line=dict(width=1, color='white')
+                            ),
+                            text=[f"외국인: {x:+.1f}억" for x in foreign_points],
+                            hovertemplate='%{text}<br>주가: %{y:,.0f}<extra></extra>',
+                            yaxis='y1'
+                        ),
+                        secondary_y=False
+                    )
+                    
+                    # 기관 순매수 점 (보라=매수, 주황=매도)
+                    institutional_colors = ['#9333ea' if x > 0 else '#f97316' if x < 0 else '#fbbf24' for x in institutional_points]
+                    institutional_sizes = [abs(x) / 10 + 5 for x in institutional_points]
+                    
+                    fig.add_trace(
+                        go.Scatter(
+                            x=point_dates,
+                            y=point_prices,
+                            name='기관 순매수',
+                            mode='markers',
+                            marker=dict(
+                                color=institutional_colors,
+                                size=institutional_sizes,
+                                symbol='diamond',
+                                line=dict(width=1, color='white')
+                            ),
+                            text=[f"기관: {x:+.1f}억" for x in institutional_points],
+                            hovertemplate='%{text}<br>주가: %{y:,.0f}<extra></extra>',
+                            yaxis='y1'
+                        ),
+                        secondary_y=False
+                    )
+                    
+                    # Y축 설정 (주가만 사용)
+                    fig.update_yaxes(
+                        title_text="주가 (원)",
+                        secondary_y=False,
+                        showgrid=True,
+                        gridcolor='rgba(0,0,0,0.05)'
+                    )
+                    
+                    # 레이아웃 설정
+                    fig.update_layout(
+                        height=600,
+                        hovermode='x unified',
+                        showlegend=True,
+                        template='plotly_white',
+                        margin=dict(l=0, r=0, t=40, b=0),
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=1.02,
+                            xanchor="right",
+                            x=1
+                        ),
+                        xaxis=dict(title="")
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # 해석 가이드
+                    st.info("""
+                    💡 **주가 + 투자자 매매 통합 차트**
+                    
+                    **주가 트렌드**:
+                    - 🔵 파란 선: 실제 주가
+                    - 🔴 빨간 점선: AI 30일 예측
+                    
+                    **투자자 순매수 (점으로 표시)**:
+                    - 🟢 초록 원: 외국인 순매수 (크기 = 매수량)
+                    - 🔴 빨강 원: 외국인 순매도 (크기 = 매도량)
+                    - 💜 보라 다이아몬드: 기관 순매수
+                    - 🟠 주황 다이아몬드: 기관 순매도
+                    
+                    **해석 방법**:
+                    - 주가 상승 + 초록 원(외국인 매수) → 강력한 상승 신호
+                    - 주가 하락 + 빨강 원(외국인 매도) → 추가 하락 위험
+                    - 보라 다이아몬드(기관 매수) 증가 → 저가 매수 기회
+                    - 점이 클수록 매매량이 큼 → 신호 강도 높음
+                    """)
+                    
+                else:
+                    # 투자자 데이터가 없으면 기존 방식 (주가 + 예측만)
+                    recent_df = df.tail(180)
+                    fig = go.Figure()
+                    
+                    fig.add_trace(go.Scatter(
+                        x=recent_df.index,
+                        y=recent_df['Close'],
+                        name='실제 가격',
+                        line=dict(color='#1a73e8', width=2)
+                    ))
+                    
+                    future_dates = pd.date_range(
+                        start=df.index[-1] + timedelta(days=1),
+                        periods=len(predictions),
+                        freq='D'
+                    )
+                    
+                    fig.add_trace(go.Scatter(
+                        x=future_dates,
+                        y=predictions,
+                        name='AI 예측',
+                        line=dict(color='#ea4335', width=2, dash='dash')
+                    ))
+                    
+                    fig.update_layout(
+                        height=400,
+                        xaxis_title="",
+                        yaxis_title="가격 ($)",
+                        hovermode='x unified',
+                        showlegend=True,
+                        template='plotly_white',
+                        margin=dict(l=0, r=0, t=20, b=0)
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # 4-1. 투자자 분포 (한국 주식만)
+                if investor_data['available']:
+                    st.markdown('<div class="result-card">', unsafe_allow_html=True)
+                    st.markdown("### 👥 투자자 분포")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    dist = investor_data['distribution']
+                    trends = investor_data['trends']
+                    
+                    with col1:
+                        st.metric(
+                            "🏢 기관 투자자",
+                            f"{dist['institutional']}%",
+                            trends['institutional']
+                        )
+                    
+                    with col2:
+                        st.metric(
+                            "🌍 외국인 투자자",
+                            f"{dist['foreign']}%",
+                            trends['foreign']
+                        )
+                    
+                    with col3:
+                        st.metric(
+                            "👤 개인 투자자",
+                            f"{dist['individual']}%"
+                        )
+                    
+                    # 파이 차트
+                    fig_pie = go.Figure(data=[go.Pie(
+                        labels=['기관', '외국인', '개인'],
+                        values=[dist['institutional'], dist['foreign'], dist['individual']],
+                        hole=.3,
+                        marker_colors=['#4285f4', '#ea4335', '#fbbc04']
+                    )])
+                    
+                    fig_pie.update_layout(
+                        height=300,
+                        showlegend=True,
+                        margin=dict(l=0, r=0, t=20, b=0)
+                    )
+                    
+                    st.plotly_chart(fig_pie, use_container_width=True)
+                    
+                    # 📊 투자자 매매 상세 통계 (이미 위 통합 그래프에 표시됨)
+                    if timeline_data['available']:
+                        st.markdown("#### 📊 투자자 매매 상세 통계")
+                        
+                        # 최근 5일 통계
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.markdown("**외국인 투자자 (최근 5일)**")
+                            recent_foreign_net = timeline_data['foreign_net'][-5:]
+                            avg_foreign = np.mean(recent_foreign_net)
+                            
+                            st.metric(
+                                "평균 순매수",
+                                f"{avg_foreign:,.0f}억원",
+                                "매수 우세" if avg_foreign > 0 else "매도 우세"
+                            )
+                            st.metric(
+                                "누적 순매수",
+                                f"{sum(recent_foreign_net):,.0f}억원"
+                            )
+                        
+                        with col2:
+                            st.markdown("**기관 투자자 (최근 5일)**")
+                            recent_inst_net = timeline_data['institutional_net'][-5:]
+                            avg_inst = np.mean(recent_inst_net)
+                            
+                            st.metric(
+                                "평균 순매수",
+                                f"{avg_inst:,.0f}억원",
+                                "매수 우세" if avg_inst > 0 else "매도 우세"
+                            )
+                            st.metric(
+                                "누적 순매수",
+                                f"{sum(recent_inst_net):,.0f}억원"
+                            )
+                        
+                        # 매매 패턴 분석
+                        st.markdown("---")
+                        st.markdown("**📈 매매 패턴 분석**")
+                        
+                        # 외국인/기관 합의 여부
+                        foreign_trend = "매수" if avg_foreign > 0 else "매도"
+                        inst_trend = "매수" if avg_inst > 0 else "매도"
+                        
+                        if foreign_trend == inst_trend:
+                            if foreign_trend == "매수":
+                                st.success(f"🚀 **강력한 {foreign_trend} 신호**: 외국인+기관 모두 {foreign_trend} 중")
+                            else:
+                                st.error(f"⚠️ **강력한 {foreign_trend} 신호**: 외국인+기관 모두 {foreign_trend} 중")
+                        else:
+                            st.warning(f"📊 **혼조세**: 외국인 {foreign_trend} vs 기관 {inst_trend}")
+                        
+                        # 상세 데이터 테이블
+                        with st.expander("📋 일별 상세 데이터 보기"):
+                            recent_data = {
+                                '날짜': [d.strftime('%Y-%m-%d') for d in timeline_data['dates'][-10:]],
+                                '외국인 순매수': [f"{v:,.0f}" for v in timeline_data['foreign_net'][-10:]],
+                                '기관 순매수': [f"{v:,.0f}" for v in timeline_data['institutional_net'][-10:]],
+                                '주가': [f"{v:,.0f}" for v in timeline_data['prices'][-10:]]
+                            }
+                            st.dataframe(pd.DataFrame(recent_data), use_container_width=True)
+                        
+                        # 🆕 투자자 패턴 기반 AI 예측
+                        st.markdown("---")
+                        st.markdown("#### 🤖 투자자 패턴 기반 AI 예측")
+                        
+                        try:
+                            pattern_predictor = InvestorPatternPredictor()
+                            pattern_analysis = pattern_predictor.analyze_investor_pattern(timeline_data)
+                            
+                            # 패턴 점수 배너
+                            score = pattern_analysis['pattern_score']
+                            if score >= 70:
+                                score_color = "#34a853"
+                                score_emoji = "🚀"
+                            elif score >= 55:
+                                score_color = "#1a73e8"
+                                score_emoji = "📈"
+                            elif score >= 45:
+                                score_color = "#fbbc04"
+                                score_emoji = "📊"
+                            else:
+                                score_color = "#ea4335"
+                                score_emoji = "📉"
+                            
+                            st.markdown(
+                                f'<div style="background: {score_color}; color: white; padding: 20px; '
+                                f'border-radius: 8px; text-align: center; font-size: 1.5rem; margin: 10px 0;">'
+                                f'{score_emoji} 투자자 패턴 점수: {score}/100'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
+                            
+                            # 신호 표시
+                            st.markdown("**📡 투자 신호**")
+                            for signal in pattern_analysis['signals']:
+                                st.markdown(f"- {signal}")
+                            
+                            # 예측 표시
+                            pred = pattern_analysis['predictions']
+                            st.markdown(f"""
+                            **🔮 향후 전망 ({pred['timeframe']})**
+                            - **방향**: {pred['direction']}
+                            - **예상 변화**: {pred['price_change_pct']:+.2f}%
+                            - **목표가**: {pred['predicted_price']:,.0f}원
+                            - **확률**: {pred['probability']:.1f}%
+                            - **신뢰도**: {pattern_analysis['confidence']:.1f}%
+                            """)
+                            
+                            # 상세 점수
+                            with st.expander("📊 상세 패턴 분석"):
+                                components = pattern_analysis['components']
+                                
+                                col1, col2, col3 = st.columns(3)
+                                with col1:
+                                    st.metric("외국인 모멘텀", f"{components['foreign_momentum']:.0f}/100")
+                                    st.metric("합의 강도", f"{components['consensus_strength']:.0f}/100")
+                                
+                                with col2:
+                                    st.metric("기관 모멘텀", f"{components['institutional_momentum']:.0f}/100")
+                                    st.metric("거래량 급증", f"{components['volume_surge']:.0f}/100")
+                                
+                                with col3:
+                                    st.metric("추세 지속성", f"{components['trend_persistence']:.0f}/100")
+                                    st.metric("전체 신뢰도", f"{pattern_analysis['confidence']:.0f}/100")
+                                
+                                # 투자 추천
+                                recommendation = pattern_predictor.get_trading_recommendation(
+                                    pattern_analysis, current_price
+                                )
+                                
+                                st.markdown("---")
+                                st.markdown(f"""
+                                **💡 투자 추천**
+                                
+                                - **행동**: {recommendation['action']}
+                                - **이유**: {recommendation['reason']}
+                                - **목표가**: {recommendation['target_price']:,.0f}원
+                                - **손절가**: {recommendation['stop_loss']:,.0f}원
+                                - **신뢰도**: {recommendation['confidence']:.1f}%
+                                """)
+                        
+                        except Exception as e:
+                            st.warning(f"투자자 패턴 분석 중 오류: {str(e)}")
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
+                # 5. 투자 근거
+                with st.expander("📋 상세 분석 보기"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**✅ 긍정 요인**")
+                        for reason in final_report['key_reasons']['positive'][:5]:
+                            st.markdown(f"• {reason}")
+                    
+                    with col2:
+                        st.markdown("**⚠️ 위험 요인**")
+                        for reason in final_report['key_reasons']['negative'][:5]:
+                            st.markdown(f"• {reason}")
+                
+                # 6. 리스크
+                risk_level = final_report['risk']['level']
+                risk_names = {
+                    'VERY_LOW': '매우 낮음',
+                    'LOW': '낮음',
+                    'MEDIUM': '보통',
+                    'HIGH': '높음',
+                    'VERY_HIGH': '매우 높음'
+                }
+                
+                st.info(f"⚠️ **리스크 수준**: {risk_names.get(risk_level, '보통')}")
+                
+                # 7. 최종 투자 보고서
+                with st.expander("📄 최종 투자 보고서 (PDF 다운로드 형식)", expanded=False):
+                    st.markdown(f"""
+                    ## 📊 AI 주식 분석 보고서
+                    
+                    **데이터 소스**: {'🔴 NAVER 실시간' if realtime_price_data.get('is_realtime') else '⚠️ yfinance (15-20분 지연)'} | **업데이트**: {realtime_price_data.get('timestamp', 'N/A')}
+                    
+                    
+                    ---
+                    
+                    ### 📌 기본 정보
+                    - **종목명**: {info.get('name', ticker)}
+                    - **티커**: {ticker}
+                    - **분석일**: {datetime.now().strftime('%Y년 %m월 %d일')}
+                    - **분석 시점 가격**: ${current_price:,.2f}
+                    
+                    ---
+                    
+                    ### 🎯 투자 의견
+                    
+                    **최종 판단**: {decision_emoji} **{decision_name}**
+                    
+                    **신뢰도 점수**: {final_report['total_score']:.0f}/100
+                    
+                    ---
+                    
+                    ### 💰 가격 전망
+                    
+                    | 기간 | 목표가 | 수익률 |
+                    |------|--------|--------|
+                    | 현재 🔴 LIVE | ${current_price:,.2f} | - |
+                    | 1개월 | ${final_report['price_targets']['target_1m']:,.2f} | {((final_report['price_targets']['target_1m'] - current_price) / current_price * 100):+.1f}% |
+                    | 3개월 | ${final_report['price_targets']['target_3m']:,.2f} | {((final_report['price_targets']['target_3m'] - current_price) / current_price * 100):+.1f}% |
+                    
+                    ---
+                    
+                    ### 💡 투자 전략
+                    
+                    **포지션 크기**: {strategy['position_size']}
+                    
+                    **진입 가격**: ${strategy['entry_price']:,.2f}
+                    
+                    **손절 가격**: ${strategy['stop_loss']:,.2f} ({((strategy['stop_loss'] - current_price) / current_price * 100):.1f}%)
+                    
+                    **손익비**: {final_report['price_targets']['risk_reward_ratio']:.1f}:1
+                    
+                    **권장 보유기간**: {strategy['holding_period']}
+                    
+                    ---
+                    
+                    ### ✅ 긍정적 요인
+                    
+                    """)
+                    
+                    for i, reason in enumerate(final_report['key_reasons']['positive'][:5], 1):
+                        st.markdown(f"{i}. {reason}")
+                    
+                    st.markdown("""
+                    ---
+                    
+                    ### ⚠️ 위험 요인
+                    
+                    """)
+                    
+                    for i, reason in enumerate(final_report['key_reasons']['negative'][:5], 1):
+                        st.markdown(f"{i}. {reason}")
+                    
+                    st.markdown(f"""
+                    ---
+                    
+                    ### 📊 기술적 분석
+                    
+                    **RSI**: {df['RSI'].iloc[-1] if 'RSI' in df.columns else 'N/A'}
+                    
+                    **MACD**: {df['MACD'].iloc[-1] if 'MACD' in df.columns else 'N/A'}
+                    
+                    **거래 신호**: {signal}
+                    
+                    ---
+                    
+                    ### ⚠️ 리스크 평가
+                    
+                    **리스크 수준**: {risk_names.get(risk_level, '보통')}
+                    
+                    **주요 리스크 요인**:
+                    """)
+                    
+                    for i, factor in enumerate(final_report['risk']['factors'][:5], 1):
+                        st.markdown(f"{i}. {factor}")
+                    
+                    if investor_data['available']:
+                        st.markdown(f"""
+                        ---
+                        
+                        ### 👥 투자자 구성
+                        
+                        - **기관 투자자**: {dist['institutional']}% ({trends['institutional']})
+                        - **외국인 투자자**: {dist['foreign']}% ({trends['foreign']})
+                        - **개인 투자자**: {dist['individual']}%
+                        """)
+                    
+                    # 시간순 이벤트 타임라인
+                    if realtime_data.get('timeline_events'):
+                        st.markdown("""
+                        ---
+                        
+                        ### 📅 시간순 주요 이벤트
+                        
+                        """)
+                        
+                        for event in realtime_data['timeline_events'][:10]:
+                            date_str = event['date'].strftime('%Y-%m-%d')
+                            emoji = '📰' if event['type'] == 'news' else '📺'
+                            sentiment_emoji = '🟢' if event['sentiment'] == 'positive' else ('🔴' if event['sentiment'] == 'negative' else '🟡')
+                            
+                            st.markdown(f"**{date_str}** {emoji} {sentiment_emoji} {event['title']}")
+                    
+                    st.markdown("""
+                    ---
+                    
+                    ### ⚖️ 면책 조항
+                    
+                    본 보고서는 AI 알고리즘에 의해 생성된 참고 자료입니다. 
+                    투자 결정은 투자자 본인의 판단과 책임하에 이루어져야 하며, 
+                    본 보고서의 내용으로 인한 투자 손실에 대해 제작자는 책임을 지지 않습니다.
+                    
+                    **생성일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+                    """)
+                
+        except Exception as e:
+            st.error(f"❌ 오류가 발생했습니다: {str(e)}")
+            with st.expander("상세 오류 정보"):
+                import traceback
+                st.code(traceback.format_exc())
+
+# 푸터
+st.markdown('<div class="footer">Made with ❤️ by AI Stock Predictor Team</div>', unsafe_allow_html=True)
