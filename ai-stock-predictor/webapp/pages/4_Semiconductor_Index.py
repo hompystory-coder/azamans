@@ -9,10 +9,12 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
+from pathlib import Path
 import sys
 import os
 import time
 import yfinance as yf
+import json
 
 # 경로 추가
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
