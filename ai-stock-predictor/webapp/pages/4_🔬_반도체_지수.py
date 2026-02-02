@@ -221,6 +221,82 @@ KOREA_SEMICONDUCTOR = {
     "003670.KS": "포스코케미칼"
 }
 
+# 알림 데이터 저장 경로
+ALERT_DIR = Path(__file__).parent.parent.parent / "data" / "alerts"
+ALERT_DIR.mkdir(parents=True, exist_ok=True)
+ALERT_FILE = ALERT_DIR / "soxx_alerts.json"
+ALERT_HISTORY_FILE = ALERT_DIR / "alert_history.json"
+
+def load_alerts():
+    """저장된 알림 설정 불러오기"""
+    if ALERT_FILE.exists():
+        try:
+            with open(ALERT_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_alerts(alerts):
+    """알림 설정 저장"""
+    try:
+        with open(ALERT_FILE, 'w', encoding='utf-8') as f:
+            json.dump(alerts, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        st.error(f"알림 저장 실패: {str(e)}")
+        return False
+
+def load_alert_history():
+    """알림 히스토리 불러오기"""
+    if ALERT_HISTORY_FILE.exists():
+        try:
+            with open(ALERT_HISTORY_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_alert_history(history):
+    """알림 히스토리 저장"""
+    try:
+        with open(ALERT_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(history, f, ensure_ascii=False, indent=2)
+        return True
+    except:
+        return False
+
+def check_alert(current_price, alert):
+    """알림 조건 확인"""
+    condition = alert['condition']
+    target_price = alert['target_price']
+    
+    if condition == "이상":
+        return current_price >= target_price
+    elif condition == "이하":
+        return current_price <= target_price
+    elif condition == "도달":
+        # 목표가 ±0.5% 범위 내
+        margin = target_price * 0.005
+        return abs(current_price - target_price) <= margin
+    return False
+
+def trigger_alert(alert, current_price):
+    """알림 트리거 (히스토리에 기록)"""
+    history = load_alert_history()
+    history.append({
+        'timestamp': datetime.now().isoformat(),
+        'ticker': alert['ticker'],
+        'condition': alert['condition'],
+        'target_price': alert['target_price'],
+        'current_price': current_price,
+        'message': alert.get('message', '')
+    })
+    # 최근 100개만 유지
+    if len(history) > 100:
+        history = history[-100:]
+    save_alert_history(history)
+
 @st.cache_data(ttl=60)
 def get_realtime_data(ticker):
     """실시간 주가 데이터 가져오기"""
@@ -373,7 +449,7 @@ with st.sidebar:
         st.rerun()
 
 # 메인 영역
-tab1, tab2, tab3, tab4 = st.tabs(["📈 실시간 모니터", "📊 상세 분석", "🔍 종목 비교", "🌏 글로벌 반도체"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📈 실시간 모니터", "📊 상세 분석", "🔍 종목 비교", "🌏 글로벌 반도체", "🔔 가격 알림"])
 
 with tab1:
     st.markdown("### 🔬 SOXX ETF 실시간 현황")
@@ -608,6 +684,229 @@ with tab4:
                     st.warning(f"{name} 데이터 로드 실패")
         else:
             st.info("사이드바에서 '한국 반도체 종목 포함'을 체크하세요.")
+
+with tab5:
+    st.markdown("### 🔔 SOXX 가격 알림 설정")
+    
+    # 현재 SOXX 가격 표시
+    soxx_data = get_realtime_data("SOXX")
+    if soxx_data:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("현재 SOXX 가격", f"${soxx_data['price']:.2f}")
+        with col2:
+            st.metric("변동", f"{soxx_data['change']:+.2f}", f"{soxx_data['change_pct']:+.2f}%")
+        with col3:
+            last_check = datetime.now().strftime("%H:%M:%S")
+            st.metric("마지막 확인", last_check)
+    
+    st.markdown("---")
+    
+    # 알림 설정 섹션
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("#### ➕ 새 알림 추가")
+        
+        with st.form("alert_form"):
+            col_a, col_b, col_c = st.columns([2, 2, 1])
+            
+            with col_a:
+                target_price = st.number_input(
+                    "목표 가격 (USD)",
+                    min_value=0.0,
+                    value=float(soxx_data['price']) if soxx_data else 500.0,
+                    step=1.0,
+                    help="알림을 받고 싶은 SOXX 가격을 입력하세요"
+                )
+            
+            with col_b:
+                condition = st.selectbox(
+                    "알림 조건",
+                    options=["이상", "이하", "도달"],
+                    help="이상: 가격이 목표가 이상일 때\n이하: 가격이 목표가 이하일 때\n도달: 가격이 목표가에 근접했을 때 (±0.5%)"
+                )
+            
+            with col_c:
+                st.write("")
+                st.write("")
+                submit = st.form_submit_button("🔔 알림 추가", use_container_width=True)
+            
+            message = st.text_input(
+                "알림 메시지 (선택사항)",
+                placeholder="예: SOXX 목표가 도달! 확인 필요",
+                help="알림 발생 시 표시될 메시지"
+            )
+            
+            if submit:
+                alerts = load_alerts()
+                new_alert = {
+                    'id': len(alerts) + 1,
+                    'ticker': 'SOXX',
+                    'target_price': target_price,
+                    'condition': condition,
+                    'message': message,
+                    'created_at': datetime.now().isoformat(),
+                    'triggered': False
+                }
+                alerts.append(new_alert)
+                if save_alerts(alerts):
+                    st.success(f"✅ 알림이 추가되었습니다: SOXX ${target_price:.2f} {condition}")
+                    st.rerun()
+    
+    with col2:
+        st.markdown("#### 📊 알림 통계")
+        alerts = load_alerts()
+        active_alerts = [a for a in alerts if not a.get('triggered', False)]
+        triggered_alerts = [a for a in alerts if a.get('triggered', False)]
+        
+        st.metric("활성 알림", len(active_alerts))
+        st.metric("발생한 알림", len(triggered_alerts))
+        
+        if st.button("🗑️ 모든 알림 삭제", type="secondary", use_container_width=True):
+            if save_alerts([]):
+                st.success("모든 알림이 삭제되었습니다")
+                st.rerun()
+    
+    st.markdown("---")
+    
+    # 활성 알림 목록
+    st.markdown("#### 📋 활성 알림 목록")
+    
+    alerts = load_alerts()
+    active_alerts = [a for a in alerts if not a.get('triggered', False)]
+    
+    if active_alerts:
+        # 알림 상태 체크
+        if soxx_data:
+            current_price = soxx_data['price']
+            for alert in active_alerts:
+                if check_alert(current_price, alert):
+                    # 알림 트리거!
+                    alert['triggered'] = True
+                    alert['triggered_at'] = datetime.now().isoformat()
+                    alert['triggered_price'] = current_price
+                    trigger_alert(alert, current_price)
+                    
+                    # 알림 표시
+                    st.success(f"""
+                    🔔 **알림 발생!**
+                    
+                    SOXX 가격이 ${alert['target_price']:.2f} {alert['condition']} 조건을 만족했습니다!
+                    
+                    - 목표가: ${alert['target_price']:.2f}
+                    - 현재가: ${current_price:.2f}
+                    - 메시지: {alert.get('message', '없음')}
+                    """)
+            
+            # 업데이트된 알림 저장
+            save_alerts(alerts)
+        
+        # 알림 카드 표시
+        for idx, alert in enumerate(active_alerts):
+            if not alert.get('triggered', False):
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    condition_icon = "⬆️" if alert['condition'] == "이상" else "⬇️" if alert['condition'] == "이하" else "🎯"
+                    
+                    # 목표가까지 거리 계산
+                    if soxx_data:
+                        current = soxx_data['price']
+                        target = alert['target_price']
+                        diff = target - current
+                        diff_pct = (diff / current) * 100
+                        
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>{condition_icon} SOXX ${alert['target_price']:.2f} {alert['condition']}</h4>
+                            <p>현재가: ${current:.2f} | 차이: {diff:+.2f} ({diff_pct:+.2f}%)</p>
+                            <p style="font-size: 0.85rem; opacity: 0.8;">{alert.get('message', '메시지 없음')}</p>
+                            <p style="font-size: 0.75rem; opacity: 0.6;">생성: {alert['created_at'][:19]}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>{condition_icon} SOXX ${alert['target_price']:.2f} {alert['condition']}</h4>
+                            <p>{alert.get('message', '메시지 없음')}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                with col2:
+                    if alert.get('triggered', False):
+                        st.success("✅ 발생")
+                    else:
+                        st.info("⏳ 대기중")
+                
+                with col3:
+                    if st.button("🗑️", key=f"del_{idx}", help="알림 삭제"):
+                        alerts = load_alerts()
+                        alerts = [a for a in alerts if a['id'] != alert['id']]
+                        save_alerts(alerts)
+                        st.success("알림이 삭제되었습니다")
+                        st.rerun()
+    else:
+        st.info("📭 설정된 알림이 없습니다. 위에서 새 알림을 추가하세요.")
+    
+    st.markdown("---")
+    
+    # 알림 히스토리
+    st.markdown("#### 📜 알림 히스토리 (최근 10개)")
+    
+    history = load_alert_history()
+    if history:
+        history_df = pd.DataFrame(history[-10:][::-1])  # 최근 10개, 역순
+        history_df['timestamp'] = pd.to_datetime(history_df['timestamp']).dt.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # 표시용 데이터프레임
+        display_df = history_df[[
+            'timestamp', 'ticker', 'condition', 'target_price', 'current_price', 'message'
+        ]].copy()
+        display_df.columns = ['시간', '종목', '조건', '목표가', '발생가', '메시지']
+        
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        
+        if st.button("🗑️ 히스토리 전체 삭제"):
+            save_alert_history([])
+            st.success("히스토리가 삭제되었습니다")
+            st.rerun()
+    else:
+        st.info("📭 알림 히스토리가 없습니다.")
+    
+    # 알림 사용 가이드
+    with st.expander("💡 알림 기능 사용 가이드"):
+        st.markdown("""
+        ### 🔔 알림 기능 사용 방법
+        
+        #### 1. 알림 추가
+        - **목표 가격** 입력: 알림을 받고 싶은 SOXX 가격
+        - **조건 선택**:
+          - `이상`: 가격이 목표가보다 높거나 같을 때
+          - `이하`: 가격이 목표가보다 낮거나 같을 때
+          - `도달`: 가격이 목표가 ±0.5% 범위에 들어올 때
+        - **메시지 입력** (선택): 알림 발생 시 표시될 메시지
+        
+        #### 2. 알림 모니터링
+        - 페이지를 열어두면 자동으로 가격을 체크합니다
+        - 조건이 만족되면 즉시 알림이 표시됩니다
+        - 발생한 알림은 히스토리에 자동 저장됩니다
+        
+        #### 3. 알림 관리
+        - 각 알림 옆의 🗑️ 버튼으로 개별 삭제
+        - "모든 알림 삭제" 버튼으로 일괄 삭제
+        - 히스토리는 최근 100개까지 자동 유지
+        
+        #### 💡 팁
+        - 여러 개의 알림을 설정하여 다양한 가격대 모니터링
+        - 메시지를 활용하여 알림의 목적을 메모
+        - 발생한 알림은 히스토리에서 확인 가능
+        
+        #### ⚠️ 주의사항
+        - 알림은 페이지가 열려있을 때만 작동합니다
+        - 브라우저를 닫으면 알림이 체크되지 않습니다
+        - 설정은 자동으로 저장되어 다음 방문 시에도 유지됩니다
+        """)
 
 # 푸터
 st.markdown("---")
