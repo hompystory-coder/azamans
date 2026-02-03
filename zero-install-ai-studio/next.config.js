@@ -4,6 +4,12 @@ const nextConfig = {
   swcMinify: true,
   compress: true,
   
+  // basePath 설정 - /azaman 경로에서 작동
+  basePath: '/azaman',
+  
+  // assetPrefix 설정
+  assetPrefix: '/azaman',
+  
   // 프로덕션 환경 설정
   productionBrowserSourceMaps: false,
   
