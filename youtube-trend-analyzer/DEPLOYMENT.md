@@ -4,7 +4,7 @@
 
 YouTube Trend Analyzer를 서브도메인으로 배포하는 가이드입니다.
 
-**서브도메인**: `youtube-trend.neuralgrid.app`
+**서브도메인**: `youtube-trend.neuralgrid.kr`
 
 ## 🚀 빠른 설치 (자동)
 
@@ -42,7 +42,7 @@ sudo systemctl restart youtube-trend-backend
 
 브라우저에서 접속:
 ```
-http://youtube-trend.neuralgrid.app
+http://youtube-trend.neuralgrid.kr
 ```
 
 ---
@@ -131,7 +131,7 @@ sudo apt-get update
 sudo apt-get install -y certbot python3-certbot-nginx
 
 # SSL 인증서 발급 및 자동 설정
-sudo certbot --nginx -d youtube-trend.neuralgrid.app
+sudo certbot --nginx -d youtube-trend.neuralgrid.kr
 
 # 자동 갱신 테스트
 sudo certbot renew --dry-run
@@ -145,7 +145,7 @@ Certbot이 자동으로:
 
 SSL 설정 후 접속:
 ```
-https://youtube-trend.neuralgrid.app
+https://youtube-trend.neuralgrid.kr
 ```
 
 ---
@@ -324,13 +324,13 @@ TTL: 3600
 ```
 Type: CNAME
 Name: youtube-trend
-Value: neuralgrid.app
+Value: neuralgrid.kr
 TTL: 3600
 ```
 
 DNS 전파 확인:
 ```bash
-nslookup youtube-trend.neuralgrid.app
+nslookup youtube-trend.neuralgrid.kr
 ```
 
 ---
@@ -386,4 +386,4 @@ pm2 save
 
 ---
 
-**설치 완료 후 접속**: http://youtube-trend.neuralgrid.app 🎉
+**설치 완료 후 접속**: http://youtube-trend.neuralgrid.kr 🎉

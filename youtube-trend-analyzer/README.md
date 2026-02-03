@@ -47,7 +47,7 @@ sudo bash setup-youtube-trend.sh
 
 자세한 배포 가이드: [DEPLOYMENT.md](DEPLOYMENT.md)
 
-**접속 URL**: http://youtube-trend.neuralgrid.app
+**접속 URL**: http://youtube-trend.neuralgrid.kr
 
 ---
 

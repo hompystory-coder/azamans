@@ -16,8 +16,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-SUBDOMAIN="youtube-trend.neuralgrid.app"
-EMAIL="admin@neuralgrid.app"  # 실제 이메일로 변경하세요
+SUBDOMAIN="youtube-trend.neuralgrid.kr"
+EMAIL="admin@neuralgrid.kr"  # 실제 이메일로 변경하세요
 
 # Root 권한 확인
 if [ "$EUID" -ne 0 ]; then 

@@ -22,7 +22,7 @@ BACKEND_DIR="$PROJECT_DIR/backend"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 NGINX_CONFIG="/etc/nginx/sites-available/youtube-trend"
 NGINX_ENABLED="/etc/nginx/sites-enabled/youtube-trend"
-SUBDOMAIN="youtube-trend.neuralgrid.app"
+SUBDOMAIN="youtube-trend.neuralgrid.kr"
 
 # 사용자 확인
 if [ "$EUID" -ne 0 ]; then 
