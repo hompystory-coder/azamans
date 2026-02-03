@@ -253,7 +253,8 @@ app.post('/api/settings', (req, res) => {
 // 수동 검색 실행
 app.post('/api/search', async (req, res) => {
   try {
-    const { keyword, apiKey } = req.body;
+    const { keyword } = req.body;
+    const apiKey = process.env.YOUTUBE_API_KEY;
     
     if (!keyword || !apiKey) {
       return res.status(400).json({ error: 'Keyword and API key are required' });
