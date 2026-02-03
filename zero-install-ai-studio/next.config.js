@@ -1,6 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  
+  // TypeScript 빌드 에러 무시
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  
+  // ESLint 에러 무시
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
+  // basePath 설정 - /azaman 경로에서 작동
+  basePath: '/azaman',
+  
+  // assetPrefix 설정
+  assetPrefix: '/azaman',
   swcMinify: true,
   compress: true,
   

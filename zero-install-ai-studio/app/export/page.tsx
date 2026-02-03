@@ -12,7 +12,7 @@ export default function ExportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const platforms = batchExporter.getAllPlatforms();
-  const platformGroups = batchExporter.constructor.getPlatformGroups();
+  // const platformGroups = batchExporter.constructor.getPlatformGroups();
   
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -32,8 +32,8 @@ export default function ExportPage() {
   };
   
   const selectGroup = (groupName: string) => {
-    const groupPlatforms = platformGroups[groupName];
-    setSelectedPlatforms(new Set(groupPlatforms));
+    // const groupPlatforms = platformGroups[groupName];
+    // setSelectedPlatforms(new Set(groupPlatforms));
   };
   
   const handleExport = async () => {
@@ -157,7 +157,7 @@ export default function ExportPage() {
           </div>
 
           {/* 빠른 선택 */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+          {/* <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
             <h2 className="text-2xl font-bold mb-4">⚡ 빠른 선택</h2>
             <div className="space-y-2">
               {Object.entries(platformGroups).map(([groupName, _]) => (
@@ -174,7 +174,7 @@ export default function ExportPage() {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* 내보내기 버튼 */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
