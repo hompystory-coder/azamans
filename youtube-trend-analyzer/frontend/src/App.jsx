@@ -3,7 +3,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import './App.css';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/azaman/api';
 
 function App() {
   const [videos, setVideos] = useState([]);
