@@ -1,0 +1,19 @@
+[Unit]
+Description=YouTube Trend Analyzer Backend API Server
+After=network.target
+
+[Service]
+Type=simple
+User=azamans
+WorkingDirectory=/home/azamans/webapp/youtube-trend-analyzer/backend
+Environment="NODE_ENV=production"
+Environment="PORT=5000"
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=youtube-trend-backend
+
+[Install]
+WantedBy=multi-user.target

@@ -36,11 +36,28 @@
 
 ## 🚀 설치 및 실행
 
-### 1️⃣ 사전 요구사항
+### 🌐 서브도메인 배포 (추천)
+
+서브도메인으로 바로 배포하려면:
+
+```bash
+cd /home/azamans/webapp/youtube-trend-analyzer
+sudo bash setup-youtube-trend.sh
+```
+
+자세한 배포 가이드: [DEPLOYMENT.md](DEPLOYMENT.md)
+
+**접속 URL**: http://youtube-trend.neuralgrid.app
+
+---
+
+### 💻 로컬 개발 환경
+
+#### 1️⃣ 사전 요구사항
 - Node.js 18.x 이상
 - npm 또는 yarn
 
-### 2️⃣ YouTube API 키 발급
+#### 2️⃣ YouTube API 키 발급
 
 1. [Google Cloud Console](https://console.cloud.google.com/) 접속
 2. 새 프로젝트 생성
@@ -52,7 +69,7 @@
    - "사용자 인증 정보 만들기" > "API 키" 선택
 5. 생성된 API 키 복사
 
-### 3️⃣ 프로젝트 설치
+#### 3️⃣ 프로젝트 설치
 
 ```bash
 # 프로젝트 디렉토리로 이동
@@ -71,9 +88,7 @@ cd ../frontend
 npm install
 ```
 
-### 4️⃣ 실행
-
-#### 개발 모드 실행
+#### 4️⃣ 개발 서버 실행
 
 **터미널 1 - 백엔드 서버:**
 ```bash
