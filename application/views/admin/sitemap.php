@@ -241,6 +241,11 @@ $selectedNews = $sitemapNewsList ? explode(',', $sitemapNewsList) : [];
                                 </div>
                             </div>
                             
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>체크한 게시판만</strong> Sitemap에 포함됩니다.
+                            </div>
+                            
                             <?php if (empty($bbsList)): ?>
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle"></i> 
@@ -290,6 +295,11 @@ $selectedNews = $sitemapNewsList ? explode(',', $sitemapNewsList) : [];
                                            <?php echo $sitemapNewsEnabled === 'Y' ? 'checked' : ''; ?>>
                                     <label for="sitemapNewsEnabled">뉴스 Sitemap 사용</label>
                                 </div>
+                            </div>
+                            
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>체크한 뉴스만</strong> Sitemap에 포함됩니다.
                             </div>
                             
                             <?php if (empty($newsList)): ?>

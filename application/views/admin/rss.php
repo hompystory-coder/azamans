@@ -250,6 +250,11 @@ $selectedNews = $rssNewsList ? explode(',', $rssNewsList) : [];
                                 </div>
                             </div>
                             
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>체크한 게시판만</strong> RSS에 포함됩니다.
+                            </div>
+                            
                             <?php if (empty($bbsList)): ?>
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle"></i> 
@@ -299,6 +304,11 @@ $selectedNews = $rssNewsList ? explode(',', $rssNewsList) : [];
                                            <?php echo $rssNewsEnabled === 'Y' ? 'checked' : ''; ?>>
                                     <label for="rssNewsEnabled">뉴스 RSS 사용</label>
                                 </div>
+                            </div>
+                            
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>체크한 뉴스만</strong> RSS에 포함됩니다.
                             </div>
                             
                             <?php if (empty($newsList)): ?>
