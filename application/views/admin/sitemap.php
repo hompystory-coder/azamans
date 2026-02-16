@@ -195,9 +195,6 @@ $selectedNews = $sitemapNewsList ? explode(',', $sitemapNewsList) : [];
             </div>
         </div>
 
-        <!-- 알림 메시지 -->
-        <div id="alertMessage" class="alert d-none"></div>
-
         <!-- 메인 카드 -->
         <div class="card border-0 shadow-sm">
             <div class="card-body">
@@ -598,23 +595,31 @@ function toggleGuide() {
 // 클립보드 복사
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        showAlert('URL이 클립보드에 복사되었습니다.', 'success');
+        $('#ai-pop').pgpopup({
+            type: 'toast',
+            msg: 'URL이 복사되었습니다.',
+            padding: '15px',
+            width: '250',
+            color: '#ffffff',
+            bgcolor: '#28a745',
+            transparency: '0.9',
+            delay: '1500',
+            time: '500'
+        });
     }).catch(err => {
         console.error('복사 실패:', err);
-        showAlert('복사에 실패했습니다.', 'danger');
+        $('#ai-pop').pgpopup({
+            type: 'toast',
+            msg: '복사에 실패했습니다.',
+            padding: '15px',
+            width: '250',
+            color: '#ffffff',
+            bgcolor: '#dc3545',
+            transparency: '0.9',
+            delay: '1500',
+            time: '500'
+        });
     });
-}
-
-// 알림 표시
-function showAlert(message, type = 'info') {
-    const alertBox = document.getElementById('alertMessage');
-    alertBox.className = `alert alert-${type}`;
-    alertBox.textContent = message;
-    alertBox.classList.remove('d-none');
-    
-    setTimeout(() => {
-        alertBox.classList.add('d-none');
-    }, 3000);
 }
 
 // Sitemap 설정 저장
@@ -647,14 +652,44 @@ function saveSitemapSettings() {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            showAlert('Sitemap 설정이 저장되었습니다.', 'success');
+            $('#ai-pop').pgpopup({
+                type: 'toast',
+                msg: 'Sitemap 설정이 저장되었습니다.',
+                padding: '15px',
+                width: '250',
+                color: '#ffffff',
+                bgcolor: '#28a745',
+                transparency: '0.9',
+                delay: '1500',
+                time: '500'
+            });
         } else {
-            showAlert('저장에 실패했습니다: ' + (result.message || ''), 'danger');
+            $('#ai-pop').pgpopup({
+                type: 'toast',
+                msg: '저장에 실패했습니다: ' + (result.message || ''),
+                padding: '15px',
+                width: '300',
+                color: '#ffffff',
+                bgcolor: '#dc3545',
+                transparency: '0.9',
+                delay: '2000',
+                time: '500'
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('저장 중 오류가 발생했습니다.', 'danger');
+        $('#ai-pop').pgpopup({
+            type: 'toast',
+            msg: '저장 중 오류가 발생했습니다.',
+            padding: '15px',
+            width: '250',
+            color: '#ffffff',
+            bgcolor: '#dc3545',
+            transparency: '0.9',
+            delay: '1500',
+            time: '500'
+        });
     });
 }
 
@@ -676,14 +711,44 @@ function regenerateSitemap() {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            showAlert('Sitemap이 재생성되었습니다.', 'success');
+            $('#ai-pop').pgpopup({
+                type: 'toast',
+                msg: 'Sitemap이 재생성되었습니다.',
+                padding: '15px',
+                width: '250',
+                color: '#ffffff',
+                bgcolor: '#0d6efd',
+                transparency: '0.9',
+                delay: '1500',
+                time: '500'
+            });
         } else {
-            showAlert('재생성에 실패했습니다: ' + (result.message || ''), 'danger');
+            $('#ai-pop').pgpopup({
+                type: 'toast',
+                msg: '재생성에 실패했습니다: ' + (result.message || ''),
+                padding: '15px',
+                width: '300',
+                color: '#ffffff',
+                bgcolor: '#dc3545',
+                transparency: '0.9',
+                delay: '2000',
+                time: '500'
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('재생성 중 오류가 발생했습니다.', 'danger');
+        $('#ai-pop').pgpopup({
+            type: 'toast',
+            msg: '재생성 중 오류가 발생했습니다.',
+            padding: '15px',
+            width: '250',
+            color: '#ffffff',
+            bgcolor: '#dc3545',
+            transparency: '0.9',
+            delay: '1500',
+            time: '500'
+        });
     });
 }
 </script>
