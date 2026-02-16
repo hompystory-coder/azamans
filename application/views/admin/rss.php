@@ -548,5 +548,3 @@ function regenerateRss() {
     });
 }
 </script>
-
-<?php include APP_PATH . '/views/admin/footercode.php'; ?>

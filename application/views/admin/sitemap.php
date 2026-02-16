@@ -538,5 +538,3 @@ function regenerateSitemap() {
     });
 }
 </script>
-
-<?php include APP_PATH . '/views/admin/footercode.php'; ?>
