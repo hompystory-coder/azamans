@@ -1,0 +1,478 @@
+/**
+ * MVC 게시판 공통 CSS
+ * 좋아요, 댓글 기능 스타일
+ */
+
+/* 좋아요 버튼 */
+.post-likes {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.btn-like {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.btn-like:hover {
+    border-color: #ff4081;
+    background: #fff0f5;
+    transform: scale(1.05);
+}
+
+.btn-like.liked {
+    border-color: #ff4081;
+    background: #ffe0ec;
+}
+
+.btn-like .heart-icon {
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.btn-like:active .heart-icon {
+    transform: scale(1.3);
+}
+
+/* 댓글 영역 전체 컨테이너 */
+.comments-section {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #e9ecef;
+}
+
+/* 댓글 카드 최대 너비 제한 */
+.card.border-0.shadow-sm.mb-4 {
+    max-width: 1200px;  /* 최대 너비 제한 */
+    margin: 0 auto;  /* 중앙 정렬 */
+    width: 100%;
+}
+
+/* 게시물 영역과 동일한 너비 적용 */
+@media (min-width: 576px) {
+    .card.border-0.shadow-sm.mb-4 {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card.border-0.shadow-sm.mb-4 {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .card.border-0.shadow-sm.mb-4 {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .card.border-0.shadow-sm.mb-4 {
+        max-width: 1140px;
+    }
+}
+
+.card-body .comment-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef !important;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.comments-section h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* 댓글 폼 */
+.comment-form {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.comment-form h4 {
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.comment-form-footer {
+    margin-top: 10px;
+    text-align: right;
+}
+
+/* 댓글 목록 */
+.comments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.comment-item {
+    padding: 20px;
+    margin-bottom: 15px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.comment-author {
+    font-weight: 600;
+    color: #333;
+}
+
+.comment-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.comment-content {
+    margin: 10px 0;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.comment-actions {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.comment-actions button {
+    padding: 5px 10px;
+    font-size: 12px;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.comment-actions button:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+    color: #007bff;
+}
+
+/* 로그인 필요 메시지 */
+.login-required {
+    padding: 20px;
+    text-align: center;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    color: #856404;
+}
+
+.login-required a {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+/* 댓글 카드 스타일 조정 */
+.card.border-0.shadow-sm.mb-4 {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.card-body .comment-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef !important;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+/* 댓글 수정/삭제 버튼 스타일 개선 */
+.comment-actions {
+    display: flex !important;
+    gap: 5px;
+}
+
+.comment-actions .btn {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+    font-size: 14px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+/* 수정 버튼 - 파란색 */
+.comment-actions .btn-outline-primary {
+    color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    background: white !important;
+}
+
+.comment-actions .btn-outline-primary:hover {
+    color: white !important;
+    background: #0d6efd !important;
+    border-color: #0d6efd !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* 삭제 버튼 - 빨간색 */
+.comment-actions .btn-outline-danger {
+    color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    background: white !important;
+}
+
+.comment-actions .btn-outline-danger:hover {
+    color: white !important;
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* 아이콘 크기 */
+.comment-actions .btn i {
+    font-size: 14px !important;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .btn-like {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+    
+    .comment-form {
+        padding: 15px;
+    }
+    
+    .comment-item {
+        padding: 15px;
+    }
+    
+    .comment-actions .btn {
+        min-width: 32px;
+        min-height: 32px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+
+/* 커스텀 체크박스 스타일 */
+.form-checkbox {
+    margin: 15px 0;
+}
+
+.form-checkbox label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 0;
+    min-height: 25px;
+}
+
+.form-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 0;
+    height: 0;
+}
+
+/* 커스텀 체크박스 */
+.form-checkbox label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 25px;
+    height: 25px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+/* 체크마크 */
+.form-checkbox label::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 9px;
+    height: 16px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform-origin: center;
+    transition: all 0.2s ease;
+}
+
+/* 호버 효과 */
+.form-checkbox label:hover::before {
+    border-color: #007bff;
+    background: #f0f8ff;
+}
+
+/* 체크됨 상태 */
+.form-checkbox input[type="checkbox"]:checked + label::before,
+.form-checkbox label:has(input[type="checkbox"]:checked)::before {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.form-checkbox input[type="checkbox"]:checked + label::after,
+.form-checkbox label:has(input[type="checkbox"]:checked)::after {
+    transform: translateY(-50%) rotate(45deg) scale(1);
+}
+
+/* 포커스 효과 */
+.form-checkbox input[type="checkbox"]:focus + label::before,
+.form-checkbox label:has(input[type="checkbox"]:focus)::before {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* 비활성화 상태 */
+.form-checkbox input[type="checkbox"]:disabled + label,
+.form-checkbox label:has(input[type="checkbox"]:disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-checkbox input[type="checkbox"]:disabled + label::before,
+.form-checkbox label:has(input[type="checkbox"]:disabled)::before {
+    background: #e9ecef;
+    cursor: not-allowed;
+}
+
+/* 공지사항 체크박스 특별 스타일 (선택사항) */
+.form-checkbox.is-notice label::before {
+    border-color: #ffc107;
+}
+
+.form-checkbox.is-notice input[type="checkbox"]:checked + label::before,
+.form-checkbox.is-notice label:has(input[type="checkbox"]:checked)::before {
+    background: #ffc107;
+    border-color: #ffc107;
+}
+
+/* 비밀글 체크박스 특별 스타일 (선택사항) */
+.form-checkbox.is-secret label::before {
+    border-color: #6c757d;
+}
+
+.form-checkbox.is-secret input[type="checkbox"]:checked + label::before,
+.form-checkbox.is-secret label:has(input[type="checkbox"]:checked)::before {
+    background: #6c757d;
+    border-color: #6c757d;
+}
+
+/* ================================================
+   라디오 버튼 스타일 (체크박스와 동일한 디자인)
+   ================================================ */
+
+/* 라디오 버튼 기본 구조 */
+.form-checkbox input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 0;
+    height: 0;
+}
+
+/* 커스텀 라디오 버튼 (둥근 원형) */
+.form-checkbox input[type="radio"] + label::before {
+    border-radius: 50%; /* 체크박스는 6px, 라디오는 원형 */
+}
+
+/* 라디오 선택 시 체크 표시 (원형 점) */
+.form-checkbox input[type="radio"] + label::after,
+.form-checkbox label:has(input[type="radio"])::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* 라디오 체크됨 상태 */
+.form-checkbox input[type="radio"]:checked + label::before,
+.form-checkbox label:has(input[type="radio"]:checked)::before {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.form-checkbox input[type="radio"]:checked + label::after,
+.form-checkbox label:has(input[type="radio"]:checked)::after {
+    transform: translateY(-50%) scale(1);
+}
+
+/* 라디오 포커스 효과 */
+.form-checkbox input[type="radio"]:focus + label::before,
+.form-checkbox label:has(input[type="radio"]:focus)::before {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* 라디오 비활성화 상태 */
+.form-checkbox input[type="radio"]:disabled + label,
+.form-checkbox label:has(input[type="radio"]:disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-checkbox input[type="radio"]:disabled + label::before,
+.form-checkbox label:has(input[type="radio"]:disabled)::before {
+    background: #e9ecef;
+    cursor: not-allowed;
+}

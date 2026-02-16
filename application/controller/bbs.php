@@ -175,7 +175,7 @@ class Bbs extends Controller {
         $userLiked = false;
         if (isLoggedIn()) {
             $like = getUidData(
-                "SELECT uid FROM post_likes WHERE post_uid = ? AND member_uid = ?",
+                "SELECT uid FROM post_likes WHERE post_type = 'bbs' AND post_uid = ? AND member_uid = ?",
                 [$uid, $_SESSION['user_id']]
             );
             $userLiked = !empty($like);
@@ -293,7 +293,8 @@ class Bbs extends Controller {
         // 파일 업로드 처리
         if ($board['use_upload'] === 'Y' && !empty($_FILES['files']['name'][0])) {
             require_once __DIR__ . '/../libs/FileUpload.php';
-            $uploader = new FileUpload();
+            $uploadDir = PUBLIC_PATH . '/uploads/bbs/file';
+            $uploader = new FileUpload($uploadDir);
             $uploadedFiles = $uploader->upload($_FILES['files']);
             
             if (!empty($uploadedFiles)) {
@@ -310,6 +311,9 @@ class Bbs extends Controller {
             $postData['is_notice'],
             $postData['is_secret']
         );
+        
+        // ✅ Sitemap 캐시 무효화
+        invalidateSitemapCache('bbs');
         
         $this->json([
             'success' => true,
@@ -423,7 +427,8 @@ class Bbs extends Controller {
         // 파일 업로드 처리
         if ($board['use_upload'] === 'Y' && !empty($_FILES['files']['name'][0])) {
             require_once __DIR__ . '/../libs/FileUpload.php';
-            $uploader = new FileUpload();
+            $uploadDir = PUBLIC_PATH . '/uploads/bbs/file';
+            $uploader = new FileUpload($uploadDir);
             $uploadedFiles = $uploader->upload($_FILES['files']);
             
             if (!empty($uploadedFiles)) {
@@ -439,6 +444,9 @@ class Bbs extends Controller {
             $updateData['is_notice'] ?? 'N',
             $updateData['is_secret'] ?? 'N'
         );
+        
+        // ✅ Sitemap 캐시 무효화
+        invalidateSitemapCache('bbs');
         
         $this->json([
             'success' => true,
@@ -476,6 +484,9 @@ class Bbs extends Controller {
         if ($result) {
             // ✅ 최적화 테이블에서 삭제
             bbsDeleteOptimizationData($boardId, $uid);
+            
+            // ✅ Sitemap 캐시 무효화
+            invalidateSitemapCache('bbs');
             
             $this->json([
                 'success' => true,
@@ -714,7 +725,7 @@ class Bbs extends Controller {
         
         // 이미 좋아요를 눌렀는지 확인
         $existingLike = getUidData(
-            "SELECT * FROM post_likes WHERE post_uid = ? AND member_uid = ?",
+            "SELECT * FROM post_likes WHERE post_type = 'bbs' AND post_uid = ? AND member_uid = ?",
             [$postUid, $memberUid]
         );
         
@@ -732,6 +743,7 @@ class Bbs extends Controller {
         } else {
             // 좋아요 추가
             getDbInsert('post_likes', [
+                'post_type' => 'bbs',
                 'post_uid' => $postUid,
                 'member_uid' => $memberUid
             ]);

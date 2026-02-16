@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu Update Debug</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Menu Update Debug Test</h1>
+    
+    <form id="testForm">
+        <label>Menu ID: <input type="text" id="menuId" value="2"></label><br>
+        <label>Menu Name: <input type="text" id="menuName" value="테스트 메뉴"></label><br>
+        <label>Menu Type: 
+            <select id="menuType">
+                <option value="page">Page</option>
+                <option value="board">Board</option>
+                <option value="content">Content</option>
+                <option value="link">Link</option>
+            </select>
+        </label><br>
+        <label>Menu Link: <input type="text" id="menuLink" value=""></label><br>
+        <label>Is Active: 
+            <select id="isActive">
+                <option value="Y">Yes</option>
+                <option value="N">No</option>
+            </select>
+        </label><br>
+        <label>Open New Window: 
+            <select id="openNewWindow">
+                <option value="N">No</option>
+                <option value="Y">Yes</option>
+            </select>
+        </label><br>
+        <label>Page Content:<br>
+            <textarea id="pageContent" rows="10" cols="50"><h1>테스트 페이지</h1><p>내용입니다.</p></textarea>
+        </label><br>
+        <button type="button" onclick="testUpdate()">Test Update</button>
+    </form>
+    
+    <h2>Response:</h2>
+    <pre id="response"></pre>
+    
+    <script>
+    function testUpdate() {
+        const menuId = $('#menuId').val();
+        const formData = {
+            menu_name: $('#menuName').val(),
+            menu_type: $('#menuType').val(),
+            menu_link: $('#menuLink').val(),
+            is_active: $('#isActive').val(),
+            open_new_window: $('#openNewWindow').val(),
+            page_content: $('#pageContent').val()
+        };
+        
+        console.log('Sending data:', formData);
+        console.log('JSON:', JSON.stringify(formData));
+        
+        $.ajax({
+            url: 'https://mvc.neuralgrid.kr/admin/updateMenu/' + menuId,
+            type: 'POST',
+            data: JSON.stringify(formData),
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Success:', response);
+                $('#response').text(JSON.stringify(response, null, 2));
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', xhr, status, error);
+                $('#response').text('ERROR:\n' + 
+                    'Status: ' + xhr.status + '\n' +
+                    'Response: ' + xhr.responseText + '\n' +
+                    'Error: ' + error);
+            }
+        });
+    }
+    </script>
+</body>
+</html>

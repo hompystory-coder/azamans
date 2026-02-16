@@ -1,0 +1,225 @@
+<?php include __DIR__ . '/../../_header.php'; ?>
+
+<main>
+    <div class="container">
+        <!-- 게시판 헤더 -->
+        <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="mb-1 fw-bold">
+                            <i class="fas fa-images text-main me-2"></i>
+                            <?php echo xssFilter($news['bbs_name']); ?>
+                        </h2>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-photo-video me-1"></i>
+                            전체 이미지: <strong><?php echo number_format($total); ?></strong>개
+                        </p>
+                    </div>
+                    <?php if ($news['write_level'] <= ($_SESSION['level'] ?? 0)): ?>
+                        <a href="/news/<?php echo $news['bbs_id']; ?>/write" class="btn btn-primary">
+                            <i class="fas fa-camera me-2"></i>이미지 업로드
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 검색 폼 -->
+        <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
+            <div class="card-body">
+                <form method="get" action="/news/<?php echo $news['bbs_id']; ?>" class="row g-3">
+                    <div class="col-md">
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="제목 검색" 
+                                   value="<?php echo xssFilter($search ?? ''); ?>">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>검색
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 갤러리 그리드 -->
+        <div class="row g-4 animate__animated animate__fadeInUp">
+            <?php if (!empty($posts)): ?>
+                <?php foreach ($posts as $post): ?>
+                    <?php
+                    // 첫 번째 이미지 파일 찾기
+                    $thumbnail = null;
+                    if (!empty($post['attachments'])) {
+                        $attachments = json_decode($post['attachments'], true);
+                        if (is_array($attachments)) {
+                            foreach ($attachments as $file) {
+                                if (isset($file['file_type']) && strpos($file['file_type'], 'image/') === 0) {
+                                    $thumbnail = $file['file_path'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    ?>
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="card border-0 shadow-sm h-100 gallery-item">
+                            <a href="/news/<?php echo $news['bbs_id']; ?>/view/<?php echo $post['uid']; ?>" class="text-decoration-none">
+                                <div class="gallery-thumbnail">
+                                    <?php if ($thumbnail): ?>
+                                        <img src="<?php echo $thumbnail; ?>" alt="<?php echo xssFilter($post['title']); ?>" 
+                                             class="card-img-top" style="height: 200px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <div class="bg-light d-flex align-items-center justify-content-center" 
+                                             style="height: 200px;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <!-- 뱃지 -->
+                                    <div class="position-absolute top-0 end-0 p-2">
+                                        <?php if (strtotime($post['reg_date']) > time() - 86400): ?>
+                                            <span class="badge bg-danger">NEW</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <?php if ($post['is_notice'] === 'Y'): ?>
+                                        <div class="position-absolute top-0 start-0 p-2">
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-bullhorn"></i> 공지
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <h6 class="card-title text-dark mb-2 text-truncate">
+                                        <?php echo xssFilter($post['title']); ?>
+                                    </h6>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center text-muted small">
+                                        <span>
+                                            <i class="fas fa-user me-1"></i>
+                                            <?php echo xssFilter($post['name']); ?>
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-eye me-1"></i>
+                                            <?php echo number_format($post['view_count']); ?>
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center text-muted small mt-2">
+                                        <span>
+                                            <i class="fas fa-calendar me-1"></i>
+                                            <?php echo date('Y-m-d', strtotime($post['reg_date'])); ?>
+                                        </span>
+                                        <?php if ($post['comment_count'] > 0): ?>
+                                            <span class="text-primary">
+                                                <i class="fas fa-comments me-1"></i>
+                                                <?php echo $post['comment_count']; ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-images fa-4x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">등록된 이미지가 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+                            <?php endif; ?>
+        </div>
+        
+        <!-- 페이징 -->
+        <?php if ($total_pages > 1): ?>
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <nav>
+                        <ul class="pagination justify-content-center mb-0">
+                            <?php if ($current_page > 1): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1<?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?php echo $current_page - 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                            
+                            <?php
+                            $start = max(1, $current_page - 5);
+                            $end = min($total_pages, $current_page + 5);
+                            
+                            for ($i = $start; $i <= $end; $i++):
+                            ?>
+                                <li class="page-item <?php echo $i == $current_page ? 'active' : ''; ?>">
+                                    <a class="page-link" href="?page=<?php echo $i; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+                            
+                            <?php if ($current_page < $total_pages): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?php echo $current_page + 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?php echo $total_pages; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </nav>
+                    
+                    <div class="text-center text-muted mt-3">
+                        <small>
+                            전체 <?php echo number_format($total); ?>개 중 
+                            <?php echo number_format(($current_page - 1) * $news['page_rows'] + 1); ?> - 
+                            <?php echo number_format(min($current_page * $news['page_rows'], $total)); ?>개 표시
+                        </small>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</main>
+
+<style>
+.gallery-item {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.gallery-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.gallery-thumbnail {
+    position: relative;
+    overflow: hidden;
+}
+
+.gallery-thumbnail img {
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover .gallery-thumbnail img {
+    transform: scale(1.1);
+}
+</style>
+
+<?php include __DIR__ . '/../../_footer.php'; ?>

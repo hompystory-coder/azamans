@@ -15,6 +15,14 @@ class Upload extends Controller {
     }
     
     /**
+     * 뉴스 이미지 업로드
+     * URL: /upload/news/image
+     */
+    public function news() {
+        $this->image('news');
+    }
+    
+    /**
      * 페이지 이미지 업로드
      * URL: /upload/page/image
      */
@@ -106,7 +114,7 @@ class Upload extends Controller {
             $month = date('m');
             $day = date('d');
             
-            $uploadDir = __DIR__ . '/../../public/uploads/page/attach/' . $year . '/' . $month . '/' . $day;
+            $uploadDir = __DIR__ . '/../../public/uploads/page/file/' . $year . '/' . $month . '/' . $day;
             
             // 디렉토리 생성
             if (!file_exists($uploadDir)) {
@@ -130,7 +138,7 @@ class Upload extends Controller {
             chmod($uploadPath, 0644);
             
             // 상대 경로 생성
-            $filePath = '/public/uploads/page/attach/' . $year . '/' . $month . '/' . $day . '/' . $newFileName;
+            $filePath = '/public/uploads/page/file/' . $year . '/' . $month . '/' . $day . '/' . $newFileName;
             
             // MIME 타입 확인
             $mimeType = mime_content_type($uploadPath);

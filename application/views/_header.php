@@ -3,7 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo xssFilter($title ?? 'MVC Framework'); ?></title>
+    
+    <?php
+    // SEO 메타 데이터 자동 생성
+    $seoData = getPageSeoMetaData();
+    $pageTitle = xssFilter($title ?? $seoData['title']);
+    $siteName = xssFilter($seoData['site_name']);
+    $fullTitle = $pageTitle . ' | ' . $siteName;
+    ?>
+    
+    <!-- 기본 SEO -->
+    <title><?php echo $fullTitle; ?></title>
+    <meta name="description" content="<?php echo xssFilter($seoData['description']); ?>">
+    <meta name="keywords" content="<?php echo xssFilter($seoData['keywords']); ?>">
+    <meta name="author" content="<?php echo xssFilter($seoData['author']); ?>">
+    
+    <!-- 크롤러용 -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    
+    <!-- Open Graph (페이스북, 네이버, X) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?php echo xssFilter($fullTitle); ?>">
+    <meta property="og:description" content="<?php echo xssFilter($seoData['description']); ?>">
+    <meta property="og:image" content="<?php echo xssFilter($seoData['image']); ?>">
+    <meta property="og:url" content="<?php echo xssFilter($seoData['url']); ?>">
+    <meta property="og:site_name" content="<?php echo xssFilter($siteName); ?>">
+    <meta property="og:locale" content="ko_KR">
+    
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo xssFilter($fullTitle); ?>">
+    <meta name="twitter:description" content="<?php echo xssFilter($seoData['description']); ?>">
+    <meta name="twitter:image" content="<?php echo xssFilter($seoData['image']); ?>">
+    <meta name="twitter:site" content="<?php echo xssFilter($seoData['twitter_handle']); ?>">
+    <meta name="twitter:creator" content="<?php echo xssFilter($seoData['twitter_handle']); ?>">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="<?php echo xssFilter($seoData['favicon_ico']); ?>" type="image/x-icon">
+    <link rel="apple-touch-icon" href="<?php echo xssFilter($seoData['favicon_apple']); ?>">
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="<?php echo xssFilter($seoData['url']); ?>">
     
     <!-- Fonts -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css" />
@@ -139,12 +180,18 @@
                             // 메뉴 타입에 따른 URL
                             switch ($headerMenu['menu_type']) {
                                 case 'page':
-                                    $menuUrl = '/page/' . $headerMenu['id'];
+                                    $menuUrl = '/page/header/' . $headerMenu['id'];
                                     break;
                                 case 'board':
                                     // menu_target이 있는 경우에만 게시판 링크 생성
                                     if (!empty($headerMenu['menu_target'])) {
                                         $menuUrl = '/bbs/' . xssFilter($headerMenu['menu_target']);
+                                    }
+                                    break;
+                                case 'news':
+                                    // menu_target이 있는 경우에만 뉴스 링크 생성
+                                    if (!empty($headerMenu['menu_target'])) {
+                                        $menuUrl = '/news/' . xssFilter($headerMenu['menu_target']);
                                     }
                                     break;
                                 case 'content':

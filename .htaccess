@@ -9,6 +9,16 @@
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     
+    # RSS 피드 라우팅 (파일 존재 여부 상관없이 항상 컨트롤러로)
+    RewriteRule ^rss_index\.xml$ /index.php?url=rss/index [L,QSA]
+    RewriteRule ^rss_bbs\.xml$ /index.php?url=rss/bbs [L,QSA]
+    RewriteRule ^rss_news\.xml$ /index.php?url=rss/news [L,QSA]
+    
+    # Sitemap 라우팅 (파일 존재 여부 상관없이 항상 컨트롤러로)
+    RewriteRule ^sitemap_index\.xml$ /index.php?url=sitemap/index [L,QSA]
+    RewriteRule ^sitemap_bbs\.xml$ /index.php?url=sitemap/bbs [L,QSA]
+    RewriteRule ^sitemap_news\.xml$ /index.php?url=sitemap/news [L,QSA]
+    
     # 실제 파일/디렉토리가 아닌 경우 index.php로 라우팅
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -59,6 +69,13 @@ DirectoryIndex index.php index.html
 # Gzip 압축
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json
+</IfModule>
+
+# MIME 타입 설정
+<IfModule mod_mime.c>
+    AddType application/xml .xml
+    AddType text/xsl .xsl
+    AddType application/xslt+xml .xslt
 </IfModule>
 
 # 브라우저 캐싱

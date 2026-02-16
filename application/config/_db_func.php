@@ -120,12 +120,20 @@ function getDbInsert($table, $data) {
         $sql = "INSERT INTO `{$table}` (`" . implode('`, `', $columns) . "`) 
                 VALUES (" . implode(', ', array_fill(0, count($values), '?')) . ")";
         
+        error_log("getDbInsert SQL: " . $sql);
+        error_log("getDbInsert VALUES: " . print_r($values, true));
+        
         $stmt = $pdo->prepare($sql);
         $stmt->execute($values);
         
-        return $pdo->lastInsertId();
+        $insertId = $pdo->lastInsertId();
+        error_log("getDbInsert SUCCESS: insertId = " . $insertId);
+        
+        return $insertId;
     } catch (PDOException $e) {
         error_log("getDbInsert Error: " . $e->getMessage());
+        error_log("getDbInsert SQL: " . ($sql ?? 'N/A'));
+        error_log("getDbInsert Data: " . print_r($data, true));
         return false;
     }
 }

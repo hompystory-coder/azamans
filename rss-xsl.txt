@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="rss.xsl"?>
+<rss version="2.0"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/">
+     
+  <channel>
+    <title>사이트1 최신 뉴스</title>
+    <link>https://site1.example.com/</link>
+    <description>사이트1 최신 뉴스 100건</description>
+    <language>ko-KR</language>
+    <lastBuildDate>Tue, 16 Feb 2026 12:00:00 +0900</lastBuildDate>
+    <atom:link href="https://site1.example.com/rss/all.xml" rel="self" type="application/rss+xml" />
+
+    <item>
+      <title>뉴스 제목 1</title>
+      <link>https://site1.example.com/news/12345</link>
+      <guid isPermaLink="true">https://site1.example.com/news/12345</guid>
+      <pubDate>Tue, 16 Feb 2026 11:50:00 +0900</pubDate>
+      <dc:creator>기자명</dc:creator>
+      <category domain="sharecat">정치</category>
+      <description><![CDATA[뉴스 요약 내용]]></description>
+      <content:encoded><![CDATA[
+        뉴스 전체 본문 HTML 포함 가능
+      ]]></content:encoded>
+    </item>
+
+    <!-- 반복 -->
+  </channel>
+</rss>
+
+
+rss.xsl
+XSL 예제 (rss.xsl)
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:rss="http://purl.org/rss/1.0/modules/content/">
+
+  <xsl:output method="html" version="1.0" encoding="UTF-8" indent="yes"/>
+
+  <xsl:template match="/">
+    <html>
+      <head>
+        <title>RSS 뉴스 보기</title>
+        <style>
+          body { font-family: Arial,sans-serif; font-size: 14px; }
+          h1 { color: #2a6ebb; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #ccc; padding: 5px; }
+          th { background: #f0f0f0; }
+        </style>
+      </head>
+      <body>
+        <h1>RSS 뉴스 - 사이트1</h1>
+        <table>
+          <tr>
+            <th>제목</th>
+            <th>카테고리</th>
+            <th>작성자</th>
+            <th>날짜</th>
+          </tr>
+          <xsl:for-each select="rss/channel/item">
+            <tr>
+              <td><a href="{link}"><xsl:value-of select="title"/></a></td>
+              <td><xsl:value-of select="category"/></td>
+              <td><xsl:value-of select="dc:creator"/></td>
+              <td><xsl:value-of select="pubDate"/></td>
+            </tr>
+          </xsl:for-each>
+        </table>
+      </body>
+    </html>
+  </xsl:template>
+
+</xsl:stylesheet>

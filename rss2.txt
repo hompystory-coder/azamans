@@ -1,0 +1,93 @@
+<?php
+/**
+ * 실무용 RSS 자동 생성 예제
+ * 멀티사이트, sharecat 기반, 최신 100건
+ */
+
+function update_rss($site_id, $sharecat = null, $limit = 100)
+{
+    // DB 연결 (예시, PDO)
+    $pdo = new PDO("mysql:host=localhost;dbname=news_db;charset=utf8mb4", "dbuser", "dbpass");
+    
+    // 뉴스 조회
+    $params = [':site' => $site_id];
+    $where = "i.site = :site AND i.auth = 'Y'";
+    if ($sharecat) {
+        $where .= " AND i.sharecat = :sharecat";
+        $params[':sharecat'] = $sharecat;
+    }
+
+    $sql = "SELECT i.uid, i.category, i.sharecat, d.subject, d.content, d.link, d.name AS author, i.reg_date
+            FROM news_index i
+            JOIN news_data d ON i.uid = d.uid
+            WHERE $where
+            ORDER BY i.reg_date DESC
+            LIMIT $limit";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $news_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!$news_list) return false;
+
+    // RSS XML 생성
+    $rss = new SimpleXMLElement('<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+                                xmlns:dc="http://purl.org/dc/elements/1.1/"
+                                xmlns:content="http://purl.org/rss/1.0/modules/content/"></rss>');
+
+    $channel = $rss->addChild('channel');
+    $channel->addChild('title', "사이트 {$site_id} 뉴스" . ($sharecat ? " - 카테고리 {$sharecat}" : ""));
+    $channel->addChild('link', "https://site{$site_id}.example.com/");
+    $channel->addChild('description', "사이트 {$site_id} 뉴스 최신 {$limit}건");
+    $channel->addChild('language', 'ko-KR');
+    $channel->addChild('lastBuildDate', date(DATE_RSS));
+
+    $atomLink = $channel->addChild('atom:link', '', 'http://www.w3.org/2005/Atom');
+    $atomLink->addAttribute('href', "https://site{$site_id}.example.com/rss" . ($sharecat ? "_{$sharecat}" : "") . ".xml");
+    $atomLink->addAttribute('rel', 'self');
+    $atomLink->addAttribute('type', 'application/rss+xml');
+
+    foreach ($news_list as $news) {
+        $item = $channel->addChild('item');
+        $item->addChild('title', htmlspecialchars($news['subject']));
+        $item->addChild('link', $news['link']);
+        $item->addChild('guid', $news['link'])->addAttribute('isPermaLink', 'true');
+        $item->addChild('pubDate', date(DATE_RSS, strtotime($news['reg_date'])));
+        $item->addChild('dc:creator', htmlspecialchars($news['author']));
+        $item->addChild('category', htmlspecialchars($news['sharecat']))->addAttribute('domain', 'sharecat');
+        $item->addChild('description', htmlspecialchars(mb_substr(strip_tags($news['content']), 0, 200)));
+        $item->addChild('content:encoded', '<![CDATA[' . $news['content'] . ']]>');
+    }
+
+    // RSS 파일 저장 (tmp 후 rename 안전 갱신)
+    $rss_dir = __DIR__ . "/rss";
+    if (!is_dir($rss_dir)) mkdir($rss_dir, 0755, true);
+
+    $file_tmp = $rss_dir . "/rss" . ($sharecat ? "_{$sharecat}" : "") . ".xml.tmp";
+    $file_final = $rss_dir . "/rss" . ($sharecat ? "_{$sharecat}" : "") . ".xml";
+
+    $rss->asXML($file_tmp);
+    rename($file_tmp, $file_final);
+
+    return true;
+}
+
+// -------------------- 사용 예시 --------------------
+
+// 전체 뉴스 RSS 갱신
+update_rss(1);
+
+// 정치(sharecat=4) 카테고리 뉴스 RSS 갱신
+update_rss(1, 4);
+✅ 특징
+멀티사이트 대응 → $site_id별 RSS 생성
+
+카테고리별/전체 RSS → $sharecat 유무로 처리
+
+최신 N건 제한 → $limit = 100
+
+구글/네이버 최적화
+
+atom:link, dc:creator, category domain="sharecat", content:encoded 포함
+
+안전한 파일 갱신 → tmp 파일 후 rename

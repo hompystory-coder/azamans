@@ -207,7 +207,7 @@
                         </div>
                         <?php if (!empty($configs['header_logo'])): ?>
                         <div class="mt-3">
-                            <img src="<?= xssFilter($configs['header_logo']) ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="header_logo_preview">
+                            <img src="<?= xssFilter($configs['header_logo']) ?>?v=<?= time() ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="header_logo_preview">
                             <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteLogo('header_logo')">
                                 <i class="fas fa-trash"></i> 삭제
                             </button>
@@ -252,7 +252,7 @@
                         </div>
                         <?php if (!empty($configs['footer_logo'])): ?>
                         <div class="mt-3">
-                            <img src="<?= xssFilter($configs['footer_logo']) ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="footer_logo_preview">
+                            <img src="<?= xssFilter($configs['footer_logo']) ?>?v=<?= time() ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="footer_logo_preview">
                             <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteLogo('footer_logo')">
                                 <i class="fas fa-trash"></i> 삭제
                             </button>
@@ -297,7 +297,7 @@
                         </div>
                         <?php if (!empty($configs['mobile_header_logo'])): ?>
                         <div class="mt-3">
-                            <img src="<?= xssFilter($configs['mobile_header_logo']) ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="mobile_header_logo_preview">
+                            <img src="<?= xssFilter($configs['mobile_header_logo']) ?>?v=<?= time() ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="mobile_header_logo_preview">
                             <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteLogo('mobile_header_logo')">
                                 <i class="fas fa-trash"></i> 삭제
                             </button>
@@ -342,7 +342,7 @@
                         </div>
                         <?php if (!empty($configs['mobile_footer_logo'])): ?>
                         <div class="mt-3">
-                            <img src="<?= xssFilter($configs['mobile_footer_logo']) ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="mobile_footer_logo_preview">
+                            <img src="<?= xssFilter($configs['mobile_footer_logo']) ?>?v=<?= time() ?>" style="max-height: 100px; border: 1px solid #dee2e6; padding: 10px;" id="mobile_footer_logo_preview">
                             <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteLogo('mobile_footer_logo')">
                                 <i class="fas fa-trash"></i> 삭제
                             </button>
@@ -867,6 +867,9 @@ function saveBasicInfo() {
     .then(data => {
         if (data.success) {
             alert('기본 정보가 저장되었습니다.');
+            // 현재 탭 저장 후 새로고침
+            localStorage.setItem('adminConfigTab', 'basic');
+            location.reload();
         } else {
             alert(data.message || '저장에 실패했습니다.');
         }
@@ -892,6 +895,7 @@ function saveImageSettings() {
     .then(data => {
         if (data.success) {
             alert('이미지 설정이 저장되었습니다.');
+            location.reload();
         } else {
             alert(data.message || '저장에 실패했습니다.');
         }
@@ -927,6 +931,7 @@ function saveWatermarkSettings() {
     .then(data => {
         if (data.success) {
             alert('워터마크 설정이 저장되었습니다.');
+            location.reload();
         } else {
             alert(data.message || '저장에 실패했습니다.');
         }

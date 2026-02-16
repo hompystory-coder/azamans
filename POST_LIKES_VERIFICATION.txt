@@ -1,0 +1,175 @@
+================================================================================
+post_likes 테이블 BBS/News 완전 분리 검증 보고서
+================================================================================
+작성 일시: 2026-02-16 01:15
+================================================================================
+
+📋 변경 내역 요약:
+
+1. SQL 스키마 변경
+   ✅ database/alter_post_likes_add_post_type.sql 생성
+   - post_type VARCHAR(10) 컬럼 추가 (기본값: 'bbs')
+   - UNIQUE KEY: (post_type, post_uid, member_uid)
+   - INDEX: (post_type, post_uid)
+
+2. News Controller 수정 (application/controller/news.php)
+   ✅ Line 180: viewPost() - 좋아요 상태 확인
+      WHERE post_type = 'news' AND post_uid = ? AND member_uid = ?
+   
+   ✅ Line 778: toggleLike() - 기존 좋아요 확인  
+      WHERE post_type = 'news' AND post_uid = ? AND member_uid = ?
+   
+   ✅ Line 796: toggleLike() - 좋아요 추가
+      'post_type' => 'news'
+
+3. BBS Controller 수정 (application/controller/bbs.php)
+   ✅ Line 178: viewPost() - 좋아요 상태 확인
+      WHERE post_type = 'bbs' AND post_uid = ? AND member_uid = ?
+   
+   ✅ Line 726: toggleLike() - 기존 좋아요 확인
+      WHERE post_type = 'bbs' AND post_uid = ? AND member_uid = ?
+   
+   ✅ Line 744: toggleLike() - 좋아요 추가
+      'post_type' => 'bbs'
+
+4. News Model 수정 (application/models/NewsModel.php)
+   ✅ Line 139: getPost() - 좋아요 수 조회
+      WHERE post_type = 'news' AND post_uid = ?
+
+================================================================================
+
+📊 통계:
+
+- 생성된 파일: 2개
+  1. database/alter_post_likes_add_post_type.sql (1.1K)
+  2. POST_LIKES_SEPARATION_SUMMARY.md (6.1K)
+
+- 수정된 파일: 3개
+  1. application/controller/news.php (3개 위치)
+  2. application/controller/bbs.php (3개 위치)
+  3. application/models/NewsModel.php (1개 위치)
+
+- 총 변경 위치: 7개
+  - News 관련: 4개 (Controller 3개 + Model 1개)
+  - BBS 관련: 3개 (Controller 3개)
+
+================================================================================
+
+🔍 분리 효과:
+
+BEFORE (문제 상황):
+┌─────────────────────┐
+│    post_likes       │
+├─────────────────────┤
+│ post_uid | member   │ ← BBS와 News 구분 불가
+├─────────────────────┤
+│    1     | user1    │ ← BBS uid=1 또는 News uid=1?
+│    1     | user2    │ ← 섞여서 저장됨
+└─────────────────────┘
+
+AFTER (해결 후):
+┌──────────────────────────────┐
+│         post_likes           │
+├──────────────────────────────┤
+│ post_type | post_uid | member│
+├──────────────────────────────┤
+│   bbs     |    1     | user1 │ ← BBS 게시물
+│   bbs     |    1     | user2 │ ← BBS 게시물
+│   news    |    1     | user3 │ ← News 게시물 (별도 관리)
+│   news    |    1     | user4 │ ← News 게시물 (별도 관리)
+└──────────────────────────────┘
+
+================================================================================
+
+✅ 검증 체크리스트:
+
+코드 검증:
+[✓] News 컨트롤러에 post_type = 'news' 조건 추가 (3곳)
+[✓] BBS 컨트롤러에 post_type = 'bbs' 조건 추가 (3곳)
+[✓] News 모델에 post_type = 'news' 조건 추가 (1곳)
+[✓] SQL 스크립트 생성 (post_type 컬럼, UNIQUE KEY, INDEX)
+[✓] 문서화 완료 (Summary, Log, Verification)
+
+실행 대기 중:
+[ ] SQL 스크립트 실행
+[ ] BBS 게시물 좋아요 기능 테스트
+[ ] News 게시물 좋아요 기능 테스트
+[ ] 동일 uid 케이스 검증
+
+================================================================================
+
+🚀 실행 가이드:
+
+1. SQL 스크립트 실행
+   $ mysql -u [사용자] -p [DB명] < database/alter_post_likes_add_post_type.sql
+
+2. 기존 News 데이터 마이그레이션 (필요시)
+   UPDATE post_likes pl
+   INNER JOIN news_data nd ON pl.post_uid = nd.uid
+   SET pl.post_type = 'news';
+
+3. 데이터 검증
+   -- BBS 좋아요 확인
+   SELECT post_type, COUNT(*) FROM post_likes 
+   WHERE post_type = 'bbs' GROUP BY post_type;
+   
+   -- News 좋아요 확인
+   SELECT post_type, COUNT(*) FROM post_likes 
+   WHERE post_type = 'news' GROUP BY post_type;
+
+4. 기능 테스트
+   - https://mvc.neuralgrid.kr/bbs/[게시판]/view/[uid] 좋아요
+   - https://mvc.neuralgrid.kr/news/[뉴스]/view/[uid] 좋아요
+   - 동일 uid에서 독립 동작 확인
+
+================================================================================
+
+💡 중요 사항:
+
+1. 기본값 처리
+   - 기존 post_likes 데이터는 자동으로 post_type = 'bbs'로 설정
+   - News 관련 데이터가 있다면 별도 마이그레이션 필요
+
+2. UNIQUE KEY 변경
+   - 기존: (post_uid, member_uid)
+   - 변경: (post_type, post_uid, member_uid)
+   - 동일 게시물에 대한 중복 좋아요 방지 유지
+
+3. 성능 최적화
+   - INDEX (post_type, post_uid) 추가로 조회 성능 향상
+   - 복합 인덱스로 WHERE 절 최적화
+
+================================================================================
+
+📂 관련 파일:
+
+생성:
+- /home/mvc/database/alter_post_likes_add_post_type.sql
+- /home/mvc/POST_LIKES_SEPARATION_SUMMARY.md
+- /home/mvc/POST_LIKES_VERIFICATION.txt (본 파일)
+
+수정:
+- /home/mvc/application/controller/news.php
+- /home/mvc/application/controller/bbs.php
+- /home/mvc/application/models/NewsModel.php
+
+로그:
+- /home/mvc/work.txt (작업 이력 기록)
+
+================================================================================
+
+🎯 예상 결과:
+
+✅ BBS와 News의 좋아요 데이터 완전 분리
+✅ 동일 uid 게시물의 좋아요 독립 관리
+✅ 정확한 좋아요 카운트 집계
+✅ 데이터 무결성 보장
+✅ 향후 확장성 확보 (gallery, qna 등 추가 가능)
+
+================================================================================
+
+작성: AI Assistant
+일시: 2026-02-16 01:15
+상태: 코드 수정 완료, SQL 실행 대기
+
+================================================================================

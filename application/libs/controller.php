@@ -31,10 +31,32 @@ class Controller {
      * @param int $statusCode
      */
     protected function json($data, $statusCode = 200) {
+        // JSON 응답을 위해 에러 출력 끄기
+        ini_set('display_errors', 0);
+        
+        // 이전 출력 버퍼 제거
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // 새로운 출력 버퍼 시작
+        ob_start();
+        
         http_response_code($statusCode);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        
+        ob_end_flush();
         exit;
+    }
+    
+    /**
+     * JSON 응답 반환 (renderJson 별칭)
+     * @param array $data
+     * @param int $statusCode
+     */
+    protected function renderJson($data, $statusCode = 200) {
+        $this->json($data, $statusCode);
     }
     
     /**

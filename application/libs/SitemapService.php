@@ -14,7 +14,7 @@ class SitemapService {
      */
     private static function init() {
         if (!self::$baseUrl) {
-            self::$baseUrl = defined('ROOTURL') ? ROOTURL : rtrim(env('APP_URL', getConfig('site_url', '')), '/');
+            self::$baseUrl = defined('ROOTURL') ? ROOTURL : rtrim(getConfig('site_url', ''), '/');
         }
         if (!self::$db) {
             self::$db = getDBConnection();
@@ -399,19 +399,19 @@ class SitemapService {
         try {
             // Sitemap Index 생성
             $indexXml = self::buildIndex();
-            $indexFile = BASE_PATH . '/sitemap_index.xml';
+            $indexFile = ROOTPATH . '/sitemap_index.xml';
             file_put_contents($indexFile, $indexXml);
             $results['index'] = ['success' => true, 'file' => 'sitemap_index.xml'];
             
             // 뉴스 Sitemap 생성
             $newsXml = self::buildNews();
-            $newsFile = BASE_PATH . '/sitemap_news.xml';
+            $newsFile = ROOTPATH . '/sitemap_news.xml';
             file_put_contents($newsFile, $newsXml);
             $results['news'] = ['success' => true, 'file' => 'sitemap_news.xml'];
             
             // 게시판 Sitemap 생성
             $bbsXml = self::buildBbs();
-            $bbsFile = BASE_PATH . '/sitemap_bbs.xml';
+            $bbsFile = ROOTPATH . '/sitemap_bbs.xml';
             file_put_contents($bbsFile, $bbsXml);
             $results['bbs'] = ['success' => true, 'file' => 'sitemap_bbs.xml'];
             

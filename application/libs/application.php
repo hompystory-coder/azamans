@@ -79,6 +79,9 @@ class Application {
                 return [];
             }
             
+            // Sitemap XML 파일 라우팅 처리
+            $url = $this->handleSitemapRouting($url);
+            
             $url = explode('/', $url);
             return $url;
         }
@@ -104,6 +107,9 @@ class Application {
                 return [];
             }
             
+            // Sitemap XML 파일 라우팅 처리
+            $requestUri = $this->handleSitemapRouting($requestUri);
+            
             // URL을 배열로 변환
             $url = filter_var($requestUri, FILTER_SANITIZE_URL);
             $url = explode('/', $url);
@@ -111,6 +117,40 @@ class Application {
         }
         
         return [];
+    }
+    
+    /**
+     * Sitemap XML 라우팅 처리
+     * sitemap_index.xml -> sitemap/index
+     * sitemap_news.xml -> sitemap/news
+     * sitemap_bbs.xml -> sitemap/bbs
+     * sitemap_{type}_{year}_{month}.xml -> sitemap/monthly/{type}/{year}/{month}
+     * 
+     * @param string $url
+     * @return string
+     */
+    protected function handleSitemapRouting($url) {
+        // sitemap_index.xml
+        if ($url === 'sitemap_index.xml') {
+            return 'sitemap/index';
+        }
+        
+        // sitemap_news.xml
+        if ($url === 'sitemap_news.xml') {
+            return 'sitemap/news';
+        }
+        
+        // sitemap_bbs.xml
+        if ($url === 'sitemap_bbs.xml') {
+            return 'sitemap/bbs';
+        }
+        
+        // sitemap_{type}_{year}_{month}.xml
+        if (preg_match('/^sitemap_(news|bbs)_(\d{4})_(\d{2})\.xml$/', $url, $matches)) {
+            return 'sitemap/monthly/' . $matches[1] . '/' . $matches[2] . '/' . $matches[3];
+        }
+        
+        return $url;
     }
     
     /**

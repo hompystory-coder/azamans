@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo xssFilter($post['title']); ?> - <?php echo xssFilter($news['news_name']); ?></title>
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/board.css">
+    <link rel="stylesheet" href="/public/css/news_common.css">
+    <link rel="stylesheet" href="/public/plugins/editor/build/ckeditor5-content.css">
+</head>
+<body>
+    <?php include __DIR__ . '/../../_header.php'; ?>
+    
+    <main class="container board-container">
+        <div class="board-header">
+            <h1><?php echo xssFilter($news['news_name']); ?></h1>
+        </div>
+        
+        <!-- 게시물 내용 -->
+        <article class="post-view">
+            <div class="post-header">
+                <h2 class="post-title">
+                    <?php if ($post['is_notice'] === 'Y'): ?>
+                        <span class="badge-notice">공지</span>
+                    <?php endif; ?>
+                    <?php echo xssFilter($post['title']); ?>
+                </h2>
+                <div class="post-meta">
+                    <span class="post-author">👤 <?php echo xssFilter($post['name']); ?></span>
+                    <span class="post-date">📅 <?php echo formatDate($post['reg_date'], 'Y-m-d H:i'); ?></span>
+                    <span class="post-views">👁️ <?php echo number_format($post['view_count']); ?></span>
+                    <?php if ($post['comment_count'] > 0): ?>
+                        <span class="post-comments">💬 <?php echo $post['comment_count']; ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <div class="post-content ck-content">
+                <?php echo $post['content']; ?>
+            </div>
+            
+            <!-- 첨부파일 -->
+            <?php if (!empty($files)): ?>
+            <div class="post-files">
+                <h4>📎 첨부파일 (<?php echo count($files); ?>)</h4>
+                <ul class="file-list">
+                    <?php foreach ($files as $file): ?>
+                    <li class="file-item">
+                        <a href="/news/download/<?php echo $file['uid']; ?>" class="file-link">
+                            <?php if (isset($file['mime_type']) && strpos($file['mime_type'], 'image/') === 0): ?>
+                                <span class="file-icon">🖼️</span>
+                            <?php elseif (isset($file['mime_type']) && strpos($file['mime_type'], 'pdf') !== false): ?>
+                                <span class="file-icon">📄</span>
+                            <?php elseif (isset($file['mime_type']) && strpos($file['mime_type'], 'zip') !== false): ?>
+                                <span class="file-icon">📦</span>
+                            <?php else: ?>
+                                <span class="file-icon">📎</span>
+                            <?php endif; ?>
+                            <span class="file-name"><?php echo xssFilter($file['original_name']); ?></span>
+                            <span class="file-info">
+                                (<?php echo number_format($file['filesize']); ?> bytes)
+                                <span class="download-count">다운로드: <?php echo $file['download_count'] ?? 0; ?></span>
+                            </span>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+            
+            <div class="post-footer">
+                <div class="post-actions">
+                    <a href="/news/<?php echo $news['news_id']; ?>" class="btn">목록</a>
+                    
+                    <?php if (isLoggedIn() && (isset($_SESSION['user_id']) && $post['member_uid'] == $_SESSION['user_id']) || isAdmin()): ?>
+                        <a href="/news/<?php echo $news['news_id']; ?>/edit/<?php echo $post['uid']; ?>" class="btn">수정</a>
+                        <button onclick="deletePost('<?php echo $news['news_id']; ?>', <?php echo $post['uid']; ?>)" class="btn btn-danger">삭제</button>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- 좋아요 버튼 -->
+                <?php include __DIR__ . '/../_includes/like_button.php'; ?>
+            </div>
+        </article>
+        
+        <!-- 이전/다음 글 -->
+        <nav class="post-nav">
+            <div class="post-nav-item">
+                <span class="post-nav-label">이전 글</span>
+                <?php if ($prev): ?>
+                    <a href="/news/<?php echo $news['news_id']; ?>/view/<?php echo $prev['uid']; ?>">
+                        <?php echo cutString(xssFilter($prev['title']), 50); ?>
+                    </a>
+                <?php else: ?>
+                    <span class="no-post">이전 글이 없습니다.</span>
+                <?php endif; ?>
+            </div>
+            <div class="post-nav-item">
+                <span class="post-nav-label">다음 글</span>
+                <?php if ($next): ?>
+                    <a href="/news/<?php echo $news['news_id']; ?>/view/<?php echo $next['uid']; ?>">
+                        <?php echo cutString(xssFilter($next['title']), 50); ?>
+                    </a>
+                <?php else: ?>
+                    <span class="no-post">다음 글이 없습니다.</span>
+                <?php endif; ?>
+            </div>
+        </nav>
+        
+        <?php include __DIR__ . '/../_comment_section.php'; ?>
+    </main>
+    
+    <?php include __DIR__ . '/../../_footer.php'; ?>
+    
+    <script>
+    // 게시물 삭제
+    function deletePost() {
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        
+        fetch('/news/<?php echo $news['news_id']; ?>/delete/<?php echo $post['uid']; ?>', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) {
+                location.href = data.redirect;
+            }
+        })
+        .catch(err => {
+            alert('삭제 중 오류가 발생했습니다.');
+            console.error(err);
+        });
+    }
+    
+    // 댓글 작성
+    function submitComment(e) {
+        e.preventDefault();
+        
+        const content = document.getElementById('commentContent').value.trim();
+        
+        if (!content) {
+            alert('댓글 내용을 입력해주세요.');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('content', content);
+        
+        fetch('/news/<?php echo $news['news_id']; ?>/comment/<?php echo $post['uid']; ?>', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(err => {
+            alert('댓글 등록 중 오류가 발생했습니다.');
+            console.error(err);
+        });
+    }
+    
+    // 댓글 삭제
+    function deleteComment(commentId) {
+        if (!confirm('댓글을 삭제하시겠습니까?')) return;
+        
+        fetch('/news/<?php echo $news['news_id']; ?>/comment/<?php echo $post['uid']; ?>/' + commentId, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(err => {
+            alert('삭제 중 오류가 발생했습니다.');
+            console.error(err);
+        });
+    }
+    </script>
+    <script src="/public/js/news_common.js"></script>
+</body>
+</html>

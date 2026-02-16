@@ -24,10 +24,10 @@ class FileUpload {
             mkdir($this->uploadDir, 0755, true);
         }
         
-        // 월별 디렉토리 생성
-        $monthDir = $this->uploadDir . '/' . date('Y/m');
-        if (!is_dir($monthDir)) {
-            mkdir($monthDir, 0755, true);
+        // 날짜별 디렉토리 생성 (년/월/일)
+        $dayDir = $this->uploadDir . '/' . date('Y/m/d');
+        if (!is_dir($dayDir)) {
+            mkdir($dayDir, 0755, true);
         }
     }
     
@@ -99,7 +99,7 @@ class FileUpload {
         // 파일명 생성
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = $this->generateFilename($extension);
-        $filepath = date('Y/m') . '/' . $filename;
+        $filepath = date('Y/m/d') . '/' . $filename;
         $fullPath = $this->uploadDir . '/' . $filepath;
         
         // 파일 이동
@@ -140,7 +140,7 @@ class FileUpload {
                     // 원본이 리사이즈되었다면 업데이트
                     if ($processResult['original'] && $processResult['original'] !== $filename) {
                         $result['filename'] = $processResult['original'];
-                        $result['filepath'] = date('Y/m') . '/' . $processResult['original'];
+                        $result['filepath'] = date('Y/m/d') . '/' . $processResult['original'];
                     }
                 }
             } catch (Exception $e) {

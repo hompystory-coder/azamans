@@ -1,0 +1,100 @@
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 기본 SEO -->
+  <title id="page-title">사이트 이름</title>
+  <meta name="description" content="" id="meta-description">
+  <meta name="keywords" content="" id="meta-keywords">
+  <meta name="author" content="작성자명">
+
+  <!-- 크롤러용 -->
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+  <!-- Open Graph (페이스북, 네이버, X) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="" id="og-title">
+  <meta property="og:description" content="" id="og-description">
+  <meta property="og:image" content="" id="og-image">
+  <meta property="og:url" content="" id="og-url">
+  <meta property="og:site_name" content="사이트 이름">
+  <meta property="og:locale" content="ko_KR">
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="" id="twitter-title">
+  <meta name="twitter:description" content="" id="twitter-description">
+  <meta name="twitter:image" content="" id="twitter-image">
+  <meta name="twitter:site" content="@YourTwitterHandle">
+  <meta name="twitter:creator" content="@YourTwitterHandle">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="" id="canonical-link">
+
+  <!-- 페이지별 메타 동적 적용 스크립트 -->
+  <script>
+    // 여기에 페이지별 데이터 입력
+    const pageMeta = {
+      title: "페이지 제목 예시",
+      description: "이 페이지는 SEO와 SNS 공유에 최적화된 메타 태그를 자동 적용합니다.",
+      keywords: "SEO, SNS, 페이스북, X, 네이버, 공유",
+      image: "https://example.com/path/to/preview-image.jpg",
+      url: window.location.href
+    };
+
+    // 기본 SEO
+    document.getElementById('page-title').innerText = pageMeta.title + " | 사이트 이름";
+    document.getElementById('meta-description').setAttribute('content', pageMeta.description);
+    document.getElementById('meta-keywords').setAttribute('content', pageMeta.keywords);
+
+    // Open Graph
+    document.getElementById('og-title').setAttribute('content', pageMeta.title + " | 사이트 이름");
+    document.getElementById('og-description').setAttribute('content', pageMeta.description);
+    document.getElementById('og-image').setAttribute('content', pageMeta.image);
+    document.getElementById('og-url').setAttribute('content', pageMeta.url);
+
+    // Twitter
+    document.getElementById('twitter-title').setAttribute('content', pageMeta.title + " | 사이트 이름");
+    document.getElementById('twitter-description').setAttribute('content', pageMeta.description);
+    document.getElementById('twitter-image').setAttribute('content', pageMeta.image);
+
+    // Canonical
+    document.getElementById('canonical-link').setAttribute('href', pageMeta.url);
+  </script>
+</head>
+
+
+//////////////////////////// 설명 ///////////////////////////
+
+/////평소 메타정보
+
+https://mvc.neuralgrid.kr/admin/headercode -> 헤더코드
+https://mvc.neuralgrid.kr/admin/favicon - 파비콘
+https://mvc.neuralgrid.kr/admin/config - 기본설정 사이트명, 사이트 url
+https://mvc.neuralgrid.kr/admin/seo - 기본 메타정보 여기 설정을 가져옴
+
+////////////  게시판 상세롤 들어갈시
+https://mvc.neuralgrid.kr/bbs/notice/view/1 과 같이 게시물 보기로 접근시 
+제목, 본문내용. 본문이미지를 토대로 메타정보를 변경시킴
+위 내용에서 메타정보에 들어갈 내용이 누락된 항목은 
+평소 메타정보 데이타로 대체..
+
+////////////  뉴스 상세롤 들어갈시
+https://mvc.neuralgrid.kr/news/news1/view/2 과 같이 게시물 보기로 접근시 
+제목, 본문내용. 본문이미지를 토대로 메타정보를 변경시킴
+위 내용에서 메타정보에 들어갈 내용이 누락된 항목은 
+평소 메타정보 데이타로 대체..
+
+
+////////////  뉴스 상세롤 들어갈시
+https://mvc.neuralgrid.kr/page/header/2
+https://mvc.neuralgrid.kr/page/footer/1  과 같이 페이지로 접근시 
+제목, 본문내용. 본문이미지를 토대로 메타정보를 변경시킴
+위 내용에서 메타정보에 들어갈 내용이 누락된 항목은 
+평소 메타정보 데이타로 대체..
+

@@ -1,0 +1,14 @@
+<?php
+/**
+ * 좋아요 버튼 공통 include
+ * 모든 게시판 view.php에서 사용
+ */
+?>
+<div class="post-likes">
+    <button onclick="likePost('<?php echo $news['news_id']; ?>', '<?php echo $post['uid']; ?>')" 
+            class="btn-like <?php echo $user_liked ? 'liked' : ''; ?>" 
+            id="likeBtn">
+        <span class="heart-icon"><?php echo $user_liked ? '❤️' : '🤍'; ?></span>
+        <span>좋아요 <span id="likeCount"><?php echo $post['like_count'] ?? 0; ?></span></span>
+    </button>
+</div>

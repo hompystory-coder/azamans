@@ -1,0 +1,563 @@
+<?php
+/**
+ * RSS 관리 페이지
+ */
+
+// RSS 설정 가져오기
+$rssEnabled = getConfig('rss_enabled', 'Y');
+$rssItemLimit = getConfig('rss_item_limit', '100');
+$rssExtractDays = getConfig('rss_extract_days', '30');
+$rssBbsEnabled = getConfig('rss_bbs_enabled', 'Y');
+$rssNewsEnabled = getConfig('rss_news_enabled', 'Y');
+$rssBbsList = getConfig('rss_bbs_list', '');
+$rssNewsList = getConfig('rss_news_list', '');
+
+// 게시판 목록 가져오기
+$bbsList = getDbArray("SELECT bbs_id, bbs_name FROM bbs_list ORDER BY bbs_id");
+$selectedBbs = $rssBbsList ? explode(',', $rssBbsList) : [];
+
+// 뉴스 목록 가져오기
+$newsList = getDbArray("SELECT news_id, news_name FROM news_list ORDER BY news_id");
+$selectedNews = $rssNewsList ? explode(',', $rssNewsList) : [];
+?>
+
+<?php include APP_PATH . '/views/admin/_admin_header.php'; ?>
+
+<style>
+/* 커스텀 체크박스 스타일 */
+.custom-checkbox-wrapper {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 12px;
+}
+
+.custom-checkbox-wrapper label {
+    cursor: pointer;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    user-select: none;
+}
+
+.custom-checkbox-wrapper label:hover {
+    background-color: #e9ecef;
+}
+
+/* 기본 체크박스 숨기기 */
+.custom-checkbox-wrapper input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* 커스텀 체크박스 디자인 */
+.custom-checkbox-wrapper label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 2px solid #6c757d;
+    border-radius: 4px;
+    background-color: #fff;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.custom-checkbox-wrapper input[type="checkbox"]:checked + label::before {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100%;
+}
+
+/* Switch 스타일 */
+.custom-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.custom-switch-wrapper input[type="checkbox"] {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    appearance: none;
+    background: #ccc;
+    border-radius: 24px;
+    outline: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.custom-switch-wrapper input[type="checkbox"]:checked {
+    background: #0d6efd;
+}
+
+.custom-switch-wrapper input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+}
+
+.custom-switch-wrapper input[type="checkbox"]:checked::before {
+    transform: translateX(24px);
+}
+
+.custom-switch-wrapper label {
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+}
+
+/* 스크롤바 스타일 */
+.checkbox-scroll-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.checkbox-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.checkbox-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.checkbox-scroll-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.checkbox-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+</style>
+
+<div class="d-flex">
+    <?php include APP_PATH . '/views/admin/_sidebar.php'; ?>
+    
+    <main class="flex-grow-1 p-4" style="background-color: #f8f9fa;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">RSS 설정</h2>
+                <p class="text-muted mb-0"><?= date('Y년 m월 d일 H:i') ?></p>
+            </div>
+        </div>
+        
+        <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-rss"></i> RSS 피드 관리
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- 상태 메시지 -->
+                        <div id="alertMessage" class="alert alert-info d-none" role="alert"></div>
+                        
+                        <!-- RSS 기본 설정 -->
+                        <div class="mb-4">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-cog"></i> 기본 설정
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">RSS 피드 사용</label>
+                                    <select id="rssEnabled" class="form-select">
+                                        <option value="Y" <?php echo $rssEnabled === 'Y' ? 'selected' : ''; ?>>사용함</option>
+                                        <option value="N" <?php echo $rssEnabled === 'N' ? 'selected' : ''; ?>>사용 안 함</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">RSS 항목 개수</label>
+                                    <input type="number" id="rssItemLimit" class="form-control" 
+                                           value="<?php echo htmlspecialchars($rssItemLimit); ?>" 
+                                           min="10" max="500" />
+                                    <small class="form-text text-muted">최대 500개</small>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">추출 기간 (일)</label>
+                                    <input type="number" id="rssExtractDays" class="form-control" 
+                                           value="<?php echo htmlspecialchars($rssExtractDays); ?>" 
+                                           min="1" max="365" />
+                                    <small class="form-text text-muted">1~365일</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 2열 레이아웃: 게시판 RSS & 뉴스 RSS -->
+                        <div class="row">
+                            <!-- 왼쪽: 게시판 RSS 설정 -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-comments"></i> 게시판 RSS
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <div class="custom-switch-wrapper">
+                                                <input type="checkbox" id="rssBbsEnabled" 
+                                                       <?php echo $rssBbsEnabled === 'Y' ? 'checked' : ''; ?>>
+                                                <label for="rssBbsEnabled">
+                                                    게시판 RSS 사용
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <?php if (empty($bbsList)): ?>
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle"></i> 
+                                                등록된 게시판이 없습니다.
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="mb-2">
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="selectAllBbs()">
+                                                    <i class="fas fa-check-square"></i> 전체 선택
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllBbs()">
+                                                    <i class="fas fa-square"></i> 전체 해제
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="checkbox-scroll-container">
+                                                <?php foreach ($bbsList as $bbs): ?>
+                                                    <div class="mb-2">
+                                                        <div class="custom-checkbox-wrapper">
+                                                            <input type="checkbox" 
+                                                                   class="bbs-checkbox" 
+                                                                   id="bbs_<?php echo htmlspecialchars($bbs['bbs_id']); ?>" 
+                                                                   value="<?php echo htmlspecialchars($bbs['bbs_id']); ?>"
+                                                                   <?php echo in_array($bbs['bbs_id'], $selectedBbs) ? 'checked' : ''; ?>>
+                                                            <label for="bbs_<?php echo htmlspecialchars($bbs['bbs_id']); ?>">
+                                                                <?php echo htmlspecialchars($bbs['bbs_name']); ?>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                        <!-- 게시판 RSS 설정 -->
+                        <div class="mb-4">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-comments"></i> 게시판 RSS
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <div class="custom-switch-wrapper">
+                                    <input type="checkbox" id="rssBbsEnabled" 
+                                           <?php echo $rssBbsEnabled === 'Y' ? 'checked' : ''; ?>>
+                                    <label for="rssBbsEnabled">
+                                        게시판 RSS 사용
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <?php if (empty($bbsList)): ?>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    등록된 게시판이 없습니다.
+                                </div>
+                            <?php else: ?>
+                                <div class="border rounded p-3 bg-light">
+                                    <div class="mb-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="selectAllBbs()">
+                                            <i class="fas fa-check-square"></i> 전체 선택
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllBbs()">
+                                            <i class="fas fa-square"></i> 전체 해제
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <?php foreach ($bbsList as $bbs): ?>
+                                            <div class="col-md-3 mb-2">
+                                                <div class="custom-checkbox-wrapper">
+                                                    <input type="checkbox" 
+                                                           class="bbs-checkbox" 
+                                                           id="bbs_<?php echo htmlspecialchars($bbs['bbs_id']); ?>" 
+                                                           value="<?php echo htmlspecialchars($bbs['bbs_id']); ?>"
+                                                           <?php echo in_array($bbs['bbs_id'], $selectedBbs) ? 'checked' : ''; ?>>
+                                                    <label for="bbs_<?php echo htmlspecialchars($bbs['bbs_id']); ?>">
+                                                        <?php echo htmlspecialchars($bbs['bbs_name']); ?>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- 뉴스 RSS 설정 -->
+                        <div class="mb-4">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-newspaper"></i> 뉴스 RSS
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <div class="custom-switch-wrapper">
+                                    <input type="checkbox" id="rssNewsEnabled" 
+                                           <?php echo $rssNewsEnabled === 'Y' ? 'checked' : ''; ?>>
+                                    <label for="rssNewsEnabled">
+                                        뉴스 RSS 사용
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <?php if (empty($newsList)): ?>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    등록된 뉴스가 없습니다.
+                                </div>
+                            <?php else: ?>
+                                <div class="border rounded p-3 bg-light">
+                                    <div class="mb-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="selectAllNews()">
+                                            <i class="fas fa-check-square"></i> 전체 선택
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllNews()">
+                                            <i class="fas fa-square"></i> 전체 해제
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <?php foreach ($newsList as $news): ?>
+                                            <div class="col-md-3 mb-2">
+                                                <div class="custom-checkbox-wrapper">
+                                                    <input type="checkbox" 
+                                                           class="news-checkbox" 
+                                                           id="news_<?php echo htmlspecialchars($news['news_id']); ?>" 
+                                                           value="<?php echo htmlspecialchars($news['news_id']); ?>"
+                                                           <?php echo in_array($news['news_id'], $selectedNews) ? 'checked' : ''; ?>>
+                                                    <label for="news_<?php echo htmlspecialchars($news['news_id']); ?>">
+                                                        <?php echo htmlspecialchars($news['news_name']); ?>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- RSS 피드 URL -->
+                        <div class="mb-4">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-link"></i> RSS 피드 URL
+                            </h6>
+                            
+                            <div class="alert alert-info">
+                                <div class="mb-2">
+                                    <strong>RSS Index:</strong> 
+                                    <a href="<?php echo ROOTURL; ?>/rss_index.xml" target="_blank">
+                                        <?php echo ROOTURL; ?>/rss_index.xml
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('<?php echo ROOTURL; ?>/rss_index.xml')">
+                                        <i class="fas fa-copy"></i> 복사
+                                    </button>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <strong>게시판 RSS:</strong> 
+                                    <a href="<?php echo ROOTURL; ?>/rss_bbs.xml" target="_blank">
+                                        <?php echo ROOTURL; ?>/rss_bbs.xml
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('<?php echo ROOTURL; ?>/rss_bbs.xml')">
+                                        <i class="fas fa-copy"></i> 복사
+                                    </button>
+                                </div>
+                                
+                                <div>
+                                    <strong>뉴스 RSS:</strong> 
+                                    <a href="<?php echo ROOTURL; ?>/rss_news.xml" target="_blank">
+                                        <?php echo ROOTURL; ?>/rss_news.xml
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('<?php echo ROOTURL; ?>/rss_news.xml')">
+                                        <i class="fas fa-copy"></i> 복사
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 저장 버튼 -->
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-success" onclick="saveRssSettings()">
+                                <i class="fas fa-save"></i> 설정 저장
+                            </button>
+                            
+                            <button type="button" class="btn btn-primary" onclick="regenerateRss()">
+                                <i class="fas fa-sync"></i> RSS 재생성
+                            </button>
+                        </div>
+                        
+                    </div>
+                </div>
+
+<script>
+// 게시판 전체 선택
+function selectAllBbs() {
+    document.querySelectorAll('.bbs-checkbox').forEach(cb => cb.checked = true);
+}
+
+// 게시판 전체 해제
+function deselectAllBbs() {
+    document.querySelectorAll('.bbs-checkbox').forEach(cb => cb.checked = false);
+}
+
+// 뉴스 전체 선택
+function selectAllNews() {
+    document.querySelectorAll('.news-checkbox').forEach(cb => cb.checked = true);
+}
+
+// 뉴스 전체 해제
+function deselectAllNews() {
+    document.querySelectorAll('.news-checkbox').forEach(cb => cb.checked = false);
+}
+
+// 클립보드 복사
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showAlert('URL이 클립보드에 복사되었습니다.', 'success');
+    }).catch(err => {
+        console.error('복사 실패:', err);
+        showAlert('복사에 실패했습니다.', 'danger');
+    });
+}
+
+// 알림 표시
+function showAlert(message, type = 'info') {
+    const alertBox = document.getElementById('alertMessage');
+    alertBox.className = `alert alert-${type}`;
+    alertBox.textContent = message;
+    alertBox.classList.remove('d-none');
+    
+    setTimeout(() => {
+        alertBox.classList.add('d-none');
+    }, 3000);
+}
+
+// RSS 설정 저장
+function saveRssSettings() {
+    const rssEnabled = document.getElementById('rssEnabled').value;
+    const rssItemLimit = document.getElementById('rssItemLimit').value;
+    const rssExtractDays = document.getElementById('rssExtractDays').value;
+    const rssBbsEnabled = document.getElementById('rssBbsEnabled').checked ? 'Y' : 'N';
+    const rssNewsEnabled = document.getElementById('rssNewsEnabled').checked ? 'Y' : 'N';
+    
+    // 선택된 게시판 목록
+    const selectedBbs = Array.from(document.querySelectorAll('.bbs-checkbox:checked'))
+        .map(cb => cb.value)
+        .join(',');
+    
+    // 선택된 뉴스 목록
+    const selectedNews = Array.from(document.querySelectorAll('.news-checkbox:checked'))
+        .map(cb => cb.value)
+        .join(',');
+    
+    // AJAX 요청
+    fetch('/admin/rss', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            action: 'save',
+            rss_enabled: rssEnabled,
+            rss_item_limit: rssItemLimit,
+            rss_extract_days: rssExtractDays,
+            rss_bbs_enabled: rssBbsEnabled,
+            rss_news_enabled: rssNewsEnabled,
+            rss_bbs_list: selectedBbs,
+            rss_news_list: selectedNews
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('RSS 설정이 저장되었습니다.', 'success');
+        } else {
+            showAlert('저장에 실패했습니다: ' + (data.message || '알 수 없는 오류'), 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('저장 중 오류가 발생했습니다.', 'danger');
+    });
+}
+
+// RSS 재생성
+function regenerateRss() {
+    if (!confirm('RSS 피드를 재생성하시겠습니까?')) {
+        return;
+    }
+    
+    showAlert('RSS 피드 생성 중...', 'info');
+    
+    fetch('/admin/rss', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            action: 'regenerate'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let message = 'RSS 피드가 생성되었습니다.\n';
+            if (data.results) {
+                Object.keys(data.results).forEach(key => {
+                    const result = data.results[key];
+                    if (result.success) {
+                        message += `✓ ${key}: ${result.file}\n`;
+                    } else {
+                        message += `✗ ${key}: ${result.error}\n`;
+                    }
+                });
+            }
+            showAlert(message, 'success');
+        } else {
+            showAlert('RSS 생성에 실패했습니다: ' + (data.message || '알 수 없는 오류'), 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('RSS 생성 중 오류가 발생했습니다.', 'danger');
+    });
+}
+</script>
+
+    </main>
+</div>
+
+</body>
+</html>

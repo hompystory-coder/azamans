@@ -16,7 +16,7 @@ class RssService {
      */
     private static function init() {
         if (!self::$baseUrl) {
-            self::$baseUrl = defined('ROOTURL') ? ROOTURL : rtrim(env('APP_URL', getConfig('site_url', '')), '/');
+            self::$baseUrl = defined('ROOTURL') ? ROOTURL : rtrim(getConfig('site_url', ''), '/');
         }
         if (!self::$db) {
             self::$db = getDBConnection();

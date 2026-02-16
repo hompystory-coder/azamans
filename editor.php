@@ -4,11 +4,11 @@
  * 
  * 사용법:
  * 1. 기본 사용:
- *    include '/home/mvc/editor.php';
+ *    include ROOTPATH . '/editor.php';  // 또는 BASE_PATH . '/editor.php'
  *    initCKEditor('content'); // textarea ID
  * 
  * 2. 커스텀 설정:
- *    include '/home/mvc/editor.php';
+ *    include ROOTPATH . '/editor.php';  // 또는 BASE_PATH . '/editor.php'
  *    initCKEditor('content', [
  *        'height' => 500,
  *        'imageUploadUrl' => '/upload/image',

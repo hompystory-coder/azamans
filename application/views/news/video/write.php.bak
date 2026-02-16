@@ -1,0 +1,164 @@
+<?php include __DIR__ . '/../../_header.php'; ?>
+
+<main>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- 제목 -->
+                <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
+                    <div class="card-body">
+                        <h2 class="mb-0 fw-bold">
+                            <i class="fas fa-video me-2"></i>
+                            <?php echo isset($mode) && $mode === 'edit' ? '동영상 수정' : '동영상 올리기'; ?>
+                        </h2>
+                    </div>
+                </div>
+                
+                <!-- 작성 폼 -->
+                <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
+                    <div class="card-body p-4">
+                        <form id="writeForm" enctype="multipart/form-data">
+                            <!-- 제목 -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    제목 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="subject" class="form-control form-control-lg" 
+                                       placeholder="제목을 입력하세요" 
+                                       value="<?php echo isset($post) ? xssFilter($post['title']) : ''; ?>" required>
+                            </div>
+                            
+                            <!-- 유튜브 URL -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    유튜브 URL <span class="text-danger">*</span>
+                                </label>
+                                <input type="url" id="youtube_url" class="form-control" 
+                                       placeholder="https://www.youtube.com/watch?v=..." 
+                                       value="<?php 
+                                       if (isset($post)) {
+                                           if (preg_match('/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i', $post['content'], $match)) {
+                                               echo 'https://www.youtube.com/watch?v=' . $match[1];
+                                           }
+                                       }
+                                       ?>" required>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    유튜브 영상 URL을 입력하세요. (예: https://www.youtube.com/watch?v=xxxxx 또는 https://youtu.be/xxxxx)
+                                </div>
+                                <!-- 미리보기 -->
+                                <div id="video_preview" class="mt-3" style="display:none;">
+                                    <label class="form-label fw-bold">미리보기</label>
+                                    <div class="ratio ratio-16x9 border rounded">
+                                        <iframe id="preview_iframe" frameborder="0" allowfullscreen></iframe>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 설명 -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    설명
+                                </label>
+                                <textarea name="content" id="content" class="form-control" rows="8" 
+                                          placeholder="동영상에 대한 설명을 입력하세요">
+<?php 
+if (isset($post)) {
+    $content = $post['content'];
+    $content = preg_replace('/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i', '', $content);
+    echo xssFilter(trim($content));
+}
+?></textarea>
+                            </div>
+                            
+                            <!-- 공지사항 설정 (관리자만) -->
+                            <?php if (isAdmin()): ?>
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="is_notice" value="Y" 
+                                               id="isNotice" <?php echo (isset($post) && $post['is_notice'] === 'Y') ? 'checked' : ''; ?>>
+                                        <label class="form-check-label fw-bold" for="isNotice">
+                                            <i class="fas fa-bullhorn me-1"></i>공지사항으로 설정
+                                        </label>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <!-- 버튼 -->
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="/bbs/<?php echo $board['bbs_id']; ?><?php echo isset($post) ? '/view/' . $post['uid'] : ''; ?>" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>취소
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>
+                                    <?php echo isset($mode) && $mode === 'edit' ? '수정' : '등록'; ?>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+// 유튜브 URL 미리보기
+document.getElementById('youtube_url').addEventListener('input', function(e) {
+    const url = e.target.value;
+    const preview = document.getElementById('video_preview');
+    const iframe = document.getElementById('preview_iframe');
+    
+    // 유튜브 비디오 ID 추출
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i);
+    
+    if (match && match[1]) {
+        const videoId = match[1];
+        iframe.src = `https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0`;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+        iframe.src = '';
+    }
+});
+
+// 폼 제출
+document.getElementById('writeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const youtubeUrl = document.getElementById('youtube_url').value;
+    const content = document.getElementById('content').value;
+    
+    // 유튜브 URL을 content에 추가
+    document.getElementById('content').value = youtubeUrl + '\n\n' + content;
+    
+    const formData = new FormData(this);
+    const url = '<?php echo isset($mode) && $mode === "edit" ? "/bbs/" . $board["bbs_id"] . "/edit/" . $post["uid"] . "/process" : "/bbs/" . $board["bbs_id"] . "/write/process"; ?>';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.success && data.redirect) {
+            location.href = data.redirect;
+        }
+    })
+    .catch(err => {
+        alert('오류가 발생했습니다: ' + err.message);
+    });
+});
+
+// 페이지 로드 시 미리보기
+window.addEventListener('load', function() {
+    const urlInput = document.getElementById('youtube_url');
+    if (urlInput.value) {
+        urlInput.dispatchEvent(new Event('input'));
+    }
+});
+</script>
+
+<?php include __DIR__ . '/../../_footer.php'; ?>

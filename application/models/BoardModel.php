@@ -14,7 +14,15 @@ class BoardModel extends DBModel {
      * 게시판 정보 조회
      */
     public function getBoardInfo($boardId) {
-        return getUidData("SELECT * FROM bbs_list WHERE bbs_id = ?", [$boardId]);
+        return getUidData("
+            SELECT *,
+                   bbs_id as board_id,
+                   bbs_name as board_name,
+                   bbs_skin as board_skin,
+                   page_rows as posts_per_page
+            FROM bbs_list 
+            WHERE bbs_id = ?
+        ", [$boardId]);
     }
     
     /**

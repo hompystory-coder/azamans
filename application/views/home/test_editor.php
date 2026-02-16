@@ -92,8 +92,8 @@
             <div class="version-info">
                 <strong>✅ 설치 완료!</strong><br>
                 버전: CKEditor 5 v47.x<br>
-                빌드 파일: /home/mvc/public/plugins/editor/build/ckeditor.js (<?php echo round(filesize('/home/mvc/public/plugins/editor/build/ckeditor.js') / 1024 / 1024, 2); ?>MB)<br>
-                로더 파일: /home/mvc/editor.php
+                빌드 파일: <?php echo BASE_PATH; ?>/public/plugins/editor/build/ckeditor.js (<?php echo round(filesize(BASE_PATH . '/public/plugins/editor/build/ckeditor.js') / 1024 / 1024, 2); ?>MB)<br>
+                로더 파일: <?php echo BASE_PATH; ?>/editor.php
             </div>
             
             <div class="info-box">
@@ -161,7 +161,7 @@
             <div class="info-box" style="margin-top: 30px;">
                 <h3>📚 사용 방법</h3>
                 <p><strong>1. 다른 PHP 파일에서 사용하기:</strong></p>
-                <pre style="background: white; padding: 10px; border-radius: 5px; overflow-x: auto;">&lt;?php include '/home/mvc/editor.php'; ?&gt;
+                <pre style="background: white; padding: 10px; border-radius: 5px; overflow-x: auto;">&lt;?php include 'BASE_PATH . '/editor.php''; ?&gt;
 
 &lt;textarea id="myEditor"&gt;&lt;/textarea&gt;
 
@@ -173,7 +173,7 @@ initCKEditor('myEditor', [
 ?&gt;</pre>
                 
                 <p><strong>2. 게시판 글쓰기에 적용:</strong></p>
-                <pre style="background: white; padding: 10px; border-radius: 5px; overflow-x: auto;">&lt;?php include '/home/mvc/editor.php'; ?&gt;
+                <pre style="background: white; padding: 10px; border-radius: 5px; overflow-x: auto;">&lt;?php include 'BASE_PATH . '/editor.php''; ?&gt;
 
 &lt;form method="post"&gt;
     &lt;textarea id="content" name="content"&gt;&lt;/textarea&gt;
@@ -194,7 +194,7 @@ initCKEditor('myEditor', [
 
 <?php
 // CKEditor 초기화
-include '/home/mvc/editor.php';
+include BASE_PATH . '/editor.php';
 initCKEditor('content', [
     'height' => 500,
     'imageUploadUrl' => '/bbs/uploadImage'

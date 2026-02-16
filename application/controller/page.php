@@ -7,16 +7,27 @@
 class Page extends Controller {
     
     /**
-     * 페이지 보기
+     * 페이지 보기 (헤더/푸터 구분)
+     * URL: /page/header/{id} 또는 /page/footer/{id}
      */
-    public function index($menuId = null) {
-        if (!$menuId) {
+    public function index($menuTable = null, $menuId = null) {
+        // 파라미터 검증
+        if (!$menuTable || !$menuId) {
             $this->show404();
             return;
         }
         
+        // menuTable 검증 (header 또는 footer만 허용)
+        if (!in_array($menuTable, ['header', 'footer'])) {
+            $this->show404();
+            return;
+        }
+        
+        // 메뉴 테이블명 결정
+        $tableName = $menuTable . '_menu';
+        
         // 메뉴 정보 조회
-        $menu = getUidData("SELECT * FROM header_menu WHERE id = ? AND menu_type = 'page'", [$menuId]);
+        $menu = getUidData("SELECT * FROM {$tableName} WHERE id = ? AND menu_type = 'page'", [$menuId]);
         
         if (!$menu) {
             $this->show404();
@@ -24,14 +35,14 @@ class Page extends Controller {
         }
         
         // 차단 확인
-        if ($menu['is_blocked'] === 'Y') {
+        if (isset($menu['is_blocked']) && $menu['is_blocked'] === 'Y') {
             $this->show404();
             return;
         }
         
         // 페이지 콘텐츠 조회
         // 1. 파일에서 로드 (우선순위)
-        $pageFilePath = __DIR__ . '/../../public/uploads/page/' . $menuId . '.php';
+        $pageFilePath = __DIR__ . '/../../public/uploads/page/' . $menuTable . '_' . $menuId . '.php';
         
         if (file_exists($pageFilePath)) {
             // 파일에서 로드 (빠름!)
@@ -40,19 +51,25 @@ class Page extends Controller {
             $content = ob_get_clean();
         } else {
             // 파일이 없으면 DB에서 로드 (폴백)
-            $page = getUidData("SELECT content FROM menu_pages WHERE menu_id = ?", [$menuId]);
+            $page = getUidData("SELECT content FROM menu_pages WHERE menu_id = ? AND menu_table = ?", [$menuId, $menuTable]);
             $content = $page['content'] ?? '<p>페이지 내용이 없습니다.</p>';
             
             // DB에 내용이 있으면 파일로 저장
             if (!empty($page['content'])) {
+                $pageDir = dirname($pageFilePath);
+                if (!is_dir($pageDir)) {
+                    mkdir($pageDir, 0755, true);
+                }
+                
                 $pageFileContent = '<?php
 /**
  * 메뉴 페이지: ' . $menu['menu_name'] . '
+ * 메뉴 타입: ' . $menuTable . '
  * 메뉴 ID: ' . $menuId . '
  * 생성일: ' . date('Y-m-d H:i:s') . '
  * 
  * 이 파일은 자동 생성되었습니다.
- * 관리자 페이지에서 수정하세요: /admin/editMenu/' . $menuId . '
+ * 관리자 페이지에서 수정하세요: /admin/edit' . ucfirst($menuTable) . 'Menu/' . $menuId . '
  */
 ?>
 ' . $page['content'];
@@ -62,12 +79,13 @@ class Page extends Controller {
             }
         }
         
-        // 첨부파일 목록 조회 (menu_page_upload로 변경)
-        $pageFiles = getDbArray("SELECT * FROM menu_page_upload WHERE menu_id = ? ORDER BY uid ASC", [$menuId]);
+        // 첨부파일 목록 조회
+        $pageFiles = getDbArray("SELECT * FROM menu_page_upload WHERE menu_id = ? AND menu_table = ? ORDER BY uid ASC", [$menuId, $menuTable]);
         
         $data = [
             'title' => xssFilter($menu['menu_name']),
             'menu' => $menu,
+            'menuTable' => $menuTable,
             'content' => $content,
             'pageFiles' => $pageFiles
         ];

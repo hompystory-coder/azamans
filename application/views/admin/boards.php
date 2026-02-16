@@ -315,7 +315,8 @@
         .then(data => {
             if (data.success) {
                 alert('게시판이 생성되었습니다.');
-                location.reload();
+                // 캐시 무효화를 위해 타임스탬프 추가
+                window.location.href = '/admin/boards?t=' + Date.now();
             } else {
                 alert('오류: ' + data.message);
             }

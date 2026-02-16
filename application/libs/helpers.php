@@ -43,15 +43,4 @@ function updateSitemap($type = 'bbs') {
     return invalidateSitemapCache($type);
 }
 
-/**
- * JSON 응답 출력
- * 
- * @param array $data 응답 데이터
- * @param int $statusCode HTTP 상태 코드
- */
-function jsonResponse($data, $statusCode = 200) {
-    http_response_code($statusCode);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
+// jsonResponse() 함수는 /application/config/_sys.func.php에 정의되어 있습니다.

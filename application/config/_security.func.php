@@ -6,10 +6,13 @@
 
 /**
  * XSS 방지 필터
- * @param string $str
+ * @param string|null $str
  * @return string
  */
 function xssFilter($str) {
+    if ($str === null) {
+        return '';
+    }
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
 

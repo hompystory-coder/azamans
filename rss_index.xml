@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://mvc.neuralgrid.kr/rss.xsl"?>
+<rssindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <rss>
+    <loc>https://mvc.neuralgrid.kr/rss_bbs.xml</loc>
+    <lastmod>2026-02-16T15:17:03+09:00</lastmod>
+    <title>게시판 RSS</title>
+  </rss>
+
+  <rss>
+    <loc>https://mvc.neuralgrid.kr/rss_news.xml</loc>
+    <lastmod>2026-02-16T15:17:03+09:00</lastmod>
+    <title>뉴스 RSS</title>
+  </rss>
+
+</rssindex>

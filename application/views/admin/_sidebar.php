@@ -17,18 +17,20 @@
         <li>
             <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
                data-bs-toggle="collapse" data-bs-target="#siteMenu" 
-               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false) ? 'true' : 'false'; ?>">
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/seo') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/bot') !== false) ? 'true' : 'false'; ?>">
                 <span><i class="fas fa-cogs me-2"></i>사이트 설정</span>
                 <i class="fas fa-chevron-down"></i>
             </a>
-            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false) ? 'show' : ''; ?>" id="siteMenu">
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/config') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/seo') !== false || strpos($_SERVER['REQUEST_URI'], '/admin/bot') !== false) ? 'show' : ''; ?>" id="siteMenu">
                 <ul class="nav flex-column ms-3">
                     <li><a href="/admin/config" class="nav-link py-1 small <?php echo ($_SERVER['REQUEST_URI'] == '/admin/config') ? 'active' : ''; ?>">기본 설정</a></li>
                     <li><a href="/admin/favicon" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/favicon') !== false) ? 'active' : ''; ?>">파비콘 설정</a></li>
                     <li><a href="/admin/headercode" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/headercode') !== false) ? 'active' : ''; ?>">헤더 코드</a></li>
                     <li><a href="/admin/footercode" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/footercode') !== false) ? 'active' : ''; ?>">푸터 코드</a></li>
-                    <li><a href="/admin/rss" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false) ? 'active' : ''; ?>">RSS 설정</a></li>
-                    <li><a href="/admin/sitemap" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false) ? 'active' : ''; ?>">사이트맵 설정</a></li>
+                    <li><a href="/admin/rss" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/rss') !== false && strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') === false) ? 'active' : ''; ?>">RSS 설정</a></li>
+                    <li><a href="/admin/sitemap" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/sitemap') !== false) ? 'active' : ''; ?>">Sitemap 설정</a></li>
+                    <li><a href="/admin/seo" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/seo') !== false) ? 'active' : ''; ?>">SEO 설정</a></li>
+                    <li><a href="/admin/bot" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/bot') !== false) ? 'active' : ''; ?>">BOT 설정</a></li>
                 </ul>
             </div>
         </li>
@@ -67,6 +69,23 @@
             </div>
         </li>
         
+        <!-- 뉴스 관리 -->
+        <li>
+            <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
+               data-bs-toggle="collapse" data-bs-target="#newsMenu" 
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/news') !== false) ? 'true' : 'false'; ?>">
+                <span><i class="fas fa-newspaper me-2"></i>뉴스 관리</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/news') !== false) ? 'show' : ''; ?>" id="newsMenu">
+                <ul class="nav flex-column ms-3">
+                    <li><a href="/admin/news" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/news') !== false) ? 'active' : ''; ?>">뉴스 관리</a></li>
+                    <li><a href="/admin/newsposts" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/newsposts') !== false) ? 'active' : ''; ?>">뉴스 리스트</a></li>
+                    <li><a href="/admin/newscomments" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/newscomments') !== false) ? 'active' : ''; ?>">댓글 관리</a></li>
+                </ul>
+            </div>
+        </li>
+        
         <!-- 게시판 관리 -->
         <li>
             <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
@@ -80,6 +99,23 @@
                     <li><a href="/admin/boards" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/boards') !== false) ? 'active' : ''; ?>">게시판 관리</a></li>
                     <li><a href="/admin/posts" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/posts') !== false) ? 'active' : ''; ?>">게시물 리스트</a></li>
                     <li><a href="/admin/comments" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/comments') !== false) ? 'active' : ''; ?>">댓글 리스트</a></li>
+                </ul>
+            </div>
+        </li>
+        
+        <!-- 플러그인 -->
+        <li>
+            <a href="#" class="nav-link d-flex justify-content-between align-items-center" 
+               data-bs-toggle="collapse" data-bs-target="#pluginMenu" 
+               aria-expanded="<?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/plugin') !== false) ? 'true' : 'false'; ?>">
+                <span><i class="fas fa-plug me-2"></i>플러그인</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/plugin') !== false) ? 'show' : ''; ?>" id="pluginMenu">
+                <ul class="nav flex-column ms-3">
+                    <li><a href="/admin/plugin/autopost" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/plugin/autopost') !== false) ? 'active' : ''; ?>">자동포스팅</a></li>
+                    <li><a href="/admin/plugin/videocreate" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/plugin/videocreate') !== false) ? 'active' : ''; ?>">동영상생성</a></li>
+                    <li><a href="/admin/plugin/trendposting" class="nav-link py-1 small <?php echo (strpos($_SERVER['REQUEST_URI'], '/admin/plugin/trendposting') !== false) ? 'active' : ''; ?>">트렌드포스팅</a></li>
                 </ul>
             </div>
         </li>
