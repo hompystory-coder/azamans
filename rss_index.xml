@@ -4,13 +4,13 @@
 
   <rss>
     <loc>https://mvc.neuralgrid.kr/rss_bbs.xml</loc>
-    <lastmod>2026-02-16T15:17:03+09:00</lastmod>
+    <lastmod>2026-02-16T15:22:46+09:00</lastmod>
     <title>게시판 RSS</title>
   </rss>
 
   <rss>
     <loc>https://mvc.neuralgrid.kr/rss_news.xml</loc>
-    <lastmod>2026-02-16T15:17:03+09:00</lastmod>
+    <lastmod>2026-02-16T15:22:46+09:00</lastmod>
     <title>뉴스 RSS</title>
   </rss>
 

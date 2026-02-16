@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>음성 자동 프리셋 테스트</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-case { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+        .result { color: #4CAF50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎤 음성 자동 프리셋 테스트</h1>
+    
+    <div class="test-case">
+        <h3>✅ 구현 확인됨</h3>
+        <p><strong>기능:</strong> 음성 선택 시 자동으로 최적 속도/톤 적용</p>
+        <ul>
+            <li class="result">✓ 16가지 음성별 맞춤 프리셋 정의됨</li>
+            <li class="result">✓ loadVoiceSamples() 함수에서 자동 적용</li>
+            <li class="result">✓ 슬라이더가 자동으로 프리셋 값으로 설정됨</li>
+            <li class="result">✓ 사용자가 원하면 수동 조정 가능</li>
+            <li class="result">✓ 미리듣기 시 현재 설정값 실시간 반영</li>
+        </ul>
+    </div>
+
+    <div class="test-case">
+        <h3>📋 프리셋 예시</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: #667eea; color: white;">
+                <th style="padding: 8px; text-align: left;">음성 유형</th>
+                <th>속도</th>
+                <th>톤</th>
+                <th>설명</th>
+            </tr>
+            <tr><td style="padding: 8px;">친근한 여성</td><td>1.0x</td><td>+2</td><td>자연스러운 여성</td></tr>
+            <tr style="background: #f5f5f5;"><td style="padding: 8px;">발랄한 여성</td><td>1.15x</td><td>+3</td><td>발랄하고 빠른</td></tr>
+            <tr><td style="padding: 8px;">귀여운 여성</td><td>1.2x</td><td>+5</td><td>귀엽고 경쾌한</td></tr>
+            <tr style="background: #f5f5f5;"><td style="padding: 8px;">전문 남성</td><td>0.95x</td><td>-2</td><td>신뢰감 있는</td></tr>
+            <tr><td style="padding: 8px;">중저음 남성</td><td>0.9x</td><td>-5</td><td>깊고 묵직한</td></tr>
+            <tr style="background: #f5f5f5;"><td style="padding: 8px;">아동용</td><td>1.18x</td><td>+7</td><td>밝은 아동용</td></tr>
+            <tr><td style="padding: 8px;">ASMR</td><td>0.8x</td><td>+1</td><td>편안한 ASMR</td></tr>
+        </table>
+    </div>
+
+    <div class="test-case">
+        <h3>🎯 작동 방식</h3>
+        <ol>
+            <li><strong>음성 선택</strong> → 자동으로 추천 속도/톤 적용</li>
+            <li><strong>슬라이더 표시 갱신</strong> → 현재 값 표시</li>
+            <li><strong>미리듣기 버튼</strong> → 현재 설정값으로 재생</li>
+            <li><strong>사용자 조정</strong> → 원하면 슬라이더로 미세 조정 가능</li>
+            <li><strong>자동 저장</strong> → 모든 변경사항 localStorage에 저장</li>
+        </ol>
+    </div>
+
+    <div class="test-case">
+        <h3>🔗 테스트 링크</h3>
+        <p><a href="https://ai-shorts.neuralgrid.kr/advanced-shorts.html" target="_blank" style="color: #667eea; font-size: 1.1rem;">
+            🎬 실제 페이지에서 테스트하기
+        </a></p>
+        <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+            음성 유형을 변경하면 슬라이더가 자동으로 최적값으로 설정됩니다!
+        </p>
+    </div>
+
+    <div class="test-case">
+        <h3>✨ 사용자 피드백 반영</h3>
+        <p class="result">
+            ✓ 기존 문제: 속도와 톤을 매번 수동으로 선택하기 어려웠음<br>
+            ✓ 해결: 각 음성마다 최적화된 값을 자동 설정<br>
+            ✓ 개선: 사용자가 원하면 언제든지 미세 조정 가능<br>
+            ✓ 편의성: 설정값이 자동으로 저장되어 다음에도 유지됨
+        </p>
+    </div>
+</body>
+</html>

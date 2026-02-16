@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://mvc.neuralgrid.kr/sitemap.xsl"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <sitemap>
+    <loc>https://mvc.neuralgrid.kr/sitemap_news.xml</loc>
+    <lastmod>2026-02-16</lastmod>
+  </sitemap>
+
+  <sitemap>
+    <loc>https://mvc.neuralgrid.kr/sitemap_bbs.xml</loc>
+    <lastmod>2026-02-16</lastmod>
+  </sitemap>
+
+  <sitemap>
+    <loc>https://mvc.neuralgrid.kr/sitemap_news_2026_02.xml</loc>
+    <lastmod>2026-02-16</lastmod>
+  </sitemap>
+
+  <sitemap>
+    <loc>https://mvc.neuralgrid.kr/sitemap_bbs_2026_02.xml</loc>
+    <lastmod>2026-02-16</lastmod>
+  </sitemap>
+
+</sitemapindex>

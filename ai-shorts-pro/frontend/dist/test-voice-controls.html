@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>음성 컨트롤 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+        }
+        .control-group {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        select, input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .slider-group input {
+            flex: 1;
+        }
+        .slider-value {
+            min-width: 80px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+        .current-settings {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 음성 톤/속도 실시간 테스트</h1>
+        
+        <div class="info">
+            <strong>✨ 새로운 기능:</strong><br>
+            음성 속도와 톤을 조절한 후 "미리듣기"를 누르면<br>
+            설정한 값이 실시간으로 적용되어 재생됩니다!
+        </div>
+
+        <div class="control-group">
+            <label>🎵 음성 선택:</label>
+            <select id="voice-type" onchange="updateInfo()">
+                <option value="female-friendly">친근한 여성 음성</option>
+                <option value="female-energetic">발랄한 여성 음성</option>
+                <option value="male-deep">중저음 남성 음성</option>
+                <option value="male-professional">전문적인 남성 음성</option>
+                <option value="child-friendly">아동용 음성</option>
+                <option value="robot-ai">AI 로봇 음성</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>⚡ 음성 속도:</label>
+            <div class="slider-group">
+                <input type="range" id="voice-speed" min="0.5" max="2.0" step="0.1" value="1.0" 
+                       oninput="updateSliderValue('voice-speed'); updateInfo();">
+                <span class="slider-value" id="voice-speed-value">1.0x</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>🎚️ 음성 톤:</label>
+            <div class="slider-group">
+                <input type="range" id="voice-pitch" min="-10" max="10" step="1" value="0" 
+                       oninput="updateSliderValue('voice-pitch'); updateInfo();">
+                <span class="slider-value" id="voice-pitch-value">0</span>
+            </div>
+        </div>
+
+        <button onclick="playVoiceSample()" id="play-btn">
+            ▶️ 미리듣기 (설정값 적용)
+        </button>
+
+        <div class="current-settings" id="current-settings">
+            <strong>⚙️ 현재 설정:</strong><br>
+            음성: <span id="info-voice">친근한 여성 음성</span><br>
+            속도: <span id="info-speed">1.0x</span><br>
+            톤: <span id="info-pitch">0</span>
+        </div>
+    </div>
+
+    <script>
+        let audioContext = null;
+        let currentSource = null;
+
+        function updateSliderValue(id) {
+            const slider = document.getElementById(id);
+            const valueSpan = document.getElementById(id + '-value');
+            
+            if (id === 'voice-speed') {
+                valueSpan.textContent = parseFloat(slider.value).toFixed(1) + 'x';
+            } else if (id === 'voice-pitch') {
+                const value = parseInt(slider.value);
+                valueSpan.textContent = value > 0 ? `+${value}` : value.toString();
+            }
+        }
+
+        function updateInfo() {
+            const voiceSelect = document.getElementById('voice-type');
+            const voiceSpeed = parseFloat(document.getElementById('voice-speed').value);
+            const voicePitch = parseInt(document.getElementById('voice-pitch').value);
+
+            document.getElementById('info-voice').textContent = 
+                voiceSelect.options[voiceSelect.selectedIndex].text;
+            document.getElementById('info-speed').textContent = voiceSpeed.toFixed(1) + 'x';
+            document.getElementById('info-pitch').textContent = 
+                voicePitch > 0 ? `+${voicePitch}` : voicePitch.toString();
+        }
+
+        async function playVoiceSample() {
+            const voiceType = document.getElementById('voice-type').value;
+            const playBtn = document.getElementById('play-btn');
+            
+            const voiceSpeed = parseFloat(document.getElementById('voice-speed').value);
+            const voicePitch = parseInt(document.getElementById('voice-pitch').value);
+            
+            try {
+                playBtn.disabled = true;
+                playBtn.textContent = '⏳ 로딩 중...';
+                
+                // 이전 재생 중지
+                if (currentSource) {
+                    currentSource.stop();
+                    currentSource = null;
+                }
+                
+                // Web Audio API 컨텍스트 생성
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // API에서 음성 샘플 가져오기
+                const sampleUrl = `/api/advanced/voice/sample/${voiceType}`;
+                const response = await fetch(sampleUrl);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // AudioBufferSource 생성
+                currentSource = audioContext.createBufferSource();
+                currentSource.buffer = audioBuffer;
+                
+                // 속도 설정 (playbackRate)
+                currentSource.playbackRate.value = voiceSpeed;
+                
+                // Pitch 조절 (detune: 100 cents = 1 semitone)
+                currentSource.detune.value = voicePitch * 100;
+                
+                // 출력 연결
+                currentSource.connect(audioContext.destination);
+                
+                // 재생 시작
+                currentSource.start(0);
+                
+                playBtn.textContent = `🔊 재생 중... (속도: ${voiceSpeed.toFixed(1)}x, 톤: ${voicePitch > 0 ? '+' : ''}${voicePitch})`;
+                
+                // 재생 종료 처리
+                currentSource.onended = () => {
+                    playBtn.textContent = '▶️ 미리듣기 (설정값 적용)';
+                    playBtn.disabled = false;
+                    currentSource = null;
+                };
+                
+            } catch (error) {
+                console.error('Voice sample playback error:', error);
+                alert('음성 샘플을 재생할 수 없습니다: ' + error.message);
+                playBtn.textContent = '▶️ 미리듣기 (설정값 적용)';
+                playBtn.disabled = false;
+                if (currentSource) {
+                    currentSource = null;
+                }
+            }
+        }
+
+        // 초기 정보 업데이트
+        updateInfo();
+    </script>
+</body>
+</html>

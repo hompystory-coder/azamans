@@ -1,0 +1,14 @@
+🚀 AI Shorts Pro Backend running on port 5555
+📡 Socket.io ready for real-time updates
+Error generating voice sample: Error: Google TTS not yet implemented
+    at generateGoogleTTS (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:143:9)
+    at generateVoiceAudio (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:130:18)
+    at exports.generateSample (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:41:29)
+Error generating voice sample: Error: Google TTS not yet implemented
+    at generateGoogleTTS (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:143:9)
+    at generateVoiceAudio (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:130:18)
+    at exports.generateSample (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:41:29)
+Error generating voice sample: Error: Google TTS not yet implemented
+    at generateGoogleTTS (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:143:9)
+    at generateVoiceAudio (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:130:18)
+    at exports.generateSample (/home/azamans/webapp/ai-shorts-pro/backend/controllers/voiceController.js:41:29)

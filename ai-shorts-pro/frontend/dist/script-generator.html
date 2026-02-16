@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 스크립트 생성 - AI 쇼츠 Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .input-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #f093fb;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .scenes-container {
+            display: none;
+        }
+
+        .scenes-container.active {
+            display: block;
+        }
+
+        .scene-card {
+            background: #f8f9fa;
+            border-left: 4px solid #f093fb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .scene-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .scene-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .scene-type {
+            background: #f093fb;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .scene-content {
+            margin-bottom: 10px;
+        }
+
+        .scene-label {
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .scene-text {
+            color: #333;
+            line-height: 1.6;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .scene-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .meta-item {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #f5576c;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .comparison-column h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI 스크립트 생성</h1>
+            <p>AI 기반 자연스럽고 매력적인 쇼츠 스크립트 생성</p>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 20px;">📝 콘텐츠 입력</h3>
+
+            <div class="input-group">
+                <label for="contentInput">본문 내용</label>
+                <textarea 
+                    id="contentInput" 
+                    placeholder="크롤링한 콘텐츠 또는 직접 작성한 내용을 입력하세요..."
+                ></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="titleInput">제목 (선택)</label>
+                <input 
+                    type="text" 
+                    id="titleInput" 
+                    placeholder="예: 100cm 프리미엄 크리스마스 벽트리"
+                />
+            </div>
+
+            <div class="input-group">
+                <label for="productNameInput">제품명 (선택)</label>
+                <input 
+                    type="text" 
+                    id="productNameInput" 
+                    placeholder="예: 제이닷 크리스마스 벽트리"
+                />
+            </div>
+
+            <div class="input-group">
+                <label for="keywordsInput">키워드 (쉼표로 구분)</label>
+                <input 
+                    type="text" 
+                    id="keywordsInput" 
+                    placeholder="예: 크리스마스, 트리, 인테리어, 프리미엄"
+                />
+            </div>
+
+            <div class="input-group">
+                <label for="categorySelect">카테고리</label>
+                <select id="categorySelect">
+                    <option value="general">일반</option>
+                    <option value="food">음식/요리</option>
+                    <option value="tech">기술/가전</option>
+                    <option value="beauty">뷰티/화장품</option>
+                    <option value="home">홈/인테리어</option>
+                    <option value="fitness">운동/피트니스</option>
+                    <option value="travel">여행</option>
+                    <option value="pets">반려동물</option>
+                    <option value="education">교육</option>
+                    <option value="business">비즈니스</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="sceneCountInput">장면 개수</label>
+                <input 
+                    type="number" 
+                    id="sceneCountInput" 
+                    value="5"
+                    min="3"
+                    max="10"
+                />
+            </div>
+
+            <div class="input-group">
+                <div class="checkbox-group">
+                    <input 
+                        type="checkbox" 
+                        id="aiEnhancedCheck" 
+                        checked
+                    />
+                    <label for="aiEnhancedCheck" style="margin: 0;">AI 향상 모드 (더 자연스럽고 매력적인 스크립트)</label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="generateBtn" onclick="generateScript()">
+                🎬 스크립트 생성
+            </button>
+            <button class="btn btn-secondary" onclick="loadExample()">
+                📄 예제 불러오기
+            </button>
+        </div>
+
+        <div class="card scenes-container" id="scenesContainer">
+            <h3 style="margin-bottom: 20px;">✨ 생성된 스크립트</h3>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statScenes">0</div>
+                    <div class="stat-label">총 장면 수</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statDuration">0s</div>
+                    <div class="stat-label">총 재생 시간</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statWords">0</div>
+                    <div class="stat-label">총 단어 수</div>
+                </div>
+            </div>
+
+            <div id="scenesOutput"></div>
+
+            <div class="alert alert-success" style="margin-top: 20px;">
+                ✅ AI 스크립트 생성이 완료되었습니다! 각 장면을 확인하고 필요시 수정하세요.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const exampleContent = `100cm 프리미엄 크리스마스 벽트리 제이닷은 가정, 호텔, 대사관, 백화점 등 다양한 공간에 품격을 더하는 트리입니다. 이 제품은 뛰어난 디자인과 퀄리티로 사용자들에게 높은 만족도를 제공합니다.
+
+벽에 걸어서 사용하는 형태로, 공간 활용도가 뛰어나 좁은 공간에서도 충분히 크리스마스 분위기를 연출할 수 있습니다. 트리가 빽빽하게 채워져 있어 옆에서 보아도 허전함 없이 풍성한 느낌을 줍니다.
+
+고급스러운 소재와 섬세한 마감으로 실제 트리와 같은 생동감을 선사합니다. 추가 구성품인 오너먼트 역시 우수한 퀄리티를 자랑하며, 트리와 함께 사용하여 더욱 풍성하고 아름다운 크리스마스 장식을 완성할 수 있습니다.
+
+200구 전구를 함께 사용하여 감았을 때 촘촘하고 적절한 조명 효과를 기대할 수 있습니다. 제품은 냄새가 거의 나지 않아 쾌적한 환경에서 사용할 수 있습니다.
+
+이 벽트리는 단순한 장식을 넘어 공간 전체의 분위기를 한층 끌어올리는 오브제 역할을 합니다. 크리스마스 시즌뿐만 아니라 특별한 날을 기념하는 장식으로도 활용 가능합니다.
+
+튼튼하게 제작되어 오랫동안 변함없는 아름다움을 유지합니다. 아이들이 있는 가정에서도 안전하게 사용할 수 있는 벽걸이형 디자인이 특징입니다.`;
+
+        function loadExample() {
+            document.getElementById('contentInput').value = exampleContent;
+            document.getElementById('titleInput').value = '100cm 프리미엄 크리스마스 벽트리';
+            document.getElementById('productNameInput').value = '제이닷 크리스마스 벽트리';
+            document.getElementById('keywordsInput').value = '크리스마스, 트리, 인테리어, 프리미엄, 벽트리';
+            document.getElementById('categorySelect').value = 'home';
+        }
+
+        async function generateScript() {
+            const content = document.getElementById('contentInput').value.trim();
+            const title = document.getElementById('titleInput').value.trim();
+            const productName = document.getElementById('productNameInput').value.trim();
+            const keywordsStr = document.getElementById('keywordsInput').value.trim();
+            const category = document.getElementById('categorySelect').value;
+            const sceneCount = parseInt(document.getElementById('sceneCountInput').value);
+            const aiEnhanced = document.getElementById('aiEnhancedCheck').checked;
+
+            if (!content) {
+                alert('본문 내용을 입력해주세요!');
+                return;
+            }
+
+            const keywords = keywordsStr ? keywordsStr.split(',').map(k => k.trim()) : [];
+
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ 생성 중...';
+
+            try {
+                const response = await fetch('https://ai-shorts.neuralgrid.kr/api/crawler/generate-script', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                        keywords,
+                        productName,
+                        category,
+                        sceneCount,
+                        aiEnhanced
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '스크립트 생성 실패');
+                }
+
+                displayScenes(data.data);
+
+            } catch (error) {
+                console.error('Script generation error:', error);
+                alert(`❌ 스크립트 생성 중 오류가 발생했습니다: ${error.message}`);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🎬 스크립트 생성';
+            }
+        }
+
+        function displayScenes(data) {
+            const scenesContainer = document.getElementById('scenesContainer');
+            const scenesOutput = document.getElementById('scenesOutput');
+            
+            scenesContainer.classList.add('active');
+
+            // Update stats
+            document.getElementById('statScenes').textContent = data.sceneCount;
+            document.getElementById('statDuration').textContent = data.totalDuration + 's';
+            
+            const totalWords = data.scenes.reduce((sum, scene) => {
+                return sum + scene.script.split(/\s+/).length;
+            }, 0);
+            document.getElementById('statWords').textContent = totalWords;
+
+            // Display scenes
+            scenesOutput.innerHTML = data.scenes.map(scene => `
+                <div class="scene-card">
+                    <div class="scene-header">
+                        <div class="scene-title">장면 ${scene.order}: ${scene.title}</div>
+                        <div class="scene-type">${getTypeLabel(scene.type)}</div>
+                    </div>
+                    
+                    <div class="scene-content">
+                        <div class="scene-label">📝 대본:</div>
+                        <div class="scene-text">${scene.script}</div>
+                    </div>
+                    
+                    <div class="scene-content">
+                        <div class="scene-label">🎨 이미지 프롬프트:</div>
+                        <div class="scene-text">${scene.imagePrompt}</div>
+                    </div>
+                    
+                    ${scene.visualStyle ? `
+                    <div class="scene-content">
+                        <div class="scene-label">🎬 비주얼 스타일:</div>
+                        <div class="scene-text">${scene.visualStyle}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="scene-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">재생 시간:</span> ${scene.duration}초
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">단어 수:</span> ${scene.script.split(/\s+/).length}개
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Scroll to results
+            scenesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'intro': '인트로',
+                'hook': '후크',
+                'content': '본문',
+                'cta': '행동유도'
+            };
+            return labels[type] || type;
+        }
+    </script>
+</body>
+</html>

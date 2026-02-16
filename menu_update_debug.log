@@ -1,0 +1,76 @@
+2026-02-16 12:29:29 - CONTROLLER: updateMenu called with ID: 6
+REQUEST_METHOD: POST
+Content-Type: application/json
+CONTROLLER: About to call handler
+2026-02-16 12:29:29 - Start update
+Menu Update - ID: 6
+Menu Update - Input: {"menu_name":"뉴스","menu_type":"news","page_content":"","menu_target":"news1","custom_url":"","target_window":"self","use_redirect":"N","is_hidden":"N","is_blocked":"N"}
+Menu Update - Decoded data: Array
+(
+    [menu_name] => 뉴스
+    [menu_type] => news
+    [page_content] => 
+    [menu_target] => news1
+    [custom_url] => 
+    [target_window] => self
+    [use_redirect] => N
+    [is_hidden] => N
+    [is_blocked] => N
+)
+
+Menu Update - Update data: Array
+(
+    [menu_name] => 뉴스
+    [menu_type] => news
+    [menu_target] => news1
+    [custom_url] => 
+    [target_window] => self
+    [use_redirect] => N
+    [is_hidden] => N
+    [is_blocked] => N
+)
+
+Menu Update - Result: 1 (type: integer)
+Menu Update - Processing page content
+Menu Update - Page exists: YES (count: 1)
+Menu Update - Page update result: 0
+Menu Update - SUCCESS: Menu updated
+
+2026-02-16 12:31:54 - CONTROLLER: updateMenu called with ID: 2
+REQUEST_METHOD: POST
+Content-Type: application/json
+CONTROLLER: About to call handler
+2026-02-16 12:31:54 - Start update
+Menu Update - ID: 2
+Menu Update - Input: {"menu_name":"페이지1","menu_type":"page","page_content":"<figure class=\"image\"><img style=\"aspect-ratio:300/70;\" src=\"/public/uploads/page/image/2026/02/16/69928f9f358df_1771212703.png\" width=\"300\" height=\"70\"></figure><p>테스트 페이지입니다. 1112</p>","custom_url":"","target_window":"self","use_redirect":"N","is_hidden":"N","is_blocked":"N","menu_target":""}
+Menu Update - Decoded data: Array
+(
+    [menu_name] => 페이지1
+    [menu_type] => page
+    [page_content] => <figure class="image"><img style="aspect-ratio:300/70;" src="/public/uploads/page/image/2026/02/16/69928f9f358df_1771212703.png" width="300" height="70"></figure><p>테스트 페이지입니다. 1112</p>
+    [custom_url] => 
+    [target_window] => self
+    [use_redirect] => N
+    [is_hidden] => N
+    [is_blocked] => N
+    [menu_target] => 
+)
+
+Menu Update - Update data: Array
+(
+    [menu_name] => 페이지1
+    [menu_type] => page
+    [menu_target] => 
+    [custom_url] => 
+    [target_window] => self
+    [use_redirect] => N
+    [is_hidden] => N
+    [is_blocked] => N
+)
+
+Menu Update - Result: 0 (type: integer)
+Menu Update - Processing page content
+Menu Update - Page exists: YES (count: 1)
+Menu Update - Page update result: 1
+Menu Update - SUCCESS: Menu updated
+
