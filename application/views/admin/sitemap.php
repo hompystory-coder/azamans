@@ -393,6 +393,112 @@ $selectedNews = $sitemapNewsList ? explode(',', $sitemapNewsList) : [];
                             <i class="fas fa-info-circle"></i> 
                             위 링크에서 Sitemap을 등록하여 검색엔진에 사이트를 노출시킬 수 있습니다.
                         </small>
+                        
+                        <!-- 등록안내 버튼 -->
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleGuide()">
+                                <i class="fas fa-book-open"></i> 등록안내 보기
+                            </button>
+                        </div>
+                        
+                        <!-- 등록안내 내용 (접혀있음) -->
+                        <div id="registrationGuide" style="display: none;" class="mt-3">
+                            <div class="accordion" id="searchEngineGuide">
+                                <!-- Google Search Console -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingGoogle">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGoogle">
+                                            <i class="fab fa-google text-danger me-2"></i>
+                                            <strong>Google Search Console 등록방법</strong>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseGoogle" class="accordion-collapse collapse" data-bs-parent="#searchEngineGuide">
+                                        <div class="accordion-body">
+                                            <ol class="mb-3">
+                                                <li><a href="https://search.google.com/search-console" target="_blank">Google Search Console</a>에 접속하여 로그인</li>
+                                                <li>좌측 메뉴에서 <strong>"속성 추가"</strong> 클릭</li>
+                                                <li><strong>"URL 접두어"</strong> 선택 후 사이트 URL 입력</li>
+                                                <li>소유권 확인 (HTML 파일 업로드 또는 메타 태그 추가)</li>
+                                                <li>좌측 메뉴 <strong>"Sitemaps"</strong> 선택</li>
+                                                <li>Sitemap URL 입력: <code><?php echo ROOTURL; ?>/sitemap_index.xml</code></li>
+                                                <li><strong>"제출"</strong> 버튼 클릭</li>
+                                            </ol>
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-external-link-alt me-1"></i>
+                                                <strong>자세한 가이드:</strong>
+                                                <a href="https://support.google.com/webmasters/answer/9008080" target="_blank" class="ms-2">
+                                                    Google 공식 문서 보기
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 네이버 서치어드바이저 -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingNaver">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNaver">
+                                            <i class="fas fa-n text-success me-2"></i>
+                                            <strong>네이버 서치어드바이저 등록방법</strong>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseNaver" class="accordion-collapse collapse" data-bs-parent="#searchEngineGuide">
+                                        <div class="accordion-body">
+                                            <ol class="mb-3">
+                                                <li><a href="https://searchadvisor.naver.com/" target="_blank">네이버 서치어드바이저</a>에 접속하여 로그인</li>
+                                                <li>상단 <strong>"웹마스터 도구"</strong> 클릭</li>
+                                                <li><strong>"사이트 등록"</strong> 버튼 클릭 후 사이트 URL 입력</li>
+                                                <li>소유권 확인 (HTML 파일 업로드 또는 메타 태그 추가)</li>
+                                                <li>좌측 메뉴 <strong>"요청 > 사이트맵 제출"</strong> 선택</li>
+                                                <li>Sitemap URL 입력: <code><?php echo ROOTURL; ?>/sitemap_index.xml</code></li>
+                                                <li><strong>"확인"</strong> 버튼 클릭</li>
+                                            </ol>
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-external-link-alt me-1"></i>
+                                                <strong>자세한 가이드:</strong>
+                                                <a href="https://searchadvisor.naver.com/guide" target="_blank" class="ms-2">
+                                                    네이버 서치어드바이저 가이드
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Bing 웹마스터 도구 -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingBing">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBing">
+                                            <i class="fab fa-microsoft text-info me-2"></i>
+                                            <strong>Bing 웹마스터 도구 등록방법</strong>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseBing" class="accordion-collapse collapse" data-bs-parent="#searchEngineGuide">
+                                        <div class="accordion-body">
+                                            <ol class="mb-3">
+                                                <li><a href="https://www.bing.com/webmasters" target="_blank">Bing 웹마스터 도구</a>에 접속하여 로그인</li>
+                                                <li><strong>"사이트 추가"</strong> 버튼 클릭</li>
+                                                <li>사이트 URL, Sitemap URL 입력</li>
+                                                <li>Sitemap URL: <code><?php echo ROOTURL; ?>/sitemap_index.xml</code></li>
+                                                <li>소유권 확인 (XML 파일 업로드 또는 메타 태그 추가)</li>
+                                                <li>좌측 메뉴 <strong>"Sitemaps"</strong>에서 제출 상태 확인</li>
+                                            </ol>
+                                            <div class="alert alert-success mb-0">
+                                                <i class="fas fa-lightbulb me-1"></i>
+                                                <strong>팁:</strong>
+                                                Google Search Console 계정이 있다면 <strong>"Google에서 가져오기"</strong> 옵션으로 간편하게 등록할 수 있습니다.
+                                            </div>
+                                            <div class="alert alert-info mb-0 mt-2">
+                                                <i class="fas fa-external-link-alt me-1"></i>
+                                                <strong>자세한 가이드:</strong>
+                                                <a href="https://www.bing.com/webmasters/help/getting-started-checklist-66a806de" target="_blank" class="ms-2">
+                                                    Bing 공식 문서 보기
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -469,6 +575,24 @@ function deselectAllNews() {
         cb.checked = false;
         updateCardStyle(cb);
     });
+}
+
+// 등록안내 토글
+function toggleGuide() {
+    const guide = document.getElementById('registrationGuide');
+    const button = event.target.closest('button');
+    
+    if (guide.style.display === 'none') {
+        guide.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-book-open"></i> 등록안내 닫기';
+        button.classList.remove('btn-outline-secondary');
+        button.classList.add('btn-secondary');
+    } else {
+        guide.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-book-open"></i> 등록안내 보기';
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-outline-secondary');
+    }
 }
 
 // 클립보드 복사
