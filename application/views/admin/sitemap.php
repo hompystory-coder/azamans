@@ -371,6 +371,31 @@ $selectedNews = $sitemapNewsList ? explode(',', $sitemapNewsList) : [];
                     </div>
                 </div>
                 
+                <!-- 검색엔진 등록 바로가기 -->
+                <div class="mt-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="fas fa-search"></i> 검색엔진 등록
+                    </h6>
+                    
+                    <div class="alert alert-light border">
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="https://search.google.com/search-console" target="_blank" class="btn btn-outline-danger">
+                                <i class="fab fa-google"></i> Google Search Console
+                            </a>
+                            <a href="https://searchadvisor.naver.com/" target="_blank" class="btn btn-outline-success">
+                                <i class="fas fa-n"></i> 네이버 서치어드바이저
+                            </a>
+                            <a href="https://www.bing.com/webmasters" target="_blank" class="btn btn-outline-info">
+                                <i class="fab fa-microsoft"></i> Bing 웹마스터 도구
+                            </a>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle"></i> 
+                            위 링크에서 Sitemap을 등록하여 검색엔진에 사이트를 노출시킬 수 있습니다.
+                        </small>
+                    </div>
+                </div>
+                
                 <!-- 저장 버튼 -->
                 <div class="d-flex justify-content-between mt-4">
                     <button type="button" class="btn btn-success" onclick="saveSitemapSettings()">
