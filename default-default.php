@@ -14,11 +14,11 @@
 
       <!--왼쪽메뉴-->
       <?php if($d['layout']['side_position']=='left'):?>
-	  <div class="left-side-box"><?php $layout_file = $g['dir_layout'].'/_includes/_side.php'; if(is_file($layout_file)) include $layout_file; ?></div>
+	  <div class="left-side-box"><?php $layout_file = $g['dir_layout'].'_includes/_side.php'; if(is_file($layout_file)) include $layout_file; ?></div>
 	  <div class="right-content-box">
-      <?php $layout_file = $g['dir_layout'].'/_pages/right_content_top.php'; if(is_file($layout_file)) include $layout_file; ?>
+      <?php $layout_file = $g['dir_layout'].'_pages/right_content_top.php'; if(is_file($layout_file)) include $layout_file; ?>
 	  <?php if($m=="bskrbbs"):?>
-      <?php $layout_file = $g['dir_layout'].'/_pages/location.php'; if(is_file($layout_file)) include $layout_file; ?>
+      <?php $layout_file = $g['dir_layout'].'_pages/location.php'; if(is_file($layout_file)) include $layout_file; ?>
 	  <?php endif?>
 	  <?php include __KIMS_CONTENT__ ?>
 	  </div>
@@ -29,9 +29,9 @@
 
       <!--오른쪽메뉴-->
       <?php if($d['layout']['side_position']=='center'):?>
-      <?php $layout_file = $g['dir_layout'].'/_pages/center_content_top.php'; if(is_file($layout_file)) include $layout_file; ?>
+      <?php $layout_file = $g['dir_layout'].'_pages/center_content_top.php'; if(is_file($layout_file)) include $layout_file; ?>
 	  <?php if($m=="bskrbbs"):?>
-      <?php $layout_file = $g['dir_layout'].'/_pages/location.php'; if(is_file($layout_file)) include $layout_file; ?>
+      <?php $layout_file = $g['dir_layout'].'_pages/location.php'; if(is_file($layout_file)) include $layout_file; ?>
 	  <?php endif?>
 	  <?php include __KIMS_CONTENT__ ?>
 	  <?php endif?>
@@ -40,14 +40,14 @@
       <!--오른쪽메뉴-->
       <?php if($d['layout']['side_position']=='right'):?>
 	  <div class="left-content-box">
-      <?php $layout_file = $g['dir_layout'].'/_pages/left_content_top.php'; if(is_file($layout_file)) include $layout_file; ?>
+      <?php $layout_file = $g['dir_layout'].'_pages/left_content_top.php'; if(is_file($layout_file)) include $layout_file; ?>
 	  <?php if($m=="bskrbbs"):?>
-      <?php $layout_file = $g['dir_layout'].'/_pages/location.php'; if(is_file($layout_file)) include $layout_file; ?>
+      <?php $layout_file = $g['dir_layout'].'_pages/location.php'; if(is_file($layout_file)) include $layout_file; ?>
 	  <?php endif?>
 	  <?php include __KIMS_CONTENT__ ?>
 	  </div>
 
-	  <div class="right-side-box"><?php $layout_file = $g['dir_layout'].'/_includes/_side.php'; if(is_file($layout_file)) include $layout_file; ?></div>
+	  <div class="right-side-box"><?php $layout_file = $g['dir_layout'].'_includes/_side.php'; if(is_file($layout_file)) include $layout_file; ?></div>
 
 	  <div class="clearfix"></div>
 	  <?php endif?>
