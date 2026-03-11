@@ -487,20 +487,20 @@ export default function GalleryPage() {
 }
 
 // Export saveToGallery for use in other pages
-export const useGallery = () => {
-  const saveToGallery = (item: Omit<GalleryItem, 'id' | 'createdAt'>) => {
-    const stored = localStorage.getItem('ai-studio-gallery')
-    const items = stored ? JSON.parse(stored) : []
-    
-    const newItem: GalleryItem = {
-      ...item,
-      id: Date.now().toString(),
-      createdAt: new Date()
-    }
-    
-    const updated = [newItem, ...items]
-    localStorage.setItem('ai-studio-gallery', JSON.stringify(updated))
-  }
-  
-  return { saveToGallery }
-}
+// export const useGallery = () => {
+//   const saveToGallery = (item: Omit<GalleryItem, 'id' | 'createdAt'>) => {
+//     const stored = localStorage.getItem('ai-studio-gallery')
+//     const items = stored ? JSON.parse(stored) : []
+//     
+//     const newItem: GalleryItem = {
+//       ...item,
+//       id: Date.now().toString(),
+//       createdAt: new Date()
+//     }
+//     
+//     const updated = [newItem, ...items]
+//     localStorage.setItem('ai-studio-gallery', JSON.stringify(updated))
+//   }
+//   
+//   return { saveToGallery }
+// }

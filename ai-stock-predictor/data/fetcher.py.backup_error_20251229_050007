@@ -1,0 +1,443 @@
+"""
+🚀 통합 주가 데이터 수집 모듈 (v2.1 - 최종)
+
+변경사항:
+- 네이버 실시간 크롤러 통합 (naver_realtime.py 사용)
+- 실업률 데이터 통합 (한국/미국)
+- yfinance 유지 (미국 주식 + 폴백용)
+
+데이터 소스:
+1. 한국 주식: 네이버 금융 (실시간, KRX 직접)
+2. 미국 주식: yfinance (15-20분 지연)
+3. 실업률: 통계청 KOSIS (한국) + FRED (미국)
+"""
+
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import requests
+from bs4 import BeautifulSoup
+from typing import Dict, List, Optional
+import json
+import logging
+
+# 실업률 모듈
+try:
+    from data.unemployment_fetcher import UnemploymentDataFetcher
+    UNEMPLOYMENT_AVAILABLE = True
+except ImportError:
+    UNEMPLOYMENT_AVAILABLE = False
+    logging.warning("⚠️ 실업률 데이터 모듈을 불러올 수 없습니다.")
+
+# 500+ 기업 데이터베이스 import
+from data.company_database import search_ticker_advanced, KOREA_TOP_COMPANIES, USA_TOP_COMPANIES
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class StockDataFetcher:
+    """
+    통합 주식 데이터 수집 클래스
+    
+    Features:
+    - 한국 주식: 네이버 실시간 (15초 이내)
+    - 미국 주식: yfinance (15-20분 지연)
+    - 실업률: 자동 수집 및 캐싱
+    """
+    
+    def __init__(self):
+        self.cache = {}
+        
+        # 실업률 데이터 fetcher
+        if UNEMPLOYMENT_AVAILABLE:
+            self.unemployment_fetcher = UnemploymentDataFetcher()
+            logger.info("✅ 실업률 데이터 모듈 활성화")
+        else:
+            self.unemployment_fetcher = None
+            logger.warning("⚠️ 실업률 데이터 모듈 비활성화")
+    
+    def is_korean_stock(self, ticker: str) -> bool:
+        """한국 주식 여부 판단"""
+        return ticker.endswith('.KS') or ticker.endswith('.KQ') or (ticker.isdigit() and len(ticker) == 6)
+    
+    def get_naver_realtime(self, ticker: str) -> Dict:
+        """
+        네이버 금융 실시간 주가 크롤링 (직접 구현)
+        
+        Returns:
+            실시간 주가 정보 dict 또는 None (실패 시)
+        """
+        # 종목 코드 정규화
+        clean_ticker = ticker.replace('.KS', '').replace('.KQ', '')
+        
+        url = f"https://finance.naver.com/item/main.naver?code={clean_ticker}"
+        
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            if response.status_code != 200:
+                return None
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # 현재가 파싱
+            price_elem = soup.select_one('.no_today .blind')
+            if not price_elem:
+                return None
+            
+            current_price = int(price_elem.text.replace(',', ''))
+            
+            # 전일 대비 파싱
+            change_elem = soup.select_one('.no_exday .blind')
+            change = 0
+            if change_elem:
+                change_text = change_elem.text.replace(',', '').replace('+', '').replace('-', '')
+                if change_text.isdigit():
+                    change = int(change_text)
+                    # 부호 확인
+                    if '하락' in soup.select_one('.no_exday').text:
+                        change = -change
+            
+            # 등락률 파싱
+            rate_elem = soup.select_one('.no_exday .blind:nth-of-type(2)')
+            change_pct = 0.0
+            if rate_elem:
+                rate_text = rate_elem.text.replace('%', '').replace('+', '').replace('-', '')
+                try:
+                    change_pct = float(rate_text)
+                    if '하락' in soup.select_one('.no_exday').text:
+                        change_pct = -change_pct
+                except:
+                    pass
+            
+            # 전일 종가
+            previous_close = current_price - change
+            
+            # 시가/고가/저가/거래량 파싱
+            today_table = soup.select('.new_totalinfo .date_table tbody tr')
+            
+            시가 = 0
+            고가 = 0
+            저가 = 0
+            거래량 = 0
+            
+            for tr in today_table:
+                th = tr.select_one('th')
+                td = tr.select_one('td')
+                
+                if not th or not td:
+                    continue
+                
+                key = th.text.strip()
+                value = td.text.strip().replace(',', '')
+                
+                try:
+                    if '시가' in key:
+                        시가 = int(value)
+                    elif '고가' in key:
+                        고가 = int(value)
+                    elif '저가' in key:
+                        저가 = int(value)
+                    elif '거래량' in key:
+                        거래량 = int(value)
+                except:
+                    pass
+            
+            # 종목명 파싱
+            name_elem = soup.select_one('.wrap_company h2 a')
+            name = name_elem.text.strip() if name_elem else clean_ticker
+            
+            # 시장 구분 (코스피/코스닥)
+            market = 'KOSPI' if ticker.endswith('.KS') else 'KOSDAQ'
+            
+            result = {
+                'price': current_price,
+                'change': change,
+                'change_pct': change_pct,
+                'volume': 거래량,
+                'high': 고가,
+                'low': 저가,
+                'open': 시가,
+                'previous_close': previous_close,
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'source': 'NAVER',
+                'is_realtime': True,
+                'delay': '실시간 (15초 이내)',
+                'market': market,
+                'company_name': name
+            }
+            
+            logger.info(f"✅ {ticker} 네이버 실시간: {result['price']:,.0f}원 ({result['change_pct']:+.2f}%)")
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ 네이버 크롤링 실패: {e}")
+            return None
+    
+    def get_realtime_price(self, ticker: str) -> Dict:
+        """
+        실시간 가격 조회 (통합)
+        
+        한국 주식 → 네이버 크롤링 (진짜 실시간)
+        미국 주식 → yfinance (15-20분 지연)
+        
+        Returns:
+            {
+                'price': 119100.0,
+                'change': 2100.0,
+                'change_pct': 1.79,
+                'volume': 15010663,
+                'high': 119700.0,
+                'low': 118200.0,
+                'open': 119400.0,
+                'previous_close': 117000.0,
+                'timestamp': '2025-12-29 13:30:00',
+                'source': 'NAVER' 또는 'yfinance',
+                'is_realtime': True/False,
+                'delay': '실시간' 또는 '15-20분 지연'
+            }
+        """
+        logger.info(f"📊 {ticker} 실시간 가격 조회 중...")
+        
+        # 한국 주식 → 네이버
+        if self.is_korean_stock(ticker):
+            naver_data = self.get_naver_realtime(ticker)
+            
+            if naver_data:
+                return naver_data
+            
+            logger.warning(f"⚠️ 네이버 크롤링 실패, yfinance로 폴백")
+        
+        # 미국 주식 또는 네이버 실패 시 → yfinance
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            hist = stock.history(period='2d')
+            
+            if not hist.empty:
+                current = hist.iloc[-1]
+                previous = hist.iloc[-2] if len(hist) > 1 else current
+                
+                current_price = current['Close']
+                previous_close = previous['Close']
+                change = current_price - previous_close
+                change_pct = (change / previous_close) * 100 if previous_close else 0
+                
+                result = {
+                    'price': round(current_price, 2),
+                    'change': round(change, 2),
+                    'change_pct': round(change_pct, 2),
+                    'volume': int(current['Volume']),
+                    'high': round(current['High'], 2),
+                    'low': round(current['Low'], 2),
+                    'open': round(current['Open'], 2),
+                    'previous_close': round(previous_close, 2),
+                    'timestamp': current.name.strftime('%Y-%m-%d %H:%M:%S'),
+                    'source': 'yfinance',
+                    'is_realtime': False,
+                    'delay': '15-20분 지연',
+                    'market': info.get('exchange', 'N/A'),
+                    'company_name': info.get('longName', ticker)
+                }
+                
+                logger.info(f"✅ {ticker} yfinance: ${result['price']:,.2f} ({result['change_pct']:+.2f}%)")
+                return result
+        
+        except Exception as e:
+            logger.error(f"❌ {ticker} 가격 조회 실패: {e}")
+        
+        # 완전 실패 시 빈 데이터
+        return {
+            'price': 0,
+            'change': 0,
+            'change_pct': 0,
+            'volume': 0,
+            'high': 0,
+            'low': 0,
+            'open': 0,
+            'previous_close': 0,
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'source': 'N/A',
+            'is_realtime': False,
+            'delay': 'N/A',
+            'market': 'N/A',
+            'company_name': ticker
+        }
+    
+    def get_unemployment_data(self, country: str = 'KR') -> Dict:
+        """
+        실업률 데이터 조회
+        
+        Args:
+            country: 'KR' (한국) 또는 'US' (미국)
+        
+        Returns:
+            {
+                'rate': 3.0,
+                'date': '2025-12',
+                'trend': 'stable',  # up/down/stable
+                'change': 0.0,
+                'previous': 3.0,
+                'source': '통계청 KOSIS',
+                'country': 'KR'
+            }
+        """
+        if not self.unemployment_fetcher:
+            logger.warning("⚠️ 실업률 데이터 사용 불가")
+            return None
+        
+        try:
+            data = self.unemployment_fetcher.get_unemployment_data(country)
+            logger.info(f"✅ {country} 실업률: {data['rate']}% ({data['date']})")
+            return data
+        except Exception as e:
+            logger.error(f"❌ 실업률 조회 오류: {e}")
+            return None
+    
+    def get_stock_data(self, ticker: str, start_date: str = "2020-01-01", end_date: Optional[str] = None) -> pd.DataFrame:
+        """
+        주가 데이터 가져오기 (기존 yfinance 유지)
+        
+        Args:
+            ticker: 종목 코드 (예: "TSLA", "005930.KS")
+            start_date: 시작일 (YYYY-MM-DD)
+            end_date: 종료일 (YYYY-MM-DD), None이면 오늘
+        
+        Returns:
+            DataFrame with OHLCV data
+        """
+        if end_date is None:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+        
+        logger.info(f"📊 {ticker} 히스토리 데이터 수집 중... ({start_date} ~ {end_date})")
+        
+        try:
+            stock = yf.Ticker(ticker)
+            df = stock.history(start=start_date, end=end_date)
+            
+            if df.empty:
+                logger.warning(f"⚠️ {ticker} 데이터 없음")
+                return pd.DataFrame()
+            
+            # 월별 집계용 컬럼 추가
+            df['Year'] = df.index.year
+            df['Month'] = df.index.month
+            
+            logger.info(f"✅ {ticker} 데이터 수집 완료: {len(df)} 행")
+            return df
+        
+        except Exception as e:
+            logger.error(f"❌ {ticker} 데이터 수집 오류: {e}")
+            return pd.DataFrame()
+    
+    def get_stock_info(self, ticker: str) -> Dict:
+        """종목 기본 정보 (기존 유지)"""
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            
+            return {
+                'name': info.get('longName', ticker),
+                'sector': info.get('sector', 'N/A'),
+                'industry': info.get('industry', 'N/A'),
+                'country': info.get('country', 'N/A'),
+                'marketCap': info.get('marketCap', 0),
+                'currency': info.get('currency', 'USD'),
+                'description': info.get('longBusinessSummary', '')
+            }
+        except Exception as e:
+            logger.error(f"❌ {ticker} 정보 수집 오류: {e}")
+            return {'name': ticker}
+    
+    def get_monthly_summary(self, df: pd.DataFrame) -> pd.DataFrame:
+        """월별 요약 데이터 (기존 유지)"""
+        if df.empty:
+            return pd.DataFrame()
+        
+        monthly = df.groupby(['Year', 'Month']).agg({
+            'Open': 'first',
+            'High': 'max',
+            'Low': 'min',
+            'Close': 'last',
+            'Volume': 'sum'
+        }).reset_index()
+        
+        # 수익률 계산
+        monthly['Returns'] = monthly['Close'].pct_change() * 100
+        monthly['Date'] = pd.to_datetime(monthly[['Year', 'Month']].assign(DAY=1))
+        
+        return monthly
+    
+    def search_news(self, query: str, days_back: int = 30) -> List[Dict]:
+        """
+        뉴스 검색 (기존 유지)
+        
+        Args:
+            query: 검색어
+            days_back: 며칠 전까지
+        
+        Returns:
+            뉴스 리스트
+        """
+        # 기존 News API 코드 유지
+        # TODO: 구현 필요 시 기존 코드 복사
+        logger.warning("⚠️ search_news() 기능은 기존 코드를 유지하세요")
+        return []
+
+
+# 테스트 코드
+if __name__ == "__main__":
+    print("\n" + "="*70)
+    print("🚀 통합 데이터 수집 모듈 테스트")
+    print("="*70 + "\n")
+    
+    fetcher = StockDataFetcher()
+    
+    # 1. 한국 주식 (삼성전자)
+    print("📊 1. 삼성전자 실시간 가격")
+    print("-" * 70)
+    samsung = fetcher.get_realtime_price('005930.KS')
+    print(f"종목명: {samsung['company_name']}")
+    print(f"현재가: {samsung['price']:,.0f}원")
+    print(f"전일대비: {samsung['change']:+,.0f}원 ({samsung['change_pct']:+.2f}%)")
+    print(f"거래량: {samsung['volume']:,}주")
+    print(f"시가/고가/저가: {samsung['open']:,.0f} / {samsung['high']:,.0f} / {samsung['low']:,.0f}")
+    print(f"데이터 출처: {samsung['source']} ({samsung['delay']})")
+    print(f"업데이트: {samsung['timestamp']}\n")
+    
+    # 2. 미국 주식 (애플)
+    print("📊 2. 애플 실시간 가격")
+    print("-" * 70)
+    apple = fetcher.get_realtime_price('AAPL')
+    print(f"종목명: {apple['company_name']}")
+    print(f"현재가: ${apple['price']:,.2f}")
+    print(f"전일대비: ${apple['change']:+,.2f} ({apple['change_pct']:+.2f}%)")
+    print(f"거래량: {apple['volume']:,}주")
+    print(f"데이터 출처: {apple['source']} ({apple['delay']})")
+    print(f"업데이트: {apple['timestamp']}\n")
+    
+    # 3. 실업률
+    print("📊 3. 실업률 데이터")
+    print("-" * 70)
+    kr_unemployment = fetcher.get_unemployment_data('KR')
+    us_unemployment = fetcher.get_unemployment_data('US')
+    
+    if kr_unemployment:
+        print(f"🇰🇷 한국 실업률: {kr_unemployment['rate']}% ({kr_unemployment['date']})")
+        print(f"   전월 대비: {kr_unemployment['change']:+.2f}%p ({kr_unemployment['trend']})")
+        print(f"   출처: {kr_unemployment['source']}")
+    
+    if us_unemployment:
+        print(f"🇺🇸 미국 실업률: {us_unemployment['rate']}% ({us_unemployment['date']})")
+        print(f"   전월 대비: {us_unemployment['change']:+.2f}%p ({us_unemployment['trend']})")
+        print(f"   출처: {us_unemployment['source']}")
+    
+    print("\n" + "="*70)
+    print("✅ 테스트 완료!")
+    print("="*70)

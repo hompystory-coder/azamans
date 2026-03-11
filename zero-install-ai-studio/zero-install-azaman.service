@@ -1,0 +1,20 @@
+[Unit]
+Description=Zero Install AI Studio - Azaman Instance (Port 8081)
+After=network.target
+
+[Service]
+Type=simple
+User=azamans
+WorkingDirectory=/home/azamans/webapp/zero-install-ai-studio
+Environment="NODE_ENV=production"
+Environment="PORT=8081"
+Environment="NEXT_CONFIG_FILE=next.config.azaman.js"
+ExecStart=/usr/bin/npm start -- -p 8081
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=zero-install-azaman
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=YouTube Trend Analyzer Frontend Server
+After=network.target
+
+[Service]
+Type=simple
+User=azamans
+WorkingDirectory=/home/azamans/webapp/youtube-trend-analyzer/frontend
+Environment="NODE_ENV=production"
+ExecStart=/usr/bin/npm run dev
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=youtube-trend-frontend
+
+[Install]
+WantedBy=multi-user.target
